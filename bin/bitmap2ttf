@@ -32,8 +32,11 @@ def bitmap2ttf(filename):
     font.selection.select(('ranges', None), 48, 57)
     print "*** autotracing..."
 
-    for glyph in (font.selection):
-        print "***     autotracing %d ..." % glyph
+    count = len(font)
+    index = 0
+    for glyph in font:
+        index = index + 1
+        print "***     autotracing %s (%d of %d) ..." % (glyph, index, count)
         font[glyph].autoTrace()
 
     (basename, junk) = os.path.splitext(filename)
