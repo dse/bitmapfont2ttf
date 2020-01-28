@@ -1,0 +1,57 @@
+#!/usr/bin/env fontforge
+# -*- mode: python; coding: utf-8 -*-
+
+import fontforge
+import os
+import shutil
+import sys
+
+AUTOTRACE_NAME = 'exact-autotrace-c'
+
+# thanks https://stackoverflow.com/questions/5226958/which-equivalent-function-in-python
+def which(file_name):
+    for path in os.environ["PATH"].split(os.pathsep):
+        full_path = os.path.join(path, file_name)
+        if os.path.exists(full_path) and os.access(full_path, os.X_OK):
+            print "*** " + full_path
+            return full_path
+    return None
+
+def bitmap2ttf(filename):
+
+    # Work around an issue where importBitmaps segfaults if you only
+    # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
+    # fine.
+    if filename == os.path.basename(filename):
+        filename = os.path.join('.', filename)
+
+    font = fontforge.font()
+    print "*** importing bitmaps..."
+    font.importBitmaps(filename, True)
+    print "*** selecting..."
+    font.selection.select(('ranges', None), 48, 57)
+    print "*** autotracing..."
+
+    for glyph in (font.selection):
+        print "***     autotracing %d ..." % glyph
+        font[glyph].autoTrace()
+
+    (basename, junk) = os.path.splitext(filename)
+    sfdname = basename + '.sfd'
+    ttfname = basename + '.ttf'
+    font.save(sfdname)
+    font.generate(ttfname)
+
+autotrace = which(AUTOTRACE_NAME)
+if autotrace == None:
+    sys.stderr.write('no ' + AUTOTRACE_NAME + ' program found\n')
+    exit(1)
+
+os.environ['AUTOTRACE'] = autotrace
+print 'AUTOTRACE=%s' % os.environ['AUTOTRACE']
+
+fontforge.setPrefs('PreferPotrace', False)
+fontforge.setPrefs('AutotraceArgs', '')
+
+for filename in (sys.argv[1:]):
+    bitmap2ttf(filename)
