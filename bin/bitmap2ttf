@@ -13,7 +13,7 @@ def which(file_name):
     for path in os.environ["PATH"].split(os.pathsep):
         full_path = os.path.join(path, file_name)
         if os.path.exists(full_path) and os.access(full_path, os.X_OK):
-            print "*** " + full_path
+            print("*** " + full_path)
             return full_path
     return None
 
@@ -26,18 +26,15 @@ def bitmap2ttf(filename):
         filename = os.path.join('.', filename)
 
     font = fontforge.font()
-    print "*** importing bitmaps..."
+    print("*** importing bitmaps...")
     font.importBitmaps(filename, True)
-    print "*** selecting..."
+    print("*** selecting...")
     font.selection.select(('ranges', None), 48, 57)
-    print "*** autotracing..."
+    print("*** autotracing...")
 
-    count = len(font)
-    index = 0
-    for glyph in font:
-        index = index + 1
-        print "***     autotracing %s (%d of %d) ..." % (glyph, index, count)
-        font[glyph].autoTrace()
+    for glyph in font.glyphs():
+        print("***     autotracing %s ..." % glyph)
+        glyph.autoTrace()
 
     (basename, junk) = os.path.splitext(filename)
     sfdname = basename + '.sfd'
@@ -51,7 +48,7 @@ if autotrace == None:
     exit(1)
 
 os.environ['AUTOTRACE'] = autotrace
-print 'AUTOTRACE=%s' % os.environ['AUTOTRACE']
+print('AUTOTRACE=%s' % os.environ['AUTOTRACE'])
 
 fontforge.setPrefs('PreferPotrace', False)
 fontforge.setPrefs('AutotraceArgs', '')
