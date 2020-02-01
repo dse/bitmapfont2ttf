@@ -17,7 +17,7 @@ def which(file_name):
             return full_path
     return None
 
-def bitmap2ttf(filename):
+def bitmapfont2ttf(filename):
 
     # Work around an issue where importBitmaps segfaults if you only
     # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
@@ -54,4 +54,4 @@ fontforge.setPrefs('PreferPotrace', False)
 fontforge.setPrefs('AutotraceArgs', '')
 
 for filename in (sys.argv[1:]):
-    bitmap2ttf(filename)
+    bitmapfont2ttf(filename)
