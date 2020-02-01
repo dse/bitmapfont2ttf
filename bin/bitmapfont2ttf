@@ -21,7 +21,7 @@ def bitmapfont2ttf(filename):
 
     # Work around an issue where importBitmaps segfaults if you only
     # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
-    # fine.
+    # fine whereas 'foo.pcf' does not.
     if filename == os.path.basename(filename):
         filename = os.path.join('.', filename)
 
