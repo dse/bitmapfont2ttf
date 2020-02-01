@@ -5,8 +5,7 @@ import fontforge
 import os
 import shutil
 import sys
-
-AUTOTRACE_NAME = 'exact-autotrace-c'
+import argparse
 
 # thanks https://stackoverflow.com/questions/5226958/which-equivalent-function-in-python
 def which(file_name):
@@ -17,41 +16,102 @@ def which(file_name):
             return full_path
     return None
 
-def bitmapfont2ttf(filename):
+class BitmapFont2TTF:
 
-    # Work around an issue where importBitmaps segfaults if you only
-    # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
-    # fine whereas 'foo.pcf' does not.
-    if filename == os.path.basename(filename):
-        filename = os.path.join('.', filename)
+    def __init__(self):
+        self.saveSFD = True
+        self.saveTTF = True
+        self.AUTOTRACE_NAME = 'exact-autotrace-c'
+        self.autotrace = which(self.AUTOTRACE_NAME)
+        if self.autotrace == None:
+            sys.stderr.write('no ' + self.AUTOTRACE_NAME + ' program found\n')
+            exit(1)
+        os.environ['AUTOTRACE'] = self.autotrace
+        fontforge.setPrefs('PreferPotrace', False)
+        fontforge.setPrefs('AutotraceArgs', '')
 
-    font = fontforge.font()
-    print("*** importing bitmaps...")
-    font.importBitmaps(filename, True)
-    print("*** selecting...")
-    font.selection.select(('ranges', None), 48, 57)
-    print("*** autotracing...")
+    def bitmapfont2ttf(self, filename):
 
-    for glyph in font.glyphs():
-        print("***     autotracing %s ..." % glyph)
-        glyph.autoTrace()
+        # Work around an issue where importBitmaps segfaults if you only
+        # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
+        # fine whereas 'foo.pcf' does not.
+        if filename == os.path.basename(filename):
+            filename = os.path.join('.', filename)
 
-    (basename, junk) = os.path.splitext(filename)
-    sfdname = basename + '.sfd'
-    ttfname = basename + '.ttf'
-    font.save(sfdname)
-    font.generate(ttfname)
+        font = fontforge.font()
+        print("*** importing bitmaps...")
+        font.importBitmaps(filename, True)
 
-autotrace = which(AUTOTRACE_NAME)
-if autotrace == None:
-    sys.stderr.write('no ' + AUTOTRACE_NAME + ' program found\n')
-    exit(1)
+        # FamilyName: Courier
+        # FontName: CourierBoldOblique
+        # FullName: Courier Bold Oblique
+        # ItalicAngle: 0
+        # Weight: Bold
 
-os.environ['AUTOTRACE'] = autotrace
-print('AUTOTRACE=%s' % os.environ['AUTOTRACE'])
+        # FontName: CharterBoldItalic
+        # FullName: Bitstream Charter Black Italic
+        # FamilyName: Charter
+        # Weight: Bold
 
-fontforge.setPrefs('PreferPotrace', False)
-fontforge.setPrefs('AutotraceArgs', '')
+        if self.args != None:
+            if self.args.copyright != None:
+                font.copyright = self.args.copyright
+            if self.args.comment != None:
+                font.comment = self.args.comment
+            if self.args.font_name != None:
+                font.fontname = self.args.font_name
+            if self.args.family_name != None:
+                font.familyname = self.args.family_name
+            if self.args.full_name != None:
+                font.fullname = self.args.full_name
+            if self.args.version != None:
+                font.version = self.args.version
+            if self.args.weight != None:
+                font.weight = self.args.weight
+            if self.args.italic_angle != None:
+                font.italicangle = self.args.italic_angle
 
-for filename in (sys.argv[1:]):
-    bitmapfont2ttf(filename)
+        print("*** selecting...")
+        font.selection.select(('ranges', None), 48, 57)
+        print("*** autotracing...")
+
+        glyphCount = 0
+        for glyph in font.glyphs():
+            glyphCount += 1
+
+        glyphIndex = 0
+        for glyph in font.glyphs():
+            glyphIndex += 1
+            print("***     [%d/%d] autotracing %s ..." % (glyphIndex, glyphCount, glyph))
+            glyph.autoTrace()
+
+        (basename, junk) = os.path.splitext(filename)
+
+        if self.saveTTF:
+            ttfname = basename + '.ttf'
+            font.generate(ttfname)
+
+        if self.saveSFD:
+            sfdname = basename + '.sfd'
+            font.save(sfdname)
+
+bf2ttf = BitmapFont2TTF()
+
+parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
+parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
+parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
+parser.add_argument("--family-name",  help = "assign family name, e.g., 'Comic Sans'")
+parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSansBoldItalic'")
+parser.add_argument("--full-name",    help = "assign full name, e.g., 'Comic Sans Bold Italic'")
+parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
+parser.add_argument("--weight",       help = "assign font weight, e.g., 'Regular'")
+parser.add_argument("--italic-angle", type = float, help = "assign font italic angle, e.g., -22.5")
+parser.add_argument("filename", nargs = '*')
+
+args = parser.parse_args()
+vars = vars(args)
+print(args.copyright)
+print(vars['copyright'])
+
+for filename in args.filename:
+    bf2ttf.bitmapfont2ttf(filename)
