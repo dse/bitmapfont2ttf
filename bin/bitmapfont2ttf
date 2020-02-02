@@ -104,14 +104,12 @@ parser.add_argument("--family-name",  help = "assign family name, e.g., 'Comic S
 parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSansBoldItalic'")
 parser.add_argument("--full-name",    help = "assign full name, e.g., 'Comic Sans Bold Italic'")
 parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
-parser.add_argument("--weight",       help = "assign font weight, e.g., 'Regular'")
+parser.add_argument("--weight",       help = "assign font weight, e.g., 'Regular', 'Bold'")
 parser.add_argument("--italic-angle", type = float, help = "assign font italic angle, e.g., -22.5")
 parser.add_argument("filename", nargs = '*')
 
 args = parser.parse_args()
-vars = vars(args)
-print(args.copyright)
-print(vars['copyright'])
+bf2ttf.args = args
 
 for filename in args.filename:
     bf2ttf.bitmapfont2ttf(filename)
