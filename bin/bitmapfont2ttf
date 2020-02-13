@@ -218,7 +218,20 @@ class BitmapFont2TTF:
         string = string.replace('{fullName}',   str(self.formatDict['fullName']))
         return string
 
-    def bitmapfont2ttf(self, filename, destfilename = None):
+    def bitmapfont2ttf(self, filename, destfilename = None, args = None):
+
+        nearestMultipleOfThree = False
+        nextMultipleOfThree = False
+
+        if args != None:
+            if filename == None:
+                filename = args.filename
+            if destfilename == None:
+                filename = args.destfilename
+            if args.nearest_multiple_of_three != None:
+                nearestMultipleOfThree = args.nearest_multiple_of_three
+            if args.next_multiple_of_three != None:
+                nextMultipleOfThree = args.next_multiple_of_three
 
         # Work around an issue where importBitmaps segfaults if you only
         # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
@@ -235,23 +248,38 @@ class BitmapFont2TTF:
         else:
             os.environ['AUTOTRACE_VERBOSE'] = str(self.args.verbose)
 
-        # compute bitmap pixel size
+        # get the font's bitmap pixel size
         font = fontforge.font()
         sys.stderr.write("*** getting bitmap pixel size...\n")
         retval = font.importBitmaps(filename, False)
         (pixelSize,) = font.bitmapSizes
 
+        newPixelSize = pixelSize
+        if nextMultipleOfThree:
+            newPixelSize = 3 * ((pixelSize + 2) / 3)
+        elif nearestMultipleOfThree:
+            newPixelSize = 3 * ((pixelSize + 1) / 3)
+
         font = fontforge.font()
         sys.stderr.write("*** importing bitmaps...\n")
         retval = font.importBitmaps(filename, True)
 
-        # for monospace fonts, try to get actual width x height
-        # may have to convert from DWIDTH for non-monospace fonts
+        # for monospace fonts, try to get actual width x height.
+        # may have to convert from DWIDTH for non-monospace fonts.
+        # fontforge won't provide us with bdf info so we have to get it from there ourselves.
         swidth = None
+        ascent = None
+        descent = None
         if (re.search(r'\.bdf$', filename)):
             bdf = MyBDF(filename)
             if (bdf.spacing == 'M' or bdf.spacing == 'C') and bdf.hasBoundingBox:
-                swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
+                swidth  = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
+
+                # default ascent/descent is 800/200 which isn't aligned
+                ascent  = int(0.5 + 1.0 * font.em * (bdf.boundingBoxY + bdf.boundingBoxYOffset) / bdf.boundingBoxY)
+                descent = int(0.5 + 1.0 * font.em * (-bdf.boundingBoxYOffset) / bdf.boundingBoxY)
+                font.ascent = ascent
+                font.descent = descent
 
         glyphCount = 0
         for glyph in font.glyphs():
@@ -340,10 +368,16 @@ parser.add_argument("--weight",        help = "assign font weight, e.g., 'Regula
 parser.add_argument("--italic-angle",  type = float, help = "assign font italic angle, e.g., -22.5")
 parser.add_argument("--save-sfd",      help = "keep .sfd file (for FontForge)", action = "store_true")
 parser.add_argument("--verbose", "-v", action = 'count', help = "increase output verbosity")
+parser.add_argument("--nearest-multiple-of-three")
+parser.add_argument("--next-multiple-of-three")
 parser.add_argument("filename")
 parser.add_argument("destfilename", nargs = '?')
 
 args = parser.parse_args()
 bf2ttf.args = args
 
-bf2ttf.bitmapfont2ttf(filename = args.filename, destfilename = args.destfilename)
+bf2ttf.bitmapfont2ttf(
+    filename = args.filename,
+    destfilename = args.destfilename,
+    args = args
+)
