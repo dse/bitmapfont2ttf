@@ -66,6 +66,7 @@ class MyBDFChar:
 class MyBDF:
     def __init__(self, filename = None):
         self.pointSize = None
+        self.pointSize2 = None
         self.xRes = None
         self.yRes = None
         self.boundingBoxX = None
@@ -73,7 +74,6 @@ class MyBDF:
         self.boundingBoxXOffset = None
         self.boundingBoxYOffset = None
         self.pixelSize = None
-        self.pointSize = None
         self.resolutionX = None
         self.resolutionY = None
         self.spacing = None
@@ -211,29 +211,11 @@ class BitmapFont2TTF:
         fontforge.setPrefs('PreferPotrace', False)
         fontforge.setPrefs('AutotraceArgs', '')
 
-    def formatString(self, string):
-        string = string.replace('{pixelSize}',  str(self.formatDict['pixelSize']))
-        string = string.replace('{fontName}',   str(self.formatDict['fontName']))
-        string = string.replace('{familyName}', str(self.formatDict['familyName']))
-        string = string.replace('{fullName}',   str(self.formatDict['fullName']))
-        return string
-
     def bitmapfont2ttf(self, filename, destfilename = None, args = None):
-
-        bdf = None
-        swidth = None
-        ascent = None
-        descent = None
-        ascentPx = None
-        descentPx = None
-        scale = None
-        scaleTransform = None
-        namedPixelSize = None
         nearestMultipleOfFour = False
         nextMultipleOfFour = False
         asciiOnly = False
         sfdDir = None
-
         if args != None:
             if filename == None:
                 filename = args.filename
@@ -248,76 +230,76 @@ class BitmapFont2TTF:
             if args.sfd_dir != None:
                 sfdDir = args.sfd_dir
 
-        # Work around an issue where importBitmaps segfaults if you only
-        # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
-        # fine whereas 'foo.pcf' does not.
+        # FILENAMES
+
         if filename == os.path.basename(filename):
+            # Work around an issue where importBitmaps segfaults if you only
+            # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
+            # fine whereas 'foo.pcf' does not.
             filename = os.path.join('.', filename)
+        if destfilename == None:
+            (rootdestfilename, junk) = os.path.splitext(filename)
+            destfilename = rootdestfilename + '.ttf'
+        else:
+            (rootdestfilename, junk) = os.path.splitext(destfilename)
+        sfdfilename = rootdestfilename + '.sfd'
+        if sfdDir != None:
+            sfdfilename = sfdDir + '/' + os.path.basename(sfdfilename)
+
+        # VERBOSITY
 
         if self.args.verbose == None:
             self.args.verbose = 0
-
         if self.args.verbose == 0:
             if 'AUTOTRACE_VERBOSE' in os.environ:
                 del os.environ['AUTOTRACE_VERBOSE']
         else:
             os.environ['AUTOTRACE_VERBOSE'] = str(self.args.verbose)
 
-        if (re.search(r'\.bdf$', filename)):
-            bdf = MyBDF(filename)
+        # Since FontForge doesn't give us info or properties from the
+        # BDF, we get them ourselves.  And we assume we're pulling a
+        # BDF instead of, say, a PCF file.
 
-        font = fontforge.font()
-        retval = font.importBitmaps(filename, False)
-        (namedPixelSize,) = font.bitmapSizes
+        if not re.search(r'\.bdf$', filename):
+            raise Exception("BDF required")
+        bdf = MyBDF(filename)
 
-        if bdf != None and bdf.hasBoundingBox:
-            pixelSize = bdf.boundingBoxY
-        else:
-            pixelSize = namedPixelSize
-
-        if bdf != None:
-            font = fontforge.font()
-            if (bdf.spacing == 'M' or bdf.spacing == 'C') and bdf.hasBoundingBox:
-                swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
-            if bdf.hasBoundingBox:
-                ascentPx = bdf.boundingBoxY + bdf.boundingBoxYOffset
-                descentPx = -bdf.boundingBoxYOffset
-                ascent = int(0.5 + 1.0 * font.em * ascentPx / pixelSize)
-                descent = int(0.5 + 1.0 * font.em * descentPx / pixelSize)
-
-        newPixelSize = pixelSize
+        pixelSize = bdf.pixelSize
+        finalPixelSize = pixelSize
         if nextMultipleOfFour:
-            newPixelSize = 4 * int((pixelSize + 3) / 4)
-            sys.stderr.write("    pixel size (next): %s => %s\n" % (pixelSize, newPixelSize))
+            finalPixelSize = 4 * int((pixelSize + 3) / 4)
         elif nearestMultipleOfFour:
-            newPixelSize = 4 * int((pixelSize + 2) / 4)
-            sys.stderr.write("    pixel size (nearest): %s => %s\n" % (pixelSize, newPixelSize))
+            finalPixelSize = 4 * int((pixelSize + 2) / 4)
 
         font = fontforge.font()
-        if ascent != None and descent != None:
-            font.ascent = ascent
-            font.descent = descent
-        sys.stderr.write("*** importing bitmaps...\n")
-        retval = font.importBitmaps(filename, True)
+        if (bdf.spacing == 'M' or bdf.spacing == 'C'):
+            swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / pixelSize)
+        else:
+            swidth = None
+        descentPx = pixelSize - bdf.ascent
+        ascentPx = bdf.ascent
 
-        if newPixelSize != pixelSize:
-            # increased pixel size scales DOWN; decreased pixel size scales UP
-            scale = 1.0 * pixelSize / newPixelSize
-            sys.stderr.write("    scaling by %f\n" % scale)
-            scaleTransform = psMat.scale(scale)
-            if ascentPx != None and descentPx != None:
-                if newPixelSize == pixelSize + 2:
-                    ascentPx += 1
-                    descentPx += 1
-                elif newPixelSize == pixelSize + 1:
-                    descentPx += 1
-                elif newPixelSize == pixelSize - 1:
-                    ascentPx -= 1
-                ascent = int(0.5 + 1.0 * font.em * ascentPx / newPixelSize)
-                descent = int(0.5 + 1.0 * font.em * descentPx / newPixelSize)
-                font.ascent = ascent
-                font.descent = descent
-                sys.stderr.write("    ascent = %d; descent = %d\n" % (font.ascent, font.descent))
+        # must be specified before bitmap import for baseline alignment
+        em = font.em
+        font.ascent  = int(0.5 + 1.0 * em * ascentPx  / pixelSize)
+        font.descent = int(0.5 + 1.0 * em * descentPx / pixelSize)
+
+        font.importBitmaps(filename, True)
+
+        if finalPixelSize != pixelSize:
+            if finalPixelSize == pixelSize + 3:
+                ascentPx += 2
+                descentPx += 1
+            elif finalPixelSize == pixelSize + 2:
+                ascentPx += 1
+                descentPx += 1
+            elif finalPixelSize == pixelSize + 1:
+                ascentPx += 1
+            elif finalPixelSize == pixelSize - 1:
+                descentPx -= 1
+            em = font.em
+            font.ascent  = int(0.5 + 1.0 * em * ascentPx  / finalPixelSize)
+            font.descent = int(0.5 + 1.0 * em * descentPx / finalPixelSize)
 
         glyphCount = 0
         for glyph in font.glyphs():
@@ -325,28 +307,21 @@ class BitmapFont2TTF:
                 continue
             glyphCount += 1
 
-        self.formatDict = {}
-        self.formatDict['pixelSize']    = namedPixelSize
-        self.formatDict['newPixelSize'] = newPixelSize
-        self.formatDict['fontName']     = font.fontname
-        self.formatDict['familyName']   = font.familyname
-        self.formatDict['fullName']     = font.fullname
-
         if self.args != None:
             if self.args.copyright != None:
-                font.copyright = self.formatString(self.args.copyright)
+                font.copyright = self.args.copyright
             if self.args.comment != None:
-                font.comment = self.formatString(self.args.comment)
+                font.comment = self.args.comment
             if self.args.font_name != None:
-                font.fontname = self.formatString(self.args.font_name)
+                font.fontname = self.args.font_name
             if self.args.family_name != None:
-                font.familyname = self.formatString(self.args.family_name)
+                font.familyname = self.args.family_name
             if self.args.full_name != None:
-                font.fullname = self.formatString(self.args.full_name)
+                font.fullname = self.args.full_name
             if self.args.version != None:
-                font.version = self.formatString(self.args.version)
+                font.version = self.args.version
             if self.args.weight != None:
-                font.weight = self.formatString(self.args.weight)
+                font.weight = self.args.weight
             if self.args.italic_angle != None:
                 font.italicangle = self.args.italic_angle
 
@@ -366,27 +341,11 @@ class BitmapFont2TTF:
             glyph.simplify()
             if swidth != None:
                 glyph.width = swidth
-            if scaleTransform != None:
-                glyph.transform(scaleTransform)
-
-        if destfilename == None:
-            (rootdestfilename, junk) = os.path.splitext(filename)
-            destfilename = rootdestfilename + '.ttf'
-        else:
-            (rootdestfilename, junk) = os.path.splitext(destfilename)
-
-        sfdfilename = rootdestfilename + '.sfd'
-        if sfdDir != None:
-            sfdfilename = sfdDir + '/' + os.path.basename(sfdfilename)
-
-        destfilename = destfilename.replace('{pixelSize}', str(pixelSize))
-
-        destfilename = self.formatString(destfilename)
-        sfdfilename = self.formatString(sfdfilename)
+            if finalPixelSize != pixelSize:
+                glyph.transform(psMat.scale(1.0 * pixelSize / finalPixelSize))
 
         font.generate(destfilename)
         sys.stderr.write("*** Wrote %s\n" % destfilename)
-
         if self.args.save_sfd:
             font.save(sfdfilename)
             sys.stderr.write("*** Wrote %s\n" % sfdfilename)
