@@ -220,8 +220,18 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self, filename, destfilename = None, args = None):
 
+        bdf = None
+        swidth = None
+        ascent = None
+        descent = None
+        ascentPx = None
+        descentPx = None
+        scale = None
+        scaleTransform = None
+
         nearestMultipleOfThree = False
         nextMultipleOfThree = False
+        asciiOnly = False
 
         if args != None:
             if filename == None:
@@ -232,6 +242,8 @@ class BitmapFont2TTF:
                 nearestMultipleOfThree = args.nearest_multiple_of_three
             if args.next_multiple_of_three != None:
                 nextMultipleOfThree = args.next_multiple_of_three
+            if args.ascii_only != None:
+                asciiOnly = args.ascii_only
 
         # Work around an issue where importBitmaps segfaults if you only
         # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
@@ -248,11 +260,25 @@ class BitmapFont2TTF:
         else:
             os.environ['AUTOTRACE_VERBOSE'] = str(self.args.verbose)
 
-        # get the font's bitmap pixel size
-        font = fontforge.font()
-        sys.stderr.write("*** getting bitmap pixel size...\n")
-        retval = font.importBitmaps(filename, False)
-        (pixelSize,) = font.bitmapSizes
+        if (re.search(r'\.bdf$', filename)):
+            bdf = MyBDF(filename)
+
+        if bdf != None and bdf.hasBoundingBox:
+            pixelSize = bdf.boundingBoxY
+        else:
+            font = fontforge.font()
+            retval = font.importBitmaps(filename, False)
+            (pixelSize,) = font.bitmapSizes
+
+        if bdf != None:
+            font = fontforge.font()
+            if (bdf.spacing == 'M' or bdf.spacing == 'C') and bdf.hasBoundingBox:
+                swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
+            if bdf.hasBoundingBox:
+                ascentPx = bdf.boundingBoxY + bdf.boundingBoxYOffset
+                descentPx = -bdf.boundingBoxYOffset
+                ascent = int(0.5 + 1.0 * font.em * ascentPx / pixelSize)
+                descent = int(0.5 + 1.0 * font.em * descentPx / pixelSize)
 
         newPixelSize = pixelSize
         if nextMultipleOfThree:
@@ -263,32 +289,11 @@ class BitmapFont2TTF:
             sys.stderr.write("    pixel size (nearest): %s => %s\n" % (pixelSize, newPixelSize))
 
         font = fontforge.font()
+        if ascent != None and descent != None:
+            font.ascent = ascent
+            font.descent = descent
         sys.stderr.write("*** importing bitmaps...\n")
         retval = font.importBitmaps(filename, True)
-
-        # for monospace fonts, try to get actual width x height.
-        # may have to convert from DWIDTH for non-monospace fonts.
-        # fontforge won't provide us with bdf info so we have to get it from there ourselves.
-        swidth = None
-        ascent = None
-        descent = None
-        ascentPx = None
-        descentPx = None
-        scale = None
-        scaleTransform = None
-
-        if (re.search(r'\.bdf$', filename)):
-            bdf = MyBDF(filename)
-            if (bdf.spacing == 'M' or bdf.spacing == 'C') and bdf.hasBoundingBox:
-                swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
-
-                # default ascent/descent is 800/200 which isn't aligned with pixel boundaries
-                ascentPx = bdf.boundingBoxY + bdf.boundingBoxYOffset
-                descentPx = -bdf.boundingBoxYOffset
-                ascent = int(0.5 + 1.0 * font.em * ascentPx / pixelSize)
-                descent = int(0.5 + 1.0 * font.em * descentPx / pixelSize)
-                font.ascent = ascent
-                font.descent = descent
 
         if newPixelSize != pixelSize:
             # increased pixel size scales DOWN; decreased pixel size scales UP
@@ -311,6 +316,8 @@ class BitmapFont2TTF:
 
         glyphCount = 0
         for glyph in font.glyphs():
+            if asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
+                continue
             glyphCount += 1
 
         self.formatDict = {}
@@ -342,6 +349,8 @@ class BitmapFont2TTF:
 
         glyphIndex = 0
         for glyph in font.glyphs():
+            if asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
+                continue
             glyphIndex += 1
             if self.args.verbose >= 2:
                 sys.stderr.write("*** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
@@ -390,6 +399,7 @@ parser.add_argument("--save-sfd",      help = "keep .sfd file (for FontForge)", 
 parser.add_argument("--verbose", "-v", action = 'count', help = "increase output verbosity")
 parser.add_argument("--nearest-multiple-of-three", action = 'store_true')
 parser.add_argument("--next-multiple-of-three", action = 'store_true')
+parser.add_argument("--ascii-only", action = 'store_true')
 parser.add_argument("filename")
 parser.add_argument("destfilename", nargs = '?')
 
