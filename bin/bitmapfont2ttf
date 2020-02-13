@@ -320,17 +320,6 @@ class BitmapFont2TTF:
         self.formatDict['familyName']   = font.familyname
         self.formatDict['fullName']     = font.fullname
 
-        # FamilyName: Courier
-        # FontName: CourierBoldOblique
-        # FullName: Courier Bold Oblique
-        # ItalicAngle: 0
-        # Weight: Bold
-
-        # FontName: CharterBoldItalic
-        # FullName: Bitstream Charter Black Italic
-        # FamilyName: Charter
-        # Weight: Bold
-
         if self.args != None:
             if self.args.copyright != None:
                 font.copyright = self.formatString(self.args.copyright)
