@@ -232,6 +232,7 @@ class BitmapFont2TTF:
         nearestMultipleOfThree = False
         nextMultipleOfThree = False
         asciiOnly = False
+        sfdDir = None
 
         if args != None:
             if filename == None:
@@ -244,6 +245,8 @@ class BitmapFont2TTF:
                 nextMultipleOfThree = args.next_multiple_of_three
             if args.ascii_only != None:
                 asciiOnly = args.ascii_only
+            if args.sfd_dir != None:
+                sfdDir = args.sfd_dir
 
         # Work around an issue where importBitmaps segfaults if you only
         # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
@@ -373,6 +376,8 @@ class BitmapFont2TTF:
             (rootdestfilename, junk) = os.path.splitext(destfilename)
 
         sfdfilename = rootdestfilename + '.sfd'
+        if sfdDir != None:
+            sfdfilename = sfdDir + '/' + os.path.basename(sfdfilename)
 
         destfilename = destfilename.replace('{pixelSize}', str(pixelSize))
 
@@ -402,6 +407,7 @@ parser.add_argument("--verbose", "-v", action = 'count', help = "increase output
 parser.add_argument("--nearest-multiple-of-three", action = 'store_true')
 parser.add_argument("--next-multiple-of-three", action = 'store_true')
 parser.add_argument("--ascii-only", action = 'store_true')
+parser.add_argument("--sfd-dir", type = str)
 parser.add_argument("filename")
 parser.add_argument("destfilename", nargs = '?')
 
