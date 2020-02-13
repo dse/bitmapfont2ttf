@@ -228,7 +228,7 @@ class BitmapFont2TTF:
         descentPx = None
         scale = None
         scaleTransform = None
-
+        namedPixelSize = None
         nearestMultipleOfThree = False
         nextMultipleOfThree = False
         asciiOnly = False
@@ -263,12 +263,14 @@ class BitmapFont2TTF:
         if (re.search(r'\.bdf$', filename)):
             bdf = MyBDF(filename)
 
+        font = fontforge.font()
+        retval = font.importBitmaps(filename, False)
+        (namedPixelSize,) = font.bitmapSizes
+
         if bdf != None and bdf.hasBoundingBox:
             pixelSize = bdf.boundingBoxY
         else:
-            font = fontforge.font()
-            retval = font.importBitmaps(filename, False)
-            (pixelSize,) = font.bitmapSizes
+            pixelSize = namedPixelSize
 
         if bdf != None:
             font = fontforge.font()
@@ -321,7 +323,7 @@ class BitmapFont2TTF:
             glyphCount += 1
 
         self.formatDict = {}
-        self.formatDict['pixelSize']    = pixelSize
+        self.formatDict['pixelSize']    = namedPixelSize
         self.formatDict['newPixelSize'] = newPixelSize
         self.formatDict['fontName']     = font.fontname
         self.formatDict['familyName']   = font.familyname
