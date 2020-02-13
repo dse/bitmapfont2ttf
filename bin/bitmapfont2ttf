@@ -256,9 +256,11 @@ class BitmapFont2TTF:
 
         newPixelSize = pixelSize
         if nextMultipleOfThree:
-            newPixelSize = 3 * ((pixelSize + 2) / 3)
+            newPixelSize = 3 * int((pixelSize + 2) / 3)
+            sys.stderr.write("    pixel size (next): %s => %s\n" % (pixelSize, newPixelSize))
         elif nearestMultipleOfThree:
-            newPixelSize = 3 * ((pixelSize + 1) / 3)
+            newPixelSize = 3 * int((pixelSize + 1) / 3)
+            sys.stderr.write("    pixel size (nearest): %s => %s\n" % (pixelSize, newPixelSize))
 
         font = fontforge.font()
         sys.stderr.write("*** importing bitmaps...\n")
@@ -270,26 +272,53 @@ class BitmapFont2TTF:
         swidth = None
         ascent = None
         descent = None
+        ascentPx = None
+        descentPx = None
+        scale = None
+        scaleTransform = None
+
         if (re.search(r'\.bdf$', filename)):
             bdf = MyBDF(filename)
             if (bdf.spacing == 'M' or bdf.spacing == 'C') and bdf.hasBoundingBox:
-                swidth  = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
+                swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / bdf.boundingBoxY)
 
-                # default ascent/descent is 800/200 which isn't aligned
-                ascent  = int(0.5 + 1.0 * font.em * (bdf.boundingBoxY + bdf.boundingBoxYOffset) / bdf.boundingBoxY)
-                descent = int(0.5 + 1.0 * font.em * (-bdf.boundingBoxYOffset) / bdf.boundingBoxY)
+                # default ascent/descent is 800/200 which isn't aligned with pixel boundaries
+                ascentPx = bdf.boundingBoxY + bdf.boundingBoxYOffset
+                descentPx = -bdf.boundingBoxYOffset
+                ascent = int(0.5 + 1.0 * font.em * ascentPx / pixelSize)
+                descent = int(0.5 + 1.0 * font.em * descentPx / pixelSize)
                 font.ascent = ascent
                 font.descent = descent
+
+        if newPixelSize != pixelSize:
+            # increased pixel size scales DOWN; decreased pixel size scales UP
+            scale = 1.0 * pixelSize / newPixelSize
+            sys.stderr.write("    scaling by %f\n" % scale)
+            scaleTransform = psMat.scale(scale)
+            if ascentPx != None and descentPx != None:
+                if newPixelSize == pixelSize + 2:
+                    ascentPx += 1
+                    descentPx += 1
+                elif newPixelSize == pixelSize + 1:
+                    descentPx += 1
+                elif newPixelSize == pixelSize - 1:
+                    ascentPx -= 1
+                ascent = int(0.5 + 1.0 * font.em * ascentPx / newPixelSize)
+                descent = int(0.5 + 1.0 * font.em * descentPx / newPixelSize)
+                font.ascent = ascent
+                font.descent = descent
+                sys.stderr.write("    ascent = %d; descent = %d\n" % (font.ascent, font.descent))
 
         glyphCount = 0
         for glyph in font.glyphs():
             glyphCount += 1
 
         self.formatDict = {}
-        self.formatDict['pixelSize']  = pixelSize
-        self.formatDict['fontName']   = font.fontname
-        self.formatDict['familyName'] = font.familyname
-        self.formatDict['fullName']   = font.fullname
+        self.formatDict['pixelSize']    = pixelSize
+        self.formatDict['newPixelSize'] = newPixelSize
+        self.formatDict['fontName']     = font.fontname
+        self.formatDict['familyName']   = font.familyname
+        self.formatDict['fullName']     = font.fullname
 
         # FamilyName: Courier
         # FontName: CourierBoldOblique
@@ -334,6 +363,8 @@ class BitmapFont2TTF:
             glyph.simplify()
             if swidth != None:
                 glyph.width = swidth
+            if scaleTransform != None:
+                glyph.transform(scaleTransform)
 
         if destfilename == None:
             (rootdestfilename, junk) = os.path.splitext(filename)
@@ -368,8 +399,8 @@ parser.add_argument("--weight",        help = "assign font weight, e.g., 'Regula
 parser.add_argument("--italic-angle",  type = float, help = "assign font italic angle, e.g., -22.5")
 parser.add_argument("--save-sfd",      help = "keep .sfd file (for FontForge)", action = "store_true")
 parser.add_argument("--verbose", "-v", action = 'count', help = "increase output verbosity")
-parser.add_argument("--nearest-multiple-of-three")
-parser.add_argument("--next-multiple-of-three")
+parser.add_argument("--nearest-multiple-of-three", action = 'store_true')
+parser.add_argument("--next-multiple-of-three", action = 'store_true')
 parser.add_argument("filename")
 parser.add_argument("destfilename", nargs = '?')
 
