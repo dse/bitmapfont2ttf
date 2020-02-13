@@ -264,6 +264,8 @@ class BitmapFont2TTF:
             raise Exception("BDF required")
         bdf = MyBDF(filename)
 
+        isMonospace = bdf.spacing == 'M' or bdf.spacing == 'C'
+
         pixelSize = bdf.pixelSize
         finalPixelSize = pixelSize
         if nextMultipleOfFour:
@@ -272,12 +274,8 @@ class BitmapFont2TTF:
             finalPixelSize = 4 * int((pixelSize + 2) / 4)
 
         font = fontforge.font()
-        if font.weight == 'Regular' or font.weight == 'Medium':
-            font.weight = 'Book'
-            font.os2_weight = 400
-        elif font.weight == 'Bold':
-            font.os2_weight = 700
-        if (bdf.spacing == 'M' or bdf.spacing == 'C'):
+
+        if isMonospace:
             swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / pixelSize)
         else:
             swidth = None
@@ -290,6 +288,35 @@ class BitmapFont2TTF:
         font.descent = int(0.5 + 1.0 * em * descentPx / pixelSize)
 
         font.importBitmaps(filename, True)
+
+        isItalic = (re.search(r'\b(italic|oblique)\b',
+                              font.fontname, flags = re.IGNORECASE) or
+                    re.search(r'\b(italic|oblique)\b',
+                              font.fullname, flags = re.IGNORECASE))
+
+        if isItalic:
+            font.italicangle = 15
+        else:
+            font.italicangle = 0
+
+        if font.weight == 'Regular' or font.weight == 'Medium' or font.weight == 'Book':
+            font.weight = 'Book'
+            font.os2_weight = 400
+            if isItalic:
+                font.os2_stylemap |= 0x0201
+                font.macstyle     |= 0x0002
+            else:
+                font.os2_stylemap |= 0x0040
+                font.macstyle     |= 0x0000
+        elif font.weight == 'Bold':
+            font.weight = 'Bold'
+            font.os2_weight = 700
+            if isItalic:
+                font.os2_stylemap |= 0x0221
+                font.macstyle     |= 0x0003
+            else:
+                font.os2_stylemap |= 0x0020
+                font.macstyle     |= 0x0001
 
         if finalPixelSize != pixelSize:
             if finalPixelSize == pixelSize + 3:
