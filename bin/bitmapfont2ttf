@@ -272,6 +272,11 @@ class BitmapFont2TTF:
             finalPixelSize = 4 * int((pixelSize + 2) / 4)
 
         font = fontforge.font()
+        if font.weight == 'Regular' or font.weight == 'Medium':
+            font.weight = 'Book'
+            font.os2_weight = 400
+        elif font.weight == 'Bold':
+            font.os2_weight = 700
         if (bdf.spacing == 'M' or bdf.spacing == 'C'):
             swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / pixelSize)
         else:
