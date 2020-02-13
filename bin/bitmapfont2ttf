@@ -229,8 +229,8 @@ class BitmapFont2TTF:
         scale = None
         scaleTransform = None
         namedPixelSize = None
-        nearestMultipleOfThree = False
-        nextMultipleOfThree = False
+        nearestMultipleOfFour = False
+        nextMultipleOfFour = False
         asciiOnly = False
         sfdDir = None
 
@@ -239,10 +239,10 @@ class BitmapFont2TTF:
                 filename = args.filename
             if destfilename == None:
                 filename = args.destfilename
-            if args.nearest_multiple_of_three != None:
-                nearestMultipleOfThree = args.nearest_multiple_of_three
-            if args.next_multiple_of_three != None:
-                nextMultipleOfThree = args.next_multiple_of_three
+            if args.nearest_multiple_of_four != None:
+                nearestMultipleOfFour = args.nearest_multiple_of_four
+            if args.next_multiple_of_four != None:
+                nextMultipleOfFour = args.next_multiple_of_four
             if args.ascii_only != None:
                 asciiOnly = args.ascii_only
             if args.sfd_dir != None:
@@ -286,11 +286,11 @@ class BitmapFont2TTF:
                 descent = int(0.5 + 1.0 * font.em * descentPx / pixelSize)
 
         newPixelSize = pixelSize
-        if nextMultipleOfThree:
-            newPixelSize = 3 * int((pixelSize + 2) / 3)
+        if nextMultipleOfFour:
+            newPixelSize = 4 * int((pixelSize + 3) / 4)
             sys.stderr.write("    pixel size (next): %s => %s\n" % (pixelSize, newPixelSize))
-        elif nearestMultipleOfThree:
-            newPixelSize = 3 * int((pixelSize + 1) / 3)
+        elif nearestMultipleOfFour:
+            newPixelSize = 4 * int((pixelSize + 2) / 4)
             sys.stderr.write("    pixel size (nearest): %s => %s\n" % (pixelSize, newPixelSize))
 
         font = fontforge.font()
@@ -404,8 +404,8 @@ parser.add_argument("--weight",        help = "assign font weight, e.g., 'Regula
 parser.add_argument("--italic-angle",  type = float, help = "assign font italic angle, e.g., -22.5")
 parser.add_argument("--save-sfd",      help = "keep .sfd file (for FontForge)", action = "store_true")
 parser.add_argument("--verbose", "-v", action = 'count', help = "increase output verbosity")
-parser.add_argument("--nearest-multiple-of-three", action = 'store_true')
-parser.add_argument("--next-multiple-of-three", action = 'store_true')
+parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
+parser.add_argument("--next-multiple-of-four", action = 'store_true')
 parser.add_argument("--ascii-only", action = 'store_true')
 parser.add_argument("--sfd-dir", type = str)
 parser.add_argument("filename")
