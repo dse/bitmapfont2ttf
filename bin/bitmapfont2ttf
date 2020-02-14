@@ -220,7 +220,7 @@ class BitmapFont2TTF:
             if filename == None:
                 filename = args.filename
             if destfilename == None:
-                filename = args.destfilename
+                destfilename = args.destfilename
             if args.nearest_multiple_of_four != None:
                 nearestMultipleOfFour = args.nearest_multiple_of_four
             if args.next_multiple_of_four != None:
