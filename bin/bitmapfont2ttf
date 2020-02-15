@@ -202,6 +202,9 @@ class BitmapFont2TTF:
 
     def __init__(self):
         self.saveSFD = False
+        self.setAutoTraceEnvironment()
+
+    def setAutoTraceEnvironment():
         self.AUTOTRACE_NAME = 'exact-autotrace-c'
         self.autotrace = which(self.AUTOTRACE_NAME)
         if self.autotrace == None:
