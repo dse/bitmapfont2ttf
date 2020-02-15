@@ -248,13 +248,13 @@ class BitmapFont2TTF:
 
         # VERBOSITY
 
-        if self.args.verbose == None:
-            self.args.verbose = 0
-        if self.args.verbose == 0:
+        if args.verbose == None:
+            args.verbose = 0
+        if args.verbose == 0:
             if 'AUTOTRACE_VERBOSE' in os.environ:
                 del os.environ['AUTOTRACE_VERBOSE']
         else:
-            os.environ['AUTOTRACE_VERBOSE'] = str(self.args.verbose)
+            os.environ['AUTOTRACE_VERBOSE'] = str(args.verbose)
 
         # Since FontForge doesn't give us info or properties from the
         # BDF, we get them ourselves.  And we assume we're pulling a
@@ -341,23 +341,23 @@ class BitmapFont2TTF:
                 continue
             glyphCount += 1
 
-        if self.args != None:
-            if self.args.copyright != None:
-                font.copyright = self.args.copyright
-            if self.args.comment != None:
-                font.comment = self.args.comment
-            if self.args.font_name != None:
-                font.fontname = self.args.font_name
-            if self.args.family_name != None:
-                font.familyname = self.args.family_name
-            if self.args.full_name != None:
-                font.fullname = self.args.full_name
-            if self.args.version != None:
-                font.version = self.args.version
-            if self.args.weight != None:
-                font.weight = self.args.weight
-            if self.args.italic_angle != None:
-                font.italicangle = self.args.italic_angle
+        if args != None:
+            if args.copyright != None:
+                font.copyright = args.copyright
+            if args.comment != None:
+                font.comment = args.comment
+            if args.font_name != None:
+                font.fontname = args.font_name
+            if args.family_name != None:
+                font.familyname = args.family_name
+            if args.full_name != None:
+                font.fullname = args.full_name
+            if args.version != None:
+                font.version = args.version
+            if args.weight != None:
+                font.weight = args.weight
+            if args.italic_angle != None:
+                font.italicangle = args.italic_angle
 
         font.encoding = 'iso10646-1'
 
@@ -368,9 +368,9 @@ class BitmapFont2TTF:
             if asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
                 continue
             glyphIndex += 1
-            if self.args.verbose >= 2:
+            if args.verbose >= 2:
                 sys.stderr.write("*** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
-            elif self.args.verbose >= 1:
+            elif args.verbose >= 1:
                 sys.stderr.write("*** [%d/%d]\r" % (glyphIndex, glyphCount))
             glyph.autoTrace()
             glyph.addExtrema()
@@ -407,7 +407,7 @@ class BitmapFont2TTF:
 
         font.generate(destfilename)
         sys.stderr.write("*** Wrote %s\n" % destfilename)
-        if self.args.save_sfd:
+        if args.save_sfd:
             font.save(sfdfilename)
             sys.stderr.write("*** Wrote %s\n" % sfdfilename)
 
@@ -432,7 +432,6 @@ parser.add_argument("filename")
 parser.add_argument("destfilename", nargs = '?')
 
 args = parser.parse_args()
-bf2ttf.args = args
 
 bf2ttf.bitmapfont2ttf(
     filename = args.filename,
