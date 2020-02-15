@@ -263,9 +263,9 @@ class BitmapFont2TTF:
             self.sfdfilename = self.sfdDir + '/' + os.path.basename(self.sfdfilename)
 
     def fixMissingGlyphs(self):
-        self.fixMissingGlyph(39, 8217)
-        self.fixMissingGlyph(45, 8722)
-        self.fixMissingGlyph(96, 8216)
+        self.fixMissingGlyph(39, 8217) # U+0027 APOSTROPHE;   U+2019 RIGHT SINGLE QUOTATION MARK
+        self.fixMissingGlyph(45, 8722) # U+002D HYPHEN-MINUS; U+2212 MINUS SIGN
+        self.fixMissingGlyph(96, 8216) # U+0060 GRAVE;        U+2018 LEFT SINGLE QUOTATION MARK
 
     def fixMissingGlyph(self, destUni, sourceUni):
         hasSource = False
