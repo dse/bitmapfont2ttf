@@ -200,11 +200,19 @@ class MyBDF:
 
 class BitmapFont2TTF:
 
+    saveSFD = False
+    nearestMultipleOfFour = False
+    nextMultipleOfFour = False
+    asciiOnly = False
+    sfdDir = None
+    filename = None
+    destfilename = None
+    verbose = 0
+
     def __init__(self):
-        self.saveSFD = False
         self.setAutoTraceEnvironment()
 
-    def setAutoTraceEnvironment():
+    def setAutoTraceEnvironment(self):
         self.AUTOTRACE_NAME = 'exact-autotrace-c'
         self.autotrace = which(self.AUTOTRACE_NAME)
         if self.autotrace == None:
@@ -214,114 +222,113 @@ class BitmapFont2TTF:
         fontforge.setPrefs('PreferPotrace', False)
         fontforge.setPrefs('AutotraceArgs', '')
 
-    def bitmapfont2ttf(self, filename, destfilename = None, args = None):
-        nearestMultipleOfFour = False
-        nextMultipleOfFour = False
-        asciiOnly = False
-        sfdDir = None
+    def setArgs(self, filename, destfilename, args):
+        self.filename = filename
+        self.destfilename = destfilename
+        self.args = args
         if args != None:
             if filename == None:
-                filename = args.filename
+                self.filename = args.filename
             if destfilename == None:
-                destfilename = args.destfilename
+                self.destfilename = args.destfilename
             if args.nearest_multiple_of_four != None:
-                nearestMultipleOfFour = args.nearest_multiple_of_four
+                self.nearestMultipleOfFour = args.nearest_multiple_of_four
             if args.next_multiple_of_four != None:
-                nextMultipleOfFour = args.next_multiple_of_four
+                self.nextMultipleOfFour = args.next_multiple_of_four
             if args.ascii_only != None:
-                asciiOnly = args.ascii_only
+                self.asciiOnly = args.ascii_only
             if args.sfd_dir != None:
-                sfdDir = args.sfd_dir
-
-        # FILENAMES
-
-        if filename == os.path.basename(filename):
-            # Work around an issue where importBitmaps segfaults if you only
-            # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
-            # fine whereas 'foo.pcf' does not.
-            filename = os.path.join('.', filename)
-        if destfilename == None:
-            (rootdestfilename, junk) = os.path.splitext(filename)
-            destfilename = rootdestfilename + '.ttf'
-        else:
-            (rootdestfilename, junk) = os.path.splitext(destfilename)
-        sfdfilename = rootdestfilename + '.sfd'
-        if sfdDir != None:
-            sfdfilename = sfdDir + '/' + os.path.basename(sfdfilename)
-
-        # VERBOSITY
-
-        if args.verbose == None:
-            args.verbose = 0
-        if args.verbose == 0:
+                self.sfdDir = args.sfd_dir
+            if args.verbose != None:
+                self.verbose = args.verbose
+        if self.verbose == 0:
             if 'AUTOTRACE_VERBOSE' in os.environ:
                 del os.environ['AUTOTRACE_VERBOSE']
         else:
-            os.environ['AUTOTRACE_VERBOSE'] = str(args.verbose)
+            os.environ['AUTOTRACE_VERBOSE'] = str(self.verbose)
+
+    def fixFilenames(self):
+        if self.filename == os.path.basename(self.filename):
+            # Work around an issue where importBitmaps segfaults if you only
+            # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
+            # fine whereas 'foo.pcf' does not.
+            self.filename = os.path.join('.', self.filename)
+        if self.destfilename == None:
+            (rootdestfilename, junk) = os.path.splitext(self.filename)
+            self.destfilename = rootdestfilename + '.ttf'
+        else:
+            (rootdestfilename, junk) = os.path.splitext(self.destfilename)
+        self.sfdfilename = rootdestfilename + '.sfd'
+        if self.sfdDir != None:
+            self.sfdfilename = self.sfdDir + '/' + os.path.basename(self.sfdfilename)
+
+    def bitmapfont2ttf(self, filename, destfilename = None, args = None):
+        self.setArgs(filename, destfilename, args)
+        self.fixFilenames()
 
         # Since FontForge doesn't give us info or properties from the
         # BDF, we get them ourselves.  And we assume we're pulling a
         # BDF instead of, say, a PCF file.
 
-        if not re.search(r'\.bdf$', filename):
+        if not re.search(r'\.bdf$', self.filename):
             raise Exception("BDF required")
-        bdf = MyBDF(filename)
+        self.bdf = MyBDF(self.filename)
 
-        isMonospace = bdf.spacing == 'M' or bdf.spacing == 'C'
+        isMonospace = self.bdf.spacing == 'M' or self.bdf.spacing == 'C'
 
-        pixelSize = bdf.pixelSize
+        pixelSize = self.bdf.pixelSize
         finalPixelSize = pixelSize
-        if nextMultipleOfFour:
+        if self.nextMultipleOfFour:
             finalPixelSize = 4 * int((pixelSize + 3) / 4)
-        elif nearestMultipleOfFour:
+        elif self.nearestMultipleOfFour:
             finalPixelSize = 4 * int((pixelSize + 2) / 4)
 
-        font = fontforge.font()
+        self.font = fontforge.font()
 
         if isMonospace:
-            swidth = int(0.5 + 1.0 * font.em * bdf.boundingBoxX / pixelSize)
+            swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / pixelSize)
         else:
             swidth = None
-        descentPx = pixelSize - bdf.ascent
-        ascentPx = bdf.ascent
+        descentPx = pixelSize - self.bdf.ascent
+        ascentPx = self.bdf.ascent
 
         # must be specified before bitmap import for baseline alignment
-        em = font.em
-        font.ascent  = int(0.5 + 1.0 * em * ascentPx  / pixelSize)
-        font.descent = int(0.5 + 1.0 * em * descentPx / pixelSize)
+        em = self.font.em
+        self.font.ascent  = int(0.5 + 1.0 * em * ascentPx  / pixelSize)
+        self.font.descent = int(0.5 + 1.0 * em * descentPx / pixelSize)
 
-        font.importBitmaps(filename, True)
+        self.font.importBitmaps(self.filename, True)
 
-        font.os2_vendor = 'PfEd'
+        self.font.os2_vendor = 'PfEd'
 
         isItalic = (re.search(r'\b(italic|oblique)\b',
-                              font.fontname, flags = re.IGNORECASE) or
+                              self.font.fontname, flags = re.IGNORECASE) or
                     re.search(r'\b(italic|oblique)\b',
-                              font.fullname, flags = re.IGNORECASE))
+                              self.font.fullname, flags = re.IGNORECASE))
 
         if isItalic:
-            font.italicangle = 15
+            self.font.italicangle = 15
         else:
-            font.italicangle = 0
+            self.font.italicangle = 0
 
-        if font.weight == 'Regular' or font.weight == 'Medium' or font.weight == 'Book':
-            font.weight = 'Book'
-            font.os2_weight = 400
+        if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
+            self.font.weight = 'Book'
+            self.font.os2_weight = 400
             if isItalic:
-                font.os2_stylemap |= 0x0201
-                font.macstyle     |= 0x0002
+                self.font.os2_stylemap |= 0x0201
+                self.font.macstyle     |= 0x0002
             else:
-                font.os2_stylemap |= 0x0040
-                font.macstyle     |= 0x0000
-        elif font.weight == 'Bold':
-            font.weight = 'Bold'
-            font.os2_weight = 700
+                self.font.os2_stylemap |= 0x0040
+                self.font.macstyle     |= 0x0000
+        elif self.font.weight == 'Bold':
+            self.font.weight = 'Bold'
+            self.font.os2_weight = 700
             if isItalic:
-                font.os2_stylemap |= 0x0221
-                font.macstyle     |= 0x0003
+                self.font.os2_stylemap |= 0x0221
+                self.font.macstyle     |= 0x0003
             else:
-                font.os2_stylemap |= 0x0020
-                font.macstyle     |= 0x0001
+                self.font.os2_stylemap |= 0x0020
+                self.font.macstyle     |= 0x0001
 
         if finalPixelSize != pixelSize:
             if finalPixelSize == pixelSize + 3:
@@ -334,46 +341,46 @@ class BitmapFont2TTF:
                 ascentPx += 1
             elif finalPixelSize == pixelSize - 1:
                 descentPx -= 1
-            em = font.em
-            font.ascent  = int(0.5 + 1.0 * em * ascentPx  / finalPixelSize)
-            font.descent = int(0.5 + 1.0 * em * descentPx / finalPixelSize)
+            em = self.font.em
+            self.font.ascent  = int(0.5 + 1.0 * em * ascentPx  / finalPixelSize)
+            self.font.descent = int(0.5 + 1.0 * em * descentPx / finalPixelSize)
 
         glyphCount = 0
-        for glyph in font.glyphs():
-            if asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
+        for glyph in self.font.glyphs():
+            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
                 continue
             glyphCount += 1
 
         if args != None:
             if args.copyright != None:
-                font.copyright = args.copyright
+                self.font.copyright = args.copyright
             if args.comment != None:
-                font.comment = args.comment
+                self.font.comment = args.comment
             if args.font_name != None:
-                font.fontname = args.font_name
+                self.font.fontname = args.font_name
             if args.family_name != None:
-                font.familyname = args.family_name
+                self.font.familyname = args.family_name
             if args.full_name != None:
-                font.fullname = args.full_name
+                self.font.fullname = args.full_name
             if args.version != None:
-                font.version = args.version
+                self.font.version = args.version
             if args.weight != None:
-                font.weight = args.weight
+                self.font.weight = args.weight
             if args.italic_angle != None:
-                font.italicangle = args.italic_angle
+                self.font.italicangle = args.italic_angle
 
-        font.encoding = 'iso10646-1'
+        self.font.encoding = 'iso10646-1'
 
         sys.stderr.write("*** autotracing %d glyphs...\n" % glyphCount)
 
         glyphIndex = 0
-        for glyph in font.glyphs():
-            if asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
+        for glyph in self.font.glyphs():
+            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
                 continue
             glyphIndex += 1
-            if args.verbose >= 2:
+            if self.verbose >= 2:
                 sys.stderr.write("*** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
-            elif args.verbose >= 1:
+            elif self.verbose >= 1:
                 sys.stderr.write("*** [%d/%d]\r" % (glyphIndex, glyphCount))
             glyph.autoTrace()
             glyph.addExtrema()
@@ -388,31 +395,31 @@ class BitmapFont2TTF:
             hasDest = False
             sourceGlyph = None
             destGlyph = None
-            font.selection.select(('unicode', None), sourceUni)
-            for glyph in font.selection.byGlyphs:
+            self.font.selection.select(('unicode', None), sourceUni)
+            for glyph in self.font.selection.byGlyphs:
                 sourceGlyph = glyph
                 hasSource = True
                 break
-            font.selection.select(('unicode', None), destUni)
-            for glyph in font.selection.byGlyphs:
+            self.font.selection.select(('unicode', None), destUni)
+            for glyph in self.font.selection.byGlyphs:
                 hasDest = True
                 break
             if hasSource and not hasDest:
-                destGlyph = font.createChar(destUni)
-                font.selection.select(sourceGlyph)
-                font.copy()
-                font.selection.select(destGlyph)
-                font.paste()
+                destGlyph = self.font.createChar(destUni)
+                self.font.selection.select(sourceGlyph)
+                self.font.copy()
+                self.font.selection.select(destGlyph)
+                self.font.paste()
 
         fix(39, 8217)
         fix(45, 8722)
         fix(96, 8216)
 
-        font.generate(destfilename)
-        sys.stderr.write("*** Wrote %s\n" % destfilename)
+        self.font.generate(self.destfilename)
+        sys.stderr.write("*** Wrote %s\n" % self.destfilename)
         if args.save_sfd:
-            font.save(sfdfilename)
-            sys.stderr.write("*** Wrote %s\n" % sfdfilename)
+            self.font.save(self.sfdfilename)
+            sys.stderr.write("*** Wrote %s\n" % self.sfdfilename)
 
 bf2ttf = BitmapFont2TTF()
 
