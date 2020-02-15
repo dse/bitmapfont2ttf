@@ -213,6 +213,11 @@ class BitmapFont2TTF:
     args = None
 
     def setAutoTraceEnvironment(self):
+        if self.verbose == 0:
+            if 'AUTOTRACE_VERBOSE' in os.environ:
+                del os.environ['AUTOTRACE_VERBOSE']
+        else:
+            os.environ['AUTOTRACE_VERBOSE'] = str(self.verbose)
         self.AUTOTRACE_NAME = 'exact-autotrace-c'
         self.autotrace = which(self.AUTOTRACE_NAME)
         if self.autotrace == None:
@@ -222,30 +227,25 @@ class BitmapFont2TTF:
         fontforge.setPrefs('PreferPotrace', False)
         fontforge.setPrefs('AutotraceArgs', '')
 
-    def setArgs(self, filename, destfilename, args):
-        self.filename = filename
-        self.destfilename = destfilename
+    def setArgs(self, args):
         self.args = args
-        if args != None:
-            if filename == None:
-                self.filename = args.filename
-            if destfilename == None:
-                self.destfilename = args.destfilename
-            if args.nearest_multiple_of_four != None:
-                self.nearestMultipleOfFour = args.nearest_multiple_of_four
-            if args.next_multiple_of_four != None:
-                self.nextMultipleOfFour = args.next_multiple_of_four
-            if args.ascii_only != None:
-                self.asciiOnly = args.ascii_only
-            if args.sfd_dir != None:
-                self.sfdDir = args.sfd_dir
-            if args.verbose != None:
-                self.verbose = args.verbose
-        if self.verbose == 0:
-            if 'AUTOTRACE_VERBOSE' in os.environ:
-                del os.environ['AUTOTRACE_VERBOSE']
-        else:
-            os.environ['AUTOTRACE_VERBOSE'] = str(self.verbose)
+        self.filename = args.filename
+        self.destfilename = args.destfilename
+        self.nearestMultipleOfFour = False
+        self.nextMultipleOfFour = False
+        self.asciiOnly = False
+        self.sfdDir = None
+        self.verbose = 0
+        if args.nearest_multiple_of_four != None:
+            self.nearestMultipleOfFour = args.nearest_multiple_of_four
+        if args.next_multiple_of_four != None:
+            self.nextMultipleOfFour = args.next_multiple_of_four
+        if args.ascii_only != None:
+            self.asciiOnly = args.ascii_only
+        if args.sfd_dir != None:
+            self.sfdDir = args.sfd_dir
+        if args.verbose != None:
+            self.verbose = args.verbose
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -418,9 +418,9 @@ class BitmapFont2TTF:
             self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.finalPixelSize)
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
 
-    def bitmapfont2ttf(self, filename, destfilename = None, args = None):
+    def bitmapfont2ttf(self, args):
+        self.setArgs(args)
         self.setAutoTraceEnvironment()
-        self.setArgs(filename, destfilename, args)
         self.fixFilenames()
         self.loadBDF()
         self.setPropertiesFromBDF()
@@ -429,11 +429,11 @@ class BitmapFont2TTF:
         self.setAscentDescent()
         self.font.importBitmaps(self.filename, True)
         self.font.os2_vendor = 'PfEd'
+        self.font.encoding = 'iso10646-1'
         self.setItalic()
         self.setWeight()
         self.useFinalPixelSize()
         self.setFontMetas()
-        self.font.encoding = 'iso10646-1'
         self.autoTrace()
         self.fixMissingGlyphs()
         self.save()
@@ -441,27 +441,23 @@ class BitmapFont2TTF:
 bf2ttf = BitmapFont2TTF()
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
-parser.add_argument("--copyright",     help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
-parser.add_argument("--comment",       help = "assign comment string, e.g., '2020-01-01'")
-parser.add_argument("--family-name",   help = "assign family name, e.g., 'Comic Sans'")
-parser.add_argument("--font-name",     help = "assign font name, e.g., 'ComicSansBoldItalic'")
-parser.add_argument("--full-name",     help = "assign full name, e.g., 'Comic Sans Bold Italic'")
-parser.add_argument("--version",       help = "assign version, e.g., '001.000'")
-parser.add_argument("--weight",        help = "assign font weight, e.g., 'Regular', 'Bold'")
-parser.add_argument("--italic-angle",  type = float, help = "assign font italic angle, e.g., -22.5")
-parser.add_argument("--save-sfd",      help = "keep .sfd file (for FontForge)", action = "store_true")
-parser.add_argument("--verbose", "-v", action = 'count', help = "increase output verbosity")
+parser.add_argument("--copyright",                help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
+parser.add_argument("--comment",                  help = "assign comment string, e.g., '2020-01-01'")
+parser.add_argument("--family-name",              help = "assign family name, e.g., 'Comic Sans'")
+parser.add_argument("--font-name",                help = "assign font name, e.g., 'ComicSansBoldItalic'")
+parser.add_argument("--full-name",                help = "assign full name, e.g., 'Comic Sans Bold Italic'")
+parser.add_argument("--version",                  help = "assign version, e.g., '001.000'")
+parser.add_argument("--weight",                   help = "assign font weight, e.g., 'Regular', 'Bold'")
+parser.add_argument("--italic-angle",             type = float, help = "assign font italic angle, e.g., -22.5")
+parser.add_argument("--save-sfd",                 help = "keep .sfd file (for FontForge)", action = "store_true")
+parser.add_argument("--verbose", "-v",            action = 'count', help = "increase output verbosity")
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
-parser.add_argument("--next-multiple-of-four", action = 'store_true')
-parser.add_argument("--ascii-only", action = 'store_true')
-parser.add_argument("--sfd-dir", type = str)
+parser.add_argument("--next-multiple-of-four",    action = 'store_true')
+parser.add_argument("--ascii-only",               action = 'store_true')
+parser.add_argument("--sfd-dir",                  type = str)
 parser.add_argument("filename")
-parser.add_argument("destfilename", nargs = '?')
+parser.add_argument("destfilename",               nargs = '?')
 
 args = parser.parse_args()
 
-bf2ttf.bitmapfont2ttf(
-    filename = args.filename,
-    destfilename = args.destfilename,
-    args = args
-)
+bf2ttf.bitmapfont2ttf(args)
