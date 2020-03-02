@@ -203,6 +203,7 @@ class BitmapFont2TTF:
     saveSFD = False
     nearestMultipleOfFour = False
     nextMultipleOfFour = False
+    specifiedPixelSize = None
     asciiOnly = False
     sfdDir = None
     filename = None
@@ -233,6 +234,7 @@ class BitmapFont2TTF:
         self.destfilename = args.destfilename
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
+        self.specifiedPixelSize = None
         self.asciiOnly = False
         self.sfdDir = None
         self.verbose = 0
@@ -246,6 +248,8 @@ class BitmapFont2TTF:
             self.sfdDir = args.sfd_dir
         if args.verbose != None:
             self.verbose = args.verbose
+        if args.pixel_size != None:
+            self.specifiedPixelSize = args.pixel_size
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -326,7 +330,9 @@ class BitmapFont2TTF:
         self.isMonospace = self.bdf.spacing == 'M' or self.bdf.spacing == 'C'
         self.pixelSize = self.bdf.pixelSize
         self.finalPixelSize = self.pixelSize
-        if self.nextMultipleOfFour:
+        if self.specifiedPixelSize:
+            self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
+        elif self.nextMultipleOfFour:
             self.finalPixelSize = 4 * int((self.pixelSize + 3) / 4)
         elif self.nearestMultipleOfFour:
             self.finalPixelSize = 4 * int((self.pixelSize + 2) / 4)
@@ -404,16 +410,18 @@ class BitmapFont2TTF:
 
     def useFinalPixelSize(self):
         if self.finalPixelSize != self.pixelSize:
-            if self.finalPixelSize == self.pixelSize + 3:
-                self.ascentPx += 2
-                self.descentPx += 1
-            elif self.finalPixelSize == self.pixelSize + 2:
-                self.ascentPx += 1
-                self.descentPx += 1
-            elif self.finalPixelSize == self.pixelSize + 1:
-                self.ascentPx += 1
-            elif self.finalPixelSize == self.pixelSize - 1:
-                self.descentPx -= 1
+            if self.finalPixelSize > self.pixelSize:
+                diff = self.finalPixelSize - self.pixelSize # 1, 2, 3, ...
+                diff1 = int(diff) / 2 # 1 => 0, 2 => 1, 3 => 1, 4 => 2, ...
+                diff2 = diff - diff1  # 1 => 1, 2 => 1, 3 => 2, 4 => 2, ...
+                self.ascentPx += diff2
+                self.descentPx += diff1
+            else:
+                diff = self.pixelSize - self.finalPixelSize # 1, 2, 3, ...
+                diff1 = int(diff) / 2 # 1 => 0, 2 => 1, 3 => 1, 4 => 2, ...
+                diff2 = diff - diff1  # 1 => 1, 2 => 1, 3 => 2, 4 => 2, ...
+                self.ascentPx -= diff2
+                self.descentPx -= diff1
             em = self.font.em
             self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.finalPixelSize)
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
@@ -453,6 +461,7 @@ parser.add_argument("--save-sfd",                 help = "keep .sfd file (for Fo
 parser.add_argument("--verbose", "-v",            action = 'count', help = "increase output verbosity")
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
 parser.add_argument("--next-multiple-of-four",    action = 'store_true')
+parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
 parser.add_argument("--ascii-only",               action = 'store_true')
 parser.add_argument("--sfd-dir",                  type = str)
 parser.add_argument("filename")
