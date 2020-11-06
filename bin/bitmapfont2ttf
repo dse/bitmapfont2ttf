@@ -212,6 +212,9 @@ class BitmapFont2TTF:
     filename = None
     destfilename = None
     args = None
+    metricsAscent = None
+    metricsDescent = None
+    metricsLineHeight = None
 
     def setAutoTraceEnvironment(self):
         if self.verbose == 0:
@@ -250,6 +253,12 @@ class BitmapFont2TTF:
             self.verbose = args.verbose
         if args.pixel_size != None:
             self.specifiedPixelSize = args.pixel_size
+        if args.ascent != None:
+            self.metricsAscent = args.ascent
+        if args.descent != None:
+            self.metricsDescent = args.descent
+        if args.line_height != None:
+            self.metricsLineHeight = args.line_height
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -369,7 +378,7 @@ class BitmapFont2TTF:
         else:
             self.swidth = None
 
-    def setAscentDescent(self):
+    def setInitialAscentDescent(self):
         self.descentPx = self.pixelSize - self.bdf.ascent
         self.ascentPx = self.bdf.ascent
 
@@ -379,10 +388,10 @@ class BitmapFont2TTF:
         self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
 
     def setItalic(self):
-        self.isItalic = (re.search(r'\b(italic|oblique)\b',
-                                   self.font.fontname, flags = re.IGNORECASE) or
-                         re.search(r'\b(italic|oblique)\b',
-                                   self.font.fullname, flags = re.IGNORECASE))
+        self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
+                         re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
+                         (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
+                         (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE)))
         if self.isItalic:
             self.font.italicangle = 15
         else:
@@ -426,6 +435,41 @@ class BitmapFont2TTF:
             self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.finalPixelSize)
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
 
+    def setFinalMetrics(self):
+        adjusted = False
+        if self.metricsLineHeight != None:                                 # e.g., 1.1
+            height      = self.font.em                                     # e.g., 2048
+            finalHeight = int(0.5 + self.metricsLineHeight * height)       # e.g., 2253
+            add  = finalHeight - height                             # e.g., 205
+            addAscent    = int(0.5 + 1.0 * add / 2)          # e.g., 103
+            addDescent   = add - addAscent            # e.g., 102
+            self.metricsAscent  = self.font.ascent + addAscent
+            self.metricsDescent = self.font.descent + addDescent
+        if self.metricsAscent != None:
+            adjusted = True
+        if self.metricsDescent != None:
+            adjusted = True
+        if adjusted:
+            sys.stderr.write("BEFORE: hhea %d/%d typo %d/%d win %d/%d\n" % (
+                self.font.hhea_ascent, self.font.hhea_descent,
+                self.font.os2_typoascent, self.font.os2_typodescent,
+                self.font.os2_winascent, self.font.os2_windescent
+            ))
+        if self.metricsAscent != None:
+            self.font.hhea_ascent    = self.metricsAscent
+            self.font.os2_typoascent = self.metricsAscent
+            self.font.os2_winascent  = self.metricsAscent
+        if self.metricsDescent != None:
+            self.font.hhea_descent    = -self.metricsDescent
+            self.font.os2_typodescent = -self.metricsDescent
+            self.font.os2_windescent  = self.metricsDescent
+        if adjusted:
+            sys.stderr.write("AFTER: hhea %d/%d typo %d/%d win %d/%d\n" % (
+                self.font.hhea_ascent, self.font.hhea_descent,
+                self.font.os2_typoascent, self.font.os2_typodescent,
+                self.font.os2_winascent, self.font.os2_windescent
+            ))
+
     def bitmapfont2ttf(self, args):
         self.setArgs(args)
         self.setAutoTraceEnvironment()
@@ -434,7 +478,7 @@ class BitmapFont2TTF:
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
         self.setSwidth()
-        self.setAscentDescent()
+        self.setInitialAscentDescent()
         self.font.importBitmaps(self.filename, True)
         self.font.os2_vendor = 'PfEd'
         self.font.encoding = 'iso10646-1'
@@ -444,6 +488,7 @@ class BitmapFont2TTF:
         self.setFontMetas()
         self.autoTrace()
         self.fixMissingGlyphs()
+        self.setFinalMetrics()
         self.save()
 
 bf2ttf = BitmapFont2TTF()
@@ -464,6 +509,9 @@ parser.add_argument("--next-multiple-of-four",    action = 'store_true')
 parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
 parser.add_argument("--ascii-only",               action = 'store_true')
 parser.add_argument("--sfd-dir",                  type = str)
+parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
+parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
+parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
 parser.add_argument("filename")
 parser.add_argument("destfilename",               nargs = '?')
 
