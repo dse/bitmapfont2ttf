@@ -40,13 +40,34 @@ def bdfParseLine(line):
 class MyBDFChar:
     def __init__(self, name = None):
         self.name = name
+
+        # ENCODING
         self.encoding = None
         self.nonStandardEncoding = None
+
+        # BBX
         self.hasBoundingBox = False
         self.boundingBoxX = None
         self.boundingBoxY = None
         self.boundingBoxXOffset = None
         self.boundingBoxYOffset = None
+
+        # SWIDTH
+        self.scalableWidthX = None
+        self.scalableWidthY = None
+
+        # DWIDTH
+        self.devicePixelWidthX = None
+        self.devicePixelWidthY = None
+
+        # SWIDTH1
+        self.scalableWidthWritingMode1X = None
+        self.scalableWidthWritingMode1Y = None
+
+        # DWIDTH1
+        self.devicePixelWidthWritingMode1X = None
+        self.devicePixelWidthWritingMode1Y = None
+
     def __str__(self):
         result = "<MyBDFChar"
         if self.name != None:
@@ -65,34 +86,63 @@ class MyBDFChar:
 
 class MyBDF:
     def __init__(self, filename = None):
+
+        # SIZE
         self.pointSize = None
-        self.pointSize2 = None
         self.xRes = None
         self.yRes = None
+
+        # FONTBOUNDINGBOX
+        self.hasBoundingBox = False
         self.boundingBoxX = None
         self.boundingBoxY = None
         self.boundingBoxXOffset = None
         self.boundingBoxYOffset = None
-        self.pixelSize = None
-        self.resolutionX = None
-        self.resolutionY = None
-        self.spacing = None
-        self.capHeight = None
-        self.xHeight = None
-        self.ascent = None
-        self.descent = None
+
+        # METRICSSET
+        self.metricsSet = None
+
+        # SWIDTH
+        self.scalableWidthX = None
+        self.scalableWidthY = None
+
+        # DWIDTH
+        self.devicePixelWidthX = None
+        self.devicePixelWidthY = None
+
+        # SWIDTH1
+        self.scalableWidthWritingMode1X = None
+        self.scalableWidthWritingMode1Y = None
+
+        # DWIDTH1
+        self.devicePixelWidthWritingMode1X = None
+        self.devicePixelWidthWritingMode1Y = None
+
+        # STARTPROPERTIES .. ENDPROPERTIES
+        self.pixelSize = None   # PIXEL_SIZE
+        self.pointSize10 = None # POINT_SIZE
+        self.resolutionX = None # RESOLUTION_X
+        self.resolutionY = None # RESOLUTION_Y
+        self.spacing = None     # SPACING
+        self.capHeight = None   # CAP_HEIGHT
+        self.xHeight = None     # X_HEIGHT
+        self.ascent = None      # FONT_ASCENT
+        self.descent = None     # FONT_DESCENT
+
         self.filename = None
-        self.hasBoundingBox = False
         self.chars = []
         self.charsByEncoding = {}
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
+
         if filename != None:
             self.read(filename)
+
     def read(self, filename):
         with open(filename) as fp:
             self.filename = filename
             self.readFp(fp)
+
     def readFp(self, fp):
         for line in fp:
             args = bdfParseLine(line)
@@ -102,19 +152,37 @@ class MyBDF:
             if cmd == 'CHARS':
                 self.readCharsFp(fp)
             if cmd == 'SIZE' and len(args) >= 3:
-                self.pointSize = float(args[0])
-                self.xRes      = float(args[1])
+                self.pointSize = float(args[0]) # point size of the glyphs
+                self.xRes      = float(args[1]) # x and y resolutions of the device for which the font is intended
                 self.yRes      = float(args[2])
                 continue
             if cmd == 'FONTBOUNDINGBOX' and len(args) >= 4:
                 self.hasBoundingBox = True
-                self.boundingBoxX       = int(args[0])
+                self.boundingBoxX       = int(args[0]) # integer pixel values relative to origin
                 self.boundingBoxY       = int(args[1])
                 self.boundingBoxXOffset = int(args[2])
                 self.boundingBoxYOffset = int(args[3])
                 continue
+            if cmd == 'METRICSSET' and len(args) >= 1:
+                self.metricsSet = int(args[0])
+            if cmd == 'SWIDTH':
+                self.scalableWidthX = float(args[0])
+                self.scalableWidthY = float(args[1])
+            if cmd == 'DWIDTH':
+                self.devicePixelWidthX = float(args[0])
+                self.devicePixelWidthY = float(args[1])
+            if cmd == 'SWIDTH1':
+                self.scalableWidthWritingMode1X = float(args[0])
+                self.scalableWidthWritingMode1Y = float(args[1])
+            if cmd == 'DWIDTH1':
+                self.devicePixelWidthWritingMode1X = float(args[0])
+                self.devicePixelWidthWritingMode1Y = float(args[1])
+            if cmd == 'VVECTOR':
+                sys.stderr.write("bitmapfont2ttf: fonts with VVECTOR not supported yet.\n")
+                exit(1)
             if cmd == 'STARTPROPERTIES':
                 self.readPropertiesFp(fp)
+
     def readPropertiesFp(self, fp):
         for line in fp:
             args = bdfParseLine(line)
@@ -126,7 +194,7 @@ class MyBDF:
             if cmd == 'PIXEL_SIZE' and len(args) >= 1:
                 self.pixelSize = float(args[0])
             if cmd == 'POINT_SIZE' and len(args) >= 1:
-                self.pointSize = float(args[0])
+                self.pointSize10 = float(args[0])
             if cmd == 'RESOLUTION_X' and len(args) >= 1:
                 self.resolutionX = float(args[0])
             if cmd == 'RESOLUTION_Y' and len(args) >= 1:
@@ -141,6 +209,7 @@ class MyBDF:
                 self.ascent = float(args[0])
             if cmd == 'FONT_DESCENT' and len(args) >= 1:
                 self.descent = float(args[0])
+
     def readCharsFp(self, fp):
         for line in fp:
             args = bdfParseLine(line)
@@ -156,6 +225,7 @@ class MyBDF:
                     self.charsByEncoding[char.nonStandardEncoding] = char
                 if char.name != None:
                     self.charsByName[char.name] = char
+
     def readCharFp(self, fp, name):
         char = MyBDFChar(name)
         for line in fp:
@@ -179,6 +249,37 @@ class MyBDF:
                 char.boundingBoxY       = int(args[1])
                 char.boundingBoxXOffset = int(args[2])
                 char.boundingBoxYOffset = int(args[3])
+            elif cmd == 'SWIDTH':
+                char.scalableWidthX = float(args[0])
+                char.scalableWidthY = float(args[1])
+            elif cmd == 'DWIDTH':
+                char.devicePixelWidthX = int(args[0])
+                char.devicePixelWidthY = int(args[1])
+            elif cmd == 'SWIDTH1':
+                char.scalableWidthWritingMode1X = float(args[0])
+                char.scalableWidthWritingMode1Y = float(args[1])
+            elif cmd == 'DWIDTH1':
+                char.devicePixelWidthWritingMode1X = int(args[0])
+                char.devicePixelWidthWritingMode1Y = int(args[1])
+            elif cmd == 'VVECTOR':
+                sys.stderr.write("bitmapfont2ttf: fonts with VVECTOR not supported yet.\n")
+                exit(1)
+
+    def scalableToPixels(self, scalable):
+        # scalable in units of scalable width, or 1/1000th of font's point size
+        # divide by 1000 to get multiple of font's point size
+        # multiply by <p> to get size in points
+        # divide by 72 to get size in inches
+        # multiply by <xres> to get size in pixels
+        return scalable * self.pointSize / 1000.0 * self.xRes / 72.0
+
+    def pixelsToScalable(self, pixels):
+        # pixels is in units of pixels
+        # divide by <xres> to get inches
+        # multiply by 72 to get points
+        # divide by point size to get multiple of font's point size
+        # multiply by 1000 to get units of 1/1000th of font's point size
+        return pixels * 1000.0 / self.pointSize * 72.0 / self.xRes
 
     def __str__(self):
         result = "<MyBDF"
@@ -322,8 +423,11 @@ class BitmapFont2TTF:
             glyph.autoTrace()
             glyph.addExtrema()
             glyph.simplify()
+
+            # this is not true for lucida typewriter fonts
             if self.swidth != None:
                 glyph.width = self.swidth
+
             if self.finalPixelSize != self.pixelSize:
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
 
@@ -375,8 +479,13 @@ class BitmapFont2TTF:
     def setSwidth(self):
         if self.isMonospace:
             self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSize)
+            sys.stderr.write("*** setSwidth: setting font swidth to %s\n" % self.swidth)
+            sys.stderr.write("               self.font.em = %s\n" % self.font.em)
+            sys.stderr.write("               self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
+            sys.stderr.write("               self.pixelSize = %s\n" % self.pixelSize)
         else:
             self.swidth = None
+            sys.stderr.write("*** setSwidth: no font swidth\n")
 
     def setInitialAscentDescent(self):
         self.descentPx = self.pixelSize - self.bdf.ascent
