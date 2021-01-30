@@ -358,6 +358,7 @@ class BitmapFont2TTF:
         self.specifiedPixelSize = None
         self.asciiOnly = False
         self.sfdDir = None
+        self.useOwnBitmapTracing = False
         self.verbose = 0
         if args.nearest_multiple_of_four != None:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
@@ -377,6 +378,8 @@ class BitmapFont2TTF:
             self.metricsDescent = args.descent
         if args.line_height != None:
             self.metricsLineHeight = args.line_height
+        if args.use_own_bitmap_tracing != None:
+            self.useOwnBitmapTracing = True
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -638,6 +641,7 @@ parser.add_argument("--sfd-dir",                  type = str)
 parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
 parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
 parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
+parser.add_argument("--use-own-bitmap-tracing",   action = 'store_true')
 parser.add_argument("filename")
 parser.add_argument("destfilename",               nargs = '?')
 
