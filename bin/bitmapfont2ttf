@@ -155,12 +155,12 @@ class MyBDF:
                 self.readCharsFp(fp)
             if cmd == 'SIZE' and len(args) >= 3:
                 self.pointSize = float(args[0]) # point size of the glyphs
-                self.xRes      = float(args[1]) # x and y resolutions of the device for which the font is intended
-                self.yRes      = float(args[2])
+                self.xRes      = float(args[1]) # x resolution of the device for which the font is intended
+                self.yRes      = float(args[2]) # y resolution "  "   "      "   "     "   "    "  "
                 continue
             if cmd == 'FONTBOUNDINGBOX' and len(args) >= 4:
                 self.hasBoundingBox = True
-                self.boundingBoxX       = int(args[0]) # integer pixel values relative to origin
+                self.boundingBoxX       = int(args[0]) # integer pixel values, offsets relative to origin
                 self.boundingBoxY       = int(args[1])
                 self.boundingBoxXOffset = int(args[2])
                 self.boundingBoxYOffset = int(args[3])
