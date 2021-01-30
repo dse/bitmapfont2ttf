@@ -476,7 +476,10 @@ class BitmapFont2TTF:
                         glyph.width
                     ))
 
-            if self.finalPixelSize != self.pixelSize:
+    def adjustGlyphSizes(self):
+        if self.finalPixelSize != self.pixelSize:
+            sys.stderr.write("adjusting pixel size from %d to %d\n" % (self.pixelSize, self.finalPixelSize))
+            for glyph in self.font.glyphs():
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
 
     def traceGlyph(self, glyph):
@@ -667,6 +670,7 @@ class BitmapFont2TTF:
         self.useFinalPixelSize()
         self.setFontMetas()
         self.autoTrace()
+        self.adjustGlyphSizes()
         self.fixMissingGlyphs()
         self.setFinalMetrics()
         self.save()
