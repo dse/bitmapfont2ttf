@@ -548,13 +548,15 @@ class BitmapFont2TTF:
     def setSwidth(self):
         if self.isMonospace:
             self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSize)
-            sys.stderr.write("*** setSwidth: setting font swidth to %s\n" % self.swidth)
-            sys.stderr.write("               self.font.em = %s\n" % self.font.em)
-            sys.stderr.write("               self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
-            sys.stderr.write("               self.pixelSize = %s\n" % self.pixelSize)
+            if os.getenv("BITMAPFONT2TTF_DEBUG"):
+                sys.stderr.write("*** setSwidth: setting font swidth to %s\n" % self.swidth)
+                sys.stderr.write("               self.font.em = %s\n" % self.font.em)
+                sys.stderr.write("               self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
+                sys.stderr.write("               self.pixelSize = %s\n" % self.pixelSize)
         else:
             self.swidth = None
-            sys.stderr.write("*** setSwidth: no font swidth\n")
+            if os.getenv("BITMAPFONT2TTF_DEBUG"):
+                sys.stderr.write("*** setSwidth: no font swidth\n")
 
     def setInitialAscentDescent(self):
         self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
