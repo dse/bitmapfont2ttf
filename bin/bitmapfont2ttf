@@ -423,11 +423,7 @@ class BitmapFont2TTF:
             self.font.paste()
 
     def autoTrace(self):
-        glyphCount = 0
-        for glyph in self.font.glyphs():
-            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
-                continue
-            glyphCount += 1
+        glyphCount = self.getGlyphCount()
 
         sys.stderr.write("*** autotracing %d glyphs...\n" % glyphCount)
 
@@ -440,7 +436,10 @@ class BitmapFont2TTF:
                 sys.stderr.write("*** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
             elif self.verbose >= 1:
                 sys.stderr.write("*** [%d/%d]\r" % (glyphIndex, glyphCount))
-            glyph.autoTrace()
+            if self.useOwnBitmapTracing:
+                self.traceGlyph(glyph)
+            else:
+                glyph.autoTrace()
             glyph.addExtrema()
             glyph.simplify()
 
@@ -450,6 +449,27 @@ class BitmapFont2TTF:
 
             if self.finalPixelSize != self.pixelSize:
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
+
+    def traceGlyph(self, glyph):
+        if not(glyph.encoding in self.bdf.charsByEncoding):
+            return
+        sys.stderr.write("%s\n" % glyph.encoding)
+        bdfChar = self.bdf.charsByEncoding[glyph.encoding]
+        y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
+        for line in bdfChar.bitmapData:
+            y = y - 1
+            x = bdfChar.boundingBoxXOffset
+            for pixel in line:
+                # sys.stderr.write("    %d, %d, %s\n" % (x, y, pixel))
+                x = x + 1
+
+    def getGlyphCount(self):
+        glyphCount = 0
+        for glyph in self.font.glyphs():
+            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
+                continue
+            glyphCount += 1
+        return glyphCount
 
     def loadBDF(self):
         # Since FontForge doesn't give us info or properties from the
