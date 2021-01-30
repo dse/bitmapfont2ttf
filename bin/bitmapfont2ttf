@@ -119,15 +119,17 @@ class MyBDF:
         self.devicePixelWidthWritingMode1Y = None
 
         # STARTPROPERTIES .. ENDPROPERTIES
-        self.pixelSize = None   # PIXEL_SIZE
-        self.pointSize10 = None # POINT_SIZE
-        self.resolutionX = None # RESOLUTION_X
-        self.resolutionY = None # RESOLUTION_Y
-        self.spacing = None     # SPACING
-        self.capHeight = None   # CAP_HEIGHT
-        self.xHeight = None     # X_HEIGHT
-        self.ascent = None      # FONT_ASCENT
-        self.descent = None     # FONT_DESCENT
+        self.properties = {}
+        self.properties["pixelSize"] = None      # PIXEL_SIZE
+        self.properties["pointSize10"] = None    # POINT_SIZE
+        self.properties["resolutionX"] = None    # RESOLUTION_X
+        self.properties["resolutionY"] = None    # RESOLUTION_Y
+        self.properties["spacing"] = None        # SPACING ('M' for monospace or 'C' for character-cell fonts)
+        self.properties["capHeight"] = None      # CAP_HEIGHT
+        self.properties["xHeight"] = None        # X_HEIGHT
+        self.properties["ascent"] = None         # FONT_ASCENT
+        self.properties["descent"] = None        # FONT_DESCENT
+        self.properties["averageWidth10"] = None # AVERAGE_WIDTH
 
         self.filename = None
         self.chars = []
@@ -192,23 +194,25 @@ class MyBDF:
             if cmd == 'ENDPROPERTIES':
                 return
             if cmd == 'PIXEL_SIZE' and len(args) >= 1:
-                self.pixelSize = float(args[0])
+                self.properties["pixelSize"] = float(args[0])
             if cmd == 'POINT_SIZE' and len(args) >= 1:
-                self.pointSize10 = float(args[0])
+                self.properties["pointSize10"] = float(args[0])
             if cmd == 'RESOLUTION_X' and len(args) >= 1:
-                self.resolutionX = float(args[0])
+                self.properties["resolutionX"] = float(args[0])
             if cmd == 'RESOLUTION_Y' and len(args) >= 1:
-                self.resolutionY = float(args[0])
+                self.properties["resolutionY"] = float(args[0])
             if cmd == 'SPACING' and len(args) >= 1:
-                self.spacing = args[0].upper()
+                self.properties["spacing"] = args[0].upper()
             if cmd == 'CAP_HEIGHT' and len(args) >= 1:
-                self.capHeight = float(args[0])
+                self.properties["capHeight"] = float(args[0])
             if cmd == 'X_HEIGHT' and len(args) >= 1:
-                self.xHeight = float(args[0])
+                self.properties["xHeight"] = float(args[0])
             if cmd == 'FONT_ASCENT' and len(args) >= 1:
-                self.ascent = float(args[0])
+                self.properties["ascent"] = float(args[0])
             if cmd == 'FONT_DESCENT' and len(args) >= 1:
-                self.descent = float(args[0])
+                self.properties["descent"] = float(args[0])
+            if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
+                self.properties["averageWidth10"] = float(args[0])
 
     def readCharsFp(self, fp):
         for line in fp:
@@ -271,7 +275,8 @@ class MyBDF:
         # multiply by <p> to get size in points
         # divide by 72 to get size in inches
         # multiply by <xres> to get size in pixels
-        return scalable * self.pointSize / 1000.0 * self.xRes / 72.0
+        # FIXME: change pointSize to pixelSize?
+        return scalable * self.properties["pointSize"] / 1000.0 * self.xRes / 72.0
 
     def pixelsToScalable(self, pixels):
         # pixels is in units of pixels
@@ -279,7 +284,8 @@ class MyBDF:
         # multiply by 72 to get points
         # divide by point size to get multiple of font's point size
         # multiply by 1000 to get units of 1/1000th of font's point size
-        return pixels * 1000.0 / self.pointSize * 72.0 / self.xRes
+        # FIXME: change pointSize to pixelSize?
+        return pixels * 1000.0 / self.properties["pointSize"] # * 72.0 / self.xRes
 
     def __str__(self):
         result = "<MyBDF"
@@ -440,8 +446,8 @@ class BitmapFont2TTF:
         self.bdf = MyBDF(self.filename)
 
     def setPropertiesFromBDF(self):
-        self.isMonospace = self.bdf.spacing == 'M' or self.bdf.spacing == 'C'
-        self.pixelSize = self.bdf.pixelSize
+        self.isMonospace = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
+        self.pixelSize = self.bdf.properties["pixelSize"]
         self.finalPixelSize = self.pixelSize
         if self.specifiedPixelSize:
             self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
@@ -488,8 +494,8 @@ class BitmapFont2TTF:
             sys.stderr.write("*** setSwidth: no font swidth\n")
 
     def setInitialAscentDescent(self):
-        self.descentPx = self.pixelSize - self.bdf.ascent
-        self.ascentPx = self.bdf.ascent
+        self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
+        self.ascentPx = self.bdf.properties["ascent"]
 
         # must be specified before bitmap import for baseline alignment
         em = self.font.em
