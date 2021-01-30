@@ -287,7 +287,7 @@ class MyBDF:
         # divide by 72 to get size in inches
         # multiply by <xres> to get size in pixels
         # FIXME: change pointSize to pixelSize?
-        return scalable * self.pointSize / 1000.0 * self.xRes / 72.0
+        return scalable * (self.properties["pixelSize"] * 1.0) / 1000.0 # * self.xRes / 72.0
 
     def pixelsToScalable(self, pixels):
         # pixels is in units of pixels
@@ -296,7 +296,7 @@ class MyBDF:
         # divide by point size to get multiple of font's point size
         # multiply by 1000 to get units of 1/1000th of font's point size
         # FIXME: change pointSize to pixelSize?
-        return pixels * 1000.0 / self.pointSize # * 72.0 / self.xRes
+        return pixels * 1000.0 / (self.properties["pixelSize"] * 1.0) # * 72.0 / self.xRes
 
     def __str__(self):
         result = "<MyBDF"
@@ -448,6 +448,33 @@ class BitmapFont2TTF:
             # this is not true for lucida typewriter fonts
             if self.swidth != None:
                 glyph.width = self.swidth
+
+            bdfChar = None
+            if glyph.encoding in self.bdf.charsByEncoding:
+                bdfChar = self.bdf.charsByEncoding[glyph.encoding]
+
+            oldWidth = glyph.width
+            newWidth = None
+            if bdfChar:
+                if bdfChar.devicePixelWidthX:
+                    newWidth = round(
+                        self.bdf.pixelsToScalable(bdfChar.devicePixelWidthX) / 1000.0 * self.font.em
+                    )
+                elif bdfChar.scalablePixelWidthX:
+                    newWidth = round(
+                        bdfChar.scalablePixelWidthX / 1000.0 * self.font.em
+                    )
+
+            if newWidth != None and abs(newWidth - oldWidth) > 1:
+                glyph.width = newWidth
+                if os.getenv("BITMAPFONT2TTF_DEBUG"):
+                    sys.stderr.write(">>> U+%04X: swidth = %s; dwidthx = %s; glyph.width = %s => %s\n" % (
+                        glyph.encoding,
+                        self.swidth,
+                        bdfChar.devicePixelWidthX,
+                        oldWidth,
+                        glyph.width
+                    ))
 
             if self.finalPixelSize != self.pixelSize:
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
