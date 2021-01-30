@@ -230,6 +230,16 @@ class MyBDF:
                 if char.name != None:
                     self.charsByName[char.name] = char
 
+    def readBitmapDataFp(self, fp):
+        bitmapData = []
+        for line in fp:
+            if re.match(r'^\s*ENDCHAR\s*$', line, flags = re.IGNORECASE):
+                break
+            bitmapData.append(line.strip())
+        numBits = max(len(s) * 4 for s in bitmapData)
+        bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in bitmapData]
+        return bitmapData
+
     def readCharFp(self, fp, name):
         char = MyBDFChar(name)
         for line in fp:
@@ -238,6 +248,7 @@ class MyBDF:
                 continue
             (cmd, args) = (args[0].upper(), args[1:])
             if cmd == 'BITMAP':
+                char.bitmapData = self.readBitmapDataFp(fp)
                 return char
             elif cmd == 'ENDCHAR':
                 return char
