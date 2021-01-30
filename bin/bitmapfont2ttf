@@ -360,26 +360,28 @@ class BitmapFont2TTF:
         self.sfdDir = None
         self.useOwnBitmapTracing = False
         self.verbose = 0
-        if args.nearest_multiple_of_four != None:
+        if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        if args.next_multiple_of_four != None:
+        if args.next_multiple_of_four:
             self.nextMultipleOfFour = args.next_multiple_of_four
-        if args.ascii_only != None:
+        if args.ascii_only:
             self.asciiOnly = args.ascii_only
-        if args.sfd_dir != None:
+        if args.sfd_dir:
             self.sfdDir = args.sfd_dir
-        if args.verbose != None:
+        if args.verbose:
             self.verbose = args.verbose
-        if args.pixel_size != None:
+        if args.pixel_size:
             self.specifiedPixelSize = args.pixel_size
-        if args.ascent != None:
+        if args.ascent:
             self.metricsAscent = args.ascent
-        if args.descent != None:
+        if args.descent:
             self.metricsDescent = args.descent
-        if args.line_height != None:
+        if args.line_height:
             self.metricsLineHeight = args.line_height
-        if args.use_own_bitmap_tracing != None:
+        if args.use_own_bitmap_tracing:
             self.useOwnBitmapTracing = True
+        if args.save_sfd:
+            self.saveSFD = True
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
