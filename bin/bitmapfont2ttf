@@ -287,7 +287,7 @@ class MyBDF:
         # divide by 72 to get size in inches
         # multiply by <xres> to get size in pixels
         # FIXME: change pointSize to pixelSize?
-        return scalable * self.properties["pointSize"] / 1000.0 * self.xRes / 72.0
+        return scalable * self.pointSize / 1000.0 * self.xRes / 72.0
 
     def pixelsToScalable(self, pixels):
         # pixels is in units of pixels
@@ -296,7 +296,7 @@ class MyBDF:
         # divide by point size to get multiple of font's point size
         # multiply by 1000 to get units of 1/1000th of font's point size
         # FIXME: change pointSize to pixelSize?
-        return pixels * 1000.0 / self.properties["pointSize"] # * 72.0 / self.xRes
+        return pixels * 1000.0 / self.pointSize # * 72.0 / self.xRes
 
     def __str__(self):
         result = "<MyBDF"
