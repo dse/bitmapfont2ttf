@@ -622,12 +622,12 @@ class BitmapFont2TTF:
 
     def setFinalMetrics(self):
         adjusted = False
-        if self.metricsLineHeight != None:                                 # e.g., 1.1
-            height      = self.font.em                                     # e.g., 2048
-            finalHeight = int(0.5 + self.metricsLineHeight * height)       # e.g., 2253
-            add  = finalHeight - height                             # e.g., 205
-            addAscent    = int(0.5 + 1.0 * add / 2)          # e.g., 103
-            addDescent   = add - addAscent            # e.g., 102
+        if self.metricsLineHeight != None:                           # e.g., 1.1
+            height      = self.font.em                               # e.g., 2048
+            finalHeight = int(0.5 + self.metricsLineHeight * height) # e.g., 2253
+            add         = finalHeight - height                       # e.g., 205
+            addAscent   = int(0.5 + 1.0 * add / 2)                   # e.g., 103
+            addDescent  = add - addAscent                            # e.g., 102
             self.metricsAscent  = self.font.ascent + addAscent
             self.metricsDescent = self.font.descent + addDescent
         if self.metricsAscent != None:
