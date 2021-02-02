@@ -343,7 +343,7 @@ class BitmapFont2TTF:
         self.AUTOTRACE_NAME = 'exact-autotrace-c'
         self.autotrace = which(self.AUTOTRACE_NAME)
         if self.autotrace == None:
-            sys.stderr.write('no ' + self.AUTOTRACE_NAME + ' program found\n')
+            sys.stderr.write('bitmapfont2ttf: no ' + self.AUTOTRACE_NAME + ' program found\n')
             exit(1)
         os.environ['AUTOTRACE'] = self.autotrace
         fontforge.setPrefs('PreferPotrace', False)
@@ -427,7 +427,7 @@ class BitmapFont2TTF:
     def autoTrace(self):
         glyphCount = self.getGlyphCount()
 
-        sys.stderr.write("*** autotracing %d glyphs...\n" % glyphCount)
+        sys.stderr.write("bitmapfont2ttf: *** autotracing %d glyphs...\n" % glyphCount)
 
         glyphIndex = 0
         for glyph in self.font.glyphs():
@@ -435,9 +435,9 @@ class BitmapFont2TTF:
                 continue
             glyphIndex += 1
             if self.verbose >= 2:
-                sys.stderr.write("*** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
+                sys.stderr.write("bitmapfont2ttf: *** [%d/%d] %s\n" % (glyphIndex, glyphCount, glyph))
             elif self.verbose >= 1:
-                sys.stderr.write("*** [%d/%d]\r" % (glyphIndex, glyphCount))
+                sys.stderr.write("bitmapfont2ttf: *** [%d/%d]\r" % (glyphIndex, glyphCount))
             if self.useOwnBitmapTracing:
                 self.traceGlyph(glyph)
             else:
@@ -468,7 +468,7 @@ class BitmapFont2TTF:
             if newWidth != None and abs(newWidth - oldWidth) > 1:
                 glyph.width = newWidth
                 if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                    sys.stderr.write(">>> U+%04X: swidth = %s; dwidthx = %s; glyph.width = %s => %s\n" % (
+                    sys.stderr.write("bitmapfont2ttf: >>> U+%04X: swidth = %s; dwidthx = %s; glyph.width = %s => %s\n" % (
                         glyph.encoding,
                         self.swidth,
                         bdfChar.devicePixelWidthX,
@@ -478,21 +478,21 @@ class BitmapFont2TTF:
 
     def adjustGlyphSizes(self):
         if self.finalPixelSize != self.pixelSize:
-            sys.stderr.write("adjusting pixel size from %d to %d\n" % (self.pixelSize, self.finalPixelSize))
+            sys.stderr.write("bitmapfont2ttf: adjusting pixel size from %d to %d\n" % (self.pixelSize, self.finalPixelSize))
             for glyph in self.font.glyphs():
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
 
     def traceGlyph(self, glyph):
         if not(glyph.encoding in self.bdf.charsByEncoding):
             return
-        sys.stderr.write("%s\n" % glyph.encoding)
+        sys.stderr.write("bitmapfont2ttf: %s\n" % glyph.encoding)
         bdfChar = self.bdf.charsByEncoding[glyph.encoding]
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         for line in bdfChar.bitmapData:
             y = y - 1
             x = bdfChar.boundingBoxXOffset
             for pixel in line:
-                # sys.stderr.write("    %d, %d, %s\n" % (x, y, pixel))
+                # sys.stderr.write("bitmapfont2ttf:     %d, %d, %s\n" % (x, y, pixel))
                 x = x + 1
 
     def getGlyphCount(self):
@@ -543,23 +543,23 @@ class BitmapFont2TTF:
 
     def save(self):
         self.font.generate(self.destfilename)
-        sys.stderr.write("*** Wrote %s\n" % self.destfilename)
+        sys.stderr.write("bitmapfont2ttf: *** Wrote %s\n" % self.destfilename)
         if args.save_sfd:
             self.font.save(self.sfdfilename)
-            sys.stderr.write("*** Wrote %s\n" % self.sfdfilename)
+            sys.stderr.write("bitmapfont2ttf: *** Wrote %s\n" % self.sfdfilename)
 
     def setSwidth(self):
         if self.isMonospace:
             self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSize)
             if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                sys.stderr.write("*** setSwidth: setting font swidth to %s\n" % self.swidth)
-                sys.stderr.write("               self.font.em = %s\n" % self.font.em)
-                sys.stderr.write("               self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
-                sys.stderr.write("               self.pixelSize = %s\n" % self.pixelSize)
+                sys.stderr.write("bitmapfont2ttf: *** setSwidth: setting font swidth to %s\n" % self.swidth)
+                sys.stderr.write("                               self.font.em = %s\n" % self.font.em)
+                sys.stderr.write("                               self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
+                sys.stderr.write("                               self.pixelSize = %s\n" % self.pixelSize)
         else:
             self.swidth = None
             if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                sys.stderr.write("*** setSwidth: no font swidth\n")
+                sys.stderr.write("bitmapfont2ttf: *** setSwidth: no font swidth\n")
 
     def setInitialAscentDescent(self):
         self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
@@ -633,7 +633,7 @@ class BitmapFont2TTF:
         if self.metricsDescent != None:
             adjusted = True
         if adjusted:
-            sys.stderr.write("BEFORE: hhea %d/%d typo %d/%d win %d/%d\n" % (
+            sys.stderr.write("bitmapfont2ttf: BEFORE: hhea %d/%d typo %d/%d win %d/%d\n" % (
                 self.font.hhea_ascent, self.font.hhea_descent,
                 self.font.os2_typoascent, self.font.os2_typodescent,
                 self.font.os2_winascent, self.font.os2_windescent
@@ -647,7 +647,7 @@ class BitmapFont2TTF:
             self.font.os2_typodescent = -self.metricsDescent
             self.font.os2_windescent  = self.metricsDescent
         if adjusted:
-            sys.stderr.write("AFTER: hhea %d/%d typo %d/%d win %d/%d\n" % (
+            sys.stderr.write("bitmapfont2ttf: AFTER: hhea %d/%d typo %d/%d win %d/%d\n" % (
                 self.font.hhea_ascent, self.font.hhea_descent,
                 self.font.os2_typoascent, self.font.os2_typodescent,
                 self.font.os2_winascent, self.font.os2_windescent
