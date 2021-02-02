@@ -486,14 +486,27 @@ class BitmapFont2TTF:
     def traceGlyph(self, glyph):
         if not(glyph.encoding in self.bdf.charsByEncoding):
             return
-        sys.stderr.write("bitmapfont2ttf: %s: %s\n" % (self.args.full_name, glyph.encoding))
         bdfChar = self.bdf.charsByEncoding[glyph.encoding]
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
+        pixY = 1000.0 / self.bdf.properties["pixelSize"]
+        pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.properties["resolutionY"] / self.bdf.properties["resolutionX"]
+
         for line in bdfChar.bitmapData:
             y = y - 1
             x = bdfChar.boundingBoxXOffset
             for pixel in line:
-                # sys.stderr.write("bitmapfont2ttf: %s:     %d, %d, %s\n" % (self.args.full_name, x, y, pixel))
+                if pixel == '1':
+                    x1 = pixX * x
+                    x2 = pixX * (x + 1)
+                    y1 = pixY * y
+                    y2 = pixY * (y + 1)
+                    contour = fontforge.contour()
+                    contour.moveTo(x1, y1)
+                    contour.lineTo(x1, y2)
+                    contour.lineTo(x2, y2)
+                    contour.lineTo(x2, y1)
+                    contour.closed = True
+                    glyph.layers['Fore'] += contour
                 x = x + 1
 
     def getGlyphCount(self):
@@ -569,8 +582,10 @@ class BitmapFont2TTF:
 
         # must be specified before bitmap import for baseline alignment
         em = self.font.em
-        self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
-        self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
+        ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
+        descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
+        self.font.ascent  = ascent
+        self.font.descent = descent
 
     def setItalic(self):
         self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
@@ -621,41 +636,35 @@ class BitmapFont2TTF:
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
 
     def setFinalMetrics(self):
-        adjusted = False
-        if self.metricsLineHeight != None:                           # e.g., 1.1
+        ascent  = self.font.ascent
+        descent = self.font.descent
+
+        if self.metricsAscent != None: # --ascent
+            ascent = self.metricsAscent
+        if self.metricsDescent != None: # --descent
+            descent = self.metricsDescent
+        if self.metricsLineHeight != None:                           # --line-height, e.g., 1.1
             height      = self.font.em                               # e.g., 2048
             finalHeight = int(0.5 + self.metricsLineHeight * height) # e.g., 2253
             add         = finalHeight - height                       # e.g., 205
             addAscent   = int(0.5 + 1.0 * add / 2)                   # e.g., 103
             addDescent  = add - addAscent                            # e.g., 102
-            self.metricsAscent  = self.font.ascent + addAscent
-            self.metricsDescent = self.font.descent + addDescent
-        if self.metricsAscent != None:
-            adjusted = True
-        if self.metricsDescent != None:
-            adjusted = True
-        if adjusted:
-            sys.stderr.write("bitmapfont2ttf: %s: BEFORE: hhea %d/%d typo %d/%d win %d/%d\n" % (
-                self.args.full_name,
-                self.font.hhea_ascent, self.font.hhea_descent,
-                self.font.os2_typoascent, self.font.os2_typodescent,
-                self.font.os2_winascent, self.font.os2_windescent
-            ))
-        if self.metricsAscent != None:
-            self.font.hhea_ascent    = self.metricsAscent
-            self.font.os2_typoascent = self.metricsAscent
-            self.font.os2_winascent  = self.metricsAscent
-        if self.metricsDescent != None:
-            self.font.hhea_descent    = -self.metricsDescent
-            self.font.os2_typodescent = -self.metricsDescent
-            self.font.os2_windescent  = self.metricsDescent
-        if adjusted:
-            sys.stderr.write("bitmapfont2ttf: %s: AFTER: hhea %d/%d typo %d/%d win %d/%d\n" % (
-                self.args.full_name,
-                self.font.hhea_ascent, self.font.hhea_descent,
-                self.font.os2_typoascent, self.font.os2_typodescent,
-                self.font.os2_winascent, self.font.os2_windescent
-            ))
+            ascent      = self.font.ascent + addAscent
+            descent     = self.font.descent + addDescent
+
+        self.font.ascent          = ascent
+        self.font.descent         = descent
+
+        self.font.hhea_ascent     = ascent
+        self.font.hhea_descent    = -descent
+        self.font.hhea_linegap    = 0
+
+        self.font.os2_typoascent  = ascent
+        self.font.os2_typodescent = -descent
+        self.font.os2_typolinegap = 0
+
+        self.font.os2_winascent   = ascent
+        self.font.os2_windescent  = descent
 
     def bitmapfont2ttf(self, args):
         self.setArgs(args)
