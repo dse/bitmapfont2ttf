@@ -137,6 +137,8 @@ class MyBDF:
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
 
+        self.fillBoundingBoxWidth = False
+
         if filename != None:
             self.read(filename)
 
@@ -360,6 +362,8 @@ class BitmapFont2TTF:
         self.sfdDir = None
         self.useOwnBitmapTracing = False
         self.verbose = 0
+        self.pixelWidth = 1
+        self.pixelHeight = 1
         if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
@@ -380,8 +384,16 @@ class BitmapFont2TTF:
             self.metricsLineHeight = args.line_height
         if args.use_own_bitmap_tracing:
             self.useOwnBitmapTracing = True
+        if args.pixel_width:
+            self.useOwnBitmapTracing = True
+            self.pixelWidth = args.pixel_width
+        if args.pixel_height:
+            self.useOwnBitmapTracing = True
+            self.pixelHeight = args.pixel_height
         if args.save_sfd:
             self.saveSFD = True
+        if args.fill_bounding_box_width:
+            self.fillBoundingBoxWidth = True
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -478,6 +490,12 @@ class BitmapFont2TTF:
                     ))
 
     def adjustGlyphSizes(self):
+        if self.fillBoundingBoxWidth:
+            for glyph in self.font.glyphs():
+                oldWidth = glyph.width
+                newWidth = self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX
+                glyph.transform(psMat.translate((newWidth - oldWidth) / 2, 0))
+                glyph.width = newWidth
         if self.finalPixelSize != self.pixelSize:
             sys.stderr.write("bitmapfont2ttf: %s: adjusting pixel size from %d to %d\n" % (self.args.full_name, self.pixelSize, self.finalPixelSize))
             for glyph in self.font.glyphs():
@@ -494,12 +512,14 @@ class BitmapFont2TTF:
         for line in bdfChar.bitmapData:
             y = y - 1
             x = bdfChar.boundingBoxXOffset
+            deltaX = pixX * (1 - self.pixelWidth) / 2
+            deltaY = pixY * (1 - self.pixelHeight) / 2
             for pixel in line:
                 if pixel == '1':
-                    x1 = pixX * x
-                    x2 = pixX * (x + 1)
-                    y1 = pixY * y
-                    y2 = pixY * (y + 1)
+                    x1 = pixX * x       + deltaX
+                    x2 = pixX * (x + 1) - deltaX
+                    y1 = pixY * y       + deltaY
+                    y2 = pixY * (y + 1) - deltaY
                     contour = fontforge.contour()
                     contour.moveTo(x1, y1)
                     contour.lineTo(x1, y2)
@@ -528,6 +548,9 @@ class BitmapFont2TTF:
     def setPropertiesFromBDF(self):
         self.isMonospace = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
         self.pixelSize = self.bdf.properties["pixelSize"]
+        if not self.pixelSize:
+            if self.bdf.boundingBoxY:
+                self.pixelSize = self.bdf.boundingBoxY
         self.finalPixelSize = self.pixelSize
         if self.specifiedPixelSize:
             self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
@@ -558,7 +581,7 @@ class BitmapFont2TTF:
     def save(self):
         self.font.generate(self.destfilename)
         sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, self.destfilename))
-        if args.save_sfd:
+        if self.saveSFD:
             self.font.save(self.sfdfilename)
             sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, self.sfdfilename))
 
@@ -652,17 +675,21 @@ class BitmapFont2TTF:
             ascent      = self.font.ascent + addAscent
             descent     = self.font.descent + addDescent
 
+        self.font.hhea_ascent_add     = 0
+        self.font.hhea_descent_add    = 0
+        self.font.os2_typoascent_add  = 0
+        self.font.os2_typodescent_add = 0
+        self.font.os2_winascent_add   = 0
+        self.font.os2_windescent_add  = 0
+
         self.font.ascent          = ascent
         self.font.descent         = descent
-
         self.font.hhea_ascent     = ascent
         self.font.hhea_descent    = -descent
         self.font.hhea_linegap    = 0
-
         self.font.os2_typoascent  = ascent
         self.font.os2_typodescent = -descent
         self.font.os2_typolinegap = 0
-
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
 
@@ -710,6 +737,9 @@ parser.add_argument("--ascent",                   type = int, help = "ascent for
 parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
 parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
 parser.add_argument("--use-own-bitmap-tracing",   action = 'store_true')
+parser.add_argument("--pixel-width",              type = float, help = "width of each pixel, e.g., 0.9")
+parser.add_argument("--pixel-height",             type = float, help = "height of each pixel, e.g., 0.9")
+parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 parser.add_argument("filename")
 parser.add_argument("destfilename",               nargs = '?')
 
