@@ -283,22 +283,18 @@ class MyBDF:
                 exit(1)
 
     def scalableToPixels(self, scalable):
-        # scalable in units of scalable width, or 1/1000th of font's point size
-        # divide by 1000 to get multiple of font's point size
-        # multiply by <p> to get size in points
-        # divide by 72 to get size in inches
-        # multiply by <xres> to get size in pixels
-        # FIXME: change pointSize to pixelSize?
-        return scalable * (self.properties["pixelSize"] * 1.0) / 1000.0 # * self.xRes / 72.0
+        return 1.0 * scalable * self.properties["pixelSize"] / 1000.0
+    def scalableToPixelsX(self, scalable):
+        return 1.0 * scalable * self.properties["pixelSize"] / 1000.0 / self.aspectRatioXtoY()
 
     def pixelsToScalable(self, pixels):
-        # pixels is in units of pixels
-        # divide by <xres> to get inches
-        # multiply by 72 to get points
-        # divide by point size to get multiple of font's point size
-        # multiply by 1000 to get units of 1/1000th of font's point size
-        # FIXME: change pointSize to pixelSize?
-        return pixels * 1000.0 / (self.properties["pixelSize"] * 1.0) # * 72.0 / self.xRes
+        return 1.0 * pixels * 1000.0 / self.properties["pixelSize"]
+    def pixelsToScalableX(self, pixels):
+        return 1.0 * pixels * 1000.0 / self.properties["pixelSize"] * self.aspectRatioXtoY()
+
+    # less than 1 means taller than wide; greater than 1 means wider than tall
+    def aspectRatioXtoY(self):
+        return 1.0 * self.properties["resolutionY"] / self.properties["resolutionX"]
 
     def __str__(self):
         result = "<MyBDF"
@@ -362,8 +358,8 @@ class BitmapFont2TTF:
         self.sfdDir = None
         self.useOwnBitmapTracing = False
         self.verbose = 0
-        self.pixelWidth = 1
-        self.pixelHeight = 1
+        self.dotWidth = 1
+        self.dotHeight = 1
         if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
@@ -384,12 +380,12 @@ class BitmapFont2TTF:
             self.metricsLineHeight = args.line_height
         if args.use_own_bitmap_tracing:
             self.useOwnBitmapTracing = True
-        if args.pixel_width:
+        if args.dot_width:
             self.useOwnBitmapTracing = True
-            self.pixelWidth = args.pixel_width
-        if args.pixel_height:
+            self.dotWidth = args.dot_width
+        if args.dot_height:
             self.useOwnBitmapTracing = True
-            self.pixelHeight = args.pixel_height
+            self.dotHeight = args.dot_height
         if args.save_sfd:
             self.saveSFD = True
         if args.fill_bounding_box_width:
@@ -439,7 +435,7 @@ class BitmapFont2TTF:
     def autoTrace(self):
         glyphCount = self.getGlyphCount()
 
-        sys.stderr.write("bitmapfont2ttf: %s: autotracing %d glyphs...\n" % (self.args.full_name, glyphCount))
+        sys.stderr.write("bitmapfont2ttf: %s: tracing %d glyphs...\n" % (self.args.full_name, glyphCount))
 
         glyphIndex = 0
         for glyph in self.font.glyphs():
@@ -458,8 +454,10 @@ class BitmapFont2TTF:
             glyph.simplify()
 
             # this is not true for lucida typewriter fonts
-            if self.swidth != None:
-                glyph.width = self.swidth
+            # if glyph.swidth:
+            #     glyph.width = glyph.swidth
+            # elif self.swidth:
+            #     glyph.width = self.swidth
 
             bdfChar = None
             if glyph.encoding in self.bdf.charsByEncoding:
@@ -470,7 +468,7 @@ class BitmapFont2TTF:
             if bdfChar:
                 if bdfChar.devicePixelWidthX:
                     newWidth = round(
-                        self.bdf.pixelsToScalable(bdfChar.devicePixelWidthX) / 1000.0 * self.font.em
+                        self.bdf.pixelsToScalableX(bdfChar.devicePixelWidthX) / 1000.0 * self.font.em
                     )
                 elif bdfChar.scalablePixelWidthX:
                     newWidth = round(
@@ -493,7 +491,12 @@ class BitmapFont2TTF:
         if self.fillBoundingBoxWidth:
             for glyph in self.font.glyphs():
                 oldWidth = glyph.width
-                newWidth = self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX
+                if self.bdf.properties["resolutionX"] and self.bdf.properties["resolutionY"]:
+                    newWidth = 1.0 * self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX * self.bdf.aspectRatioXtoY()
+                else:
+                    newWidth = 1.0 * self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX
+                    raise Exception("neither resolutionX nor resolutionY defined")
+                print("oldWidth = %f; newWidth = %f" % (oldWidth, newWidth))
                 glyph.transform(psMat.translate((newWidth - oldWidth) / 2, 0))
                 glyph.width = newWidth
         if self.finalPixelSize != self.pixelSize:
@@ -506,14 +509,15 @@ class BitmapFont2TTF:
             return
         bdfChar = self.bdf.charsByEncoding[glyph.encoding]
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
+
         pixY = 1000.0 / self.bdf.properties["pixelSize"]
-        pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.properties["resolutionY"] / self.bdf.properties["resolutionX"]
+        pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.aspectRatioXtoY()
 
         for line in bdfChar.bitmapData:
             y = y - 1
             x = bdfChar.boundingBoxXOffset
-            deltaX = pixX * (1 - self.pixelWidth) / 2
-            deltaY = pixY * (1 - self.pixelHeight) / 2
+            deltaX = pixX * (1 - self.dotWidth) / 2
+            deltaY = pixY * (1 - self.dotHeight) / 2
             for pixel in line:
                 if pixel == '1':
                     x1 = pixX * x       + deltaX
@@ -587,7 +591,7 @@ class BitmapFont2TTF:
 
     def setSwidth(self):
         if self.isMonospace:
-            self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSize)
+            self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSizeX())
             if os.getenv("BITMAPFONT2TTF_DEBUG"):
                 sys.stderr.write("bitmapfont2ttf: %s: setWidth:\n" % self.args.full_name)
                 sys.stderr.write("    setting font swidth to %s\n" % self.swidth)
@@ -737,8 +741,8 @@ parser.add_argument("--ascent",                   type = int, help = "ascent for
 parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
 parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
 parser.add_argument("--use-own-bitmap-tracing",   action = 'store_true')
-parser.add_argument("--pixel-width",              type = float, help = "width of each pixel, e.g., 0.9")
-parser.add_argument("--pixel-height",             type = float, help = "height of each pixel, e.g., 0.9")
+parser.add_argument("--dot-width",                type = float, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
+parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 parser.add_argument("filename")
 parser.add_argument("destfilename",               nargs = '?')
