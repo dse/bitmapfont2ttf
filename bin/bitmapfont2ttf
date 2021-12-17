@@ -37,8 +37,21 @@ def bdfParseLine(line):
         break
     return words
 
+# FOR: keep track of all BDF properties
+def bdfParseLine2(line):
+    match = re.match(r'^\s*(\S+)(?:\s+)(\S.*?)\s*$', line)
+    if match:
+        key = match.group(1)
+        value = match.group(2)
+        return [key, value]
+    match = re.match(r'^\s*(\S+)', line)
+    if match:
+        key = match.group(1);
+        return [match.group(1), None]
+    return None
+
 class MyBDFChar:
-    def __init__(self, name = None):
+    def __init__(self, name = None, font = None):
         self.name = name
 
         # ENCODING
@@ -83,6 +96,40 @@ class MyBDFChar:
             ))
         result += ">"
         return result
+
+    def swidthX(self):
+        if self.scalableWidthX != None:
+            return self.scalableWidthX
+        if self.devicePixelWidthX != None:
+            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.font.pointSize()
+        return self.font.swidthX()
+
+    def swidthY(self):
+        if self.scalableWidthY != None:
+            return self.scalableWidthY
+        if self.devicePixelWidthY != None:
+            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.font.pointSize()
+        return self.font.swidthY()
+
+    def dwidthX(self):
+        if self.devicePixelWidthX != None:
+            return self.devicePixelWidthX
+        if self.scalableWidthX != None:
+            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.font.pointSize()))
+        return self.font.dwidthX()
+
+    def dwidthY(self):
+        if self.devicePixelWidthY != None:
+            return self.devicePixelWidthY
+        if self.scalableWidthY != None:
+            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.font.pointSize()))
+        return self.font.dwidthY()
+
+    def resolutionX(self):
+        return self.font.resolutionX()
+
+    def resolutionY(self):
+        return self.font.resolutionY()
 
 class MyBDF:
     def __init__(self, filename = None):
@@ -130,6 +177,10 @@ class MyBDF:
         self.properties["ascent"] = None         # FONT_ASCENT
         self.properties["descent"] = None        # FONT_DESCENT
         self.properties["averageWidth10"] = None # AVERAGE_WIDTH
+        
+        # FOR: keep track of all BDF properties
+        self.bdfProperties = {}
+        self.bdfArrayProperties = {}
 
         self.filename = None
         self.chars = []
@@ -141,6 +192,77 @@ class MyBDF:
 
         if filename != None:
             self.read(filename)
+
+    def swidthX(self):
+        if self.scalableWidthX != None:
+            return self.scalableWidthX
+        if self.devicePixelWidthX != None:
+            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.pointSize()
+        raise Exception('cannot determine swidthX')
+
+    def swidthY(self):
+        if self.scalableWidthY != None:
+            return self.scalableWidthY
+        if self.devicePixelWidthY != None:
+            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.pointSize()
+        raise Exception('cannot determine swidthY')
+
+    def dwidthX(self):
+        if self.devicePixelWidthX != None:
+            return self.devicePixelWidthX
+        if self.scalableWidthX != None:
+            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.pointSize()))
+        raise Exception('cannot determine dwidthX')
+
+    def dwidthY(self):
+        if self.devicePixelWidthY != None:
+            return self.devicePixelWidthY
+        if self.scalableWidthY != None:
+            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.pointSize()))
+        raise Exception('cannot determine dwidthY')
+
+    def pointSize(self):
+        pt10 = self.properties['pointSize10']
+        if pt10 != None:
+            return pt10 / 10.0
+        px = self.properties['pixelSize']
+        if px != None:
+            return 72.0 * px / self.resolutionY()
+        raise Exception('cannot determine pointSize')
+
+    def pixelSize(self):
+        px = self.properties['pixelSize']
+        if px != None:
+            return px
+        pt10 = self.properties['pointSize10']
+        if pt10 != None:
+            return pt10 / 720.0 * self.resolutionY()
+        raise Exception('cannot determine pixelSize')
+
+    def resolutionX(self):
+        r = self.properties['resolutionX']
+        if r != None:
+            return r
+        raise Exception('cannot determine resolutionX')
+
+    def resolutionY(self):
+        r = self.properties['resolutionY']
+        if r != None:
+            return r
+        raise Exception('cannot determine resolutionY')
+
+    def ascentPx(self):
+        ascent = self.properties['ascent']
+        if ascent != None:
+            return ascent
+        raise Exception('cannot determine ascentPx')
+
+    def descentPx(self):
+        bby = self.boundingBoxY
+        ascent = self.properties['ascent']
+        if bby != None and ascent != None:
+            return bby - ascent
+        raise Exception('cannot determine descentPx')
 
     def read(self, filename):
         with open(filename) as fp:
@@ -216,6 +338,20 @@ class MyBDF:
             if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
                 self.properties["averageWidth10"] = float(args[0])
 
+            # FOR: keep track of all BDF properties
+            result = bdfParseLine2(line)
+            if result:
+                key = result[0]
+                value = result[1]
+                self.addBdfProperty(key, value)
+
+    # FOR: keep track of all BDF properties
+    def addBdfProperty(self, key, value):
+        self.bdfProperties[key] = value
+        if self.bdfArrayProperties.get(key) == None:
+            self.bdfArrayProperties[key] = []
+        self.bdfArrayProperties[key].append(value)
+
     def readCharsFp(self, fp):
         for line in fp:
             args = bdfParseLine(line)
@@ -243,7 +379,7 @@ class MyBDF:
         return bitmapData
 
     def readCharFp(self, fp, name):
-        char = MyBDFChar(name)
+        char = MyBDFChar(name = name, font = self)
         for line in fp:
             args = bdfParseLine(line)
             if len(args) < 1:
@@ -315,23 +451,25 @@ class MyBDF:
         return result
 
 class BitmapFont2TTF:
+    def __init__(self, args):
+        self.setArgs(args)
+        self.fixFilenames()
 
-    saveSFD = False
-    nearestMultipleOfFour = False
-    nextMultipleOfFour = False
-    specifiedPixelSize = None
-    asciiOnly = False
-    sfdDir = None
-    filename = None
-    destfilename = None
-    verbose = 0
-    filename = None
-    destfilename = None
-    args = None
-    metricsAscent = None
-    metricsDescent = None
-    metricsLineHeight = None
+    # nearestMultipleOfFour = False
+    # nextMultipleOfFour = False
+    # specifiedPixelSize = None
+    # asciiOnly = False
+    # filename = None
+    # destfilename = None
+    # verbose = 0
+    # filename = None
+    # destfilename = None
+    # args = None
+    # metricsAscent = None
+    # metricsDescent = None
+    # metricsLineHeight = None
 
+    # NOT IN USE
     def setAutoTraceEnvironment(self):
         if self.verbose == 0:
             if 'AUTOTRACE_VERBOSE' in os.environ:
@@ -350,46 +488,42 @@ class BitmapFont2TTF:
     def setArgs(self, args):
         self.args = args
         self.filename = args.filename
-        self.destfilename = args.destfilename
-        self.nearestMultipleOfFour = False
-        self.nextMultipleOfFour = False
-        self.specifiedPixelSize = None
-        self.asciiOnly = False
-        self.sfdDir = None
-        self.useOwnBitmapTracing = False
-        self.verbose = 0
-        self.dotWidth = 1
-        self.dotHeight = 1
-        if args.nearest_multiple_of_four:
-            self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        if args.next_multiple_of_four:
-            self.nextMultipleOfFour = args.next_multiple_of_four
-        if args.ascii_only:
-            self.asciiOnly = args.ascii_only
-        if args.sfd_dir:
-            self.sfdDir = args.sfd_dir
-        if args.verbose:
-            self.verbose = args.verbose
-        if args.pixel_size:
-            self.specifiedPixelSize = args.pixel_size
-        if args.ascent:
-            self.metricsAscent = args.ascent
-        if args.descent:
-            self.metricsDescent = args.descent
-        if args.line_height:
-            self.metricsLineHeight = args.line_height
-        if args.use_own_bitmap_tracing:
-            self.useOwnBitmapTracing = True
-        if args.dot_width:
-            self.useOwnBitmapTracing = True
-            self.dotWidth = args.dot_width
-        if args.dot_height:
-            self.useOwnBitmapTracing = True
-            self.dotHeight = args.dot_height
-        if args.save_sfd:
-            self.saveSFD = True
-        if args.fill_bounding_box_width:
-            self.fillBoundingBoxWidth = True
+        self.destfilenames = args.destfilenames
+        if False:
+            self.nearestMultipleOfFour = False
+            self.nextMultipleOfFour = False
+            self.specifiedPixelSize = None
+            self.asciiOnly = False
+            self.useOwnBitmapTracing = False
+            self.verbose = 0
+            self.dotWidth = 1
+            self.dotHeight = 1
+            if args.nearest_multiple_of_four:
+                self.nearestMultipleOfFour = args.nearest_multiple_of_four
+            if args.next_multiple_of_four:
+                self.nextMultipleOfFour = args.next_multiple_of_four
+            if args.ascii_only:
+                self.asciiOnly = args.ascii_only
+            if args.verbose:
+                self.verbose = args.verbose
+            if args.pixel_size:
+                self.specifiedPixelSize = args.pixel_size
+            if args.ascent:
+                self.metricsAscent = args.ascent
+            if args.descent:
+                self.metricsDescent = args.descent
+            if args.line_height:
+                self.metricsLineHeight = args.line_height
+            if args.use_own_bitmap_tracing:
+                self.useOwnBitmapTracing = True
+            if args.dot_width:
+                self.useOwnBitmapTracing = True
+                self.dotWidth = args.dot_width
+            if args.dot_height:
+                self.useOwnBitmapTracing = True
+                self.dotHeight = args.dot_height
+            if args.fill_bounding_box_width:
+                self.fillBoundingBoxWidth = True
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -397,20 +531,18 @@ class BitmapFont2TTF:
             # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
             # fine whereas 'foo.pcf' does not.
             self.filename = os.path.join('.', self.filename)
-        if self.destfilename == None:
-            (rootdestfilename, junk) = os.path.splitext(self.filename)
-            self.destfilename = rootdestfilename + '.ttf'
-        else:
-            (rootdestfilename, junk) = os.path.splitext(self.destfilename)
-        self.sfdfilename = rootdestfilename + '.sfd'
-        if self.sfdDir != None:
-            self.sfdfilename = self.sfdDir + '/' + os.path.basename(self.sfdfilename)
 
+        if self.destfilenames == None or len(self.destfilenames) == 0:
+            (rootdestfilename, junk) = os.path.splitext(self.filename)
+            self.destfilenames = [rootdestfilename + '.ttf']
+
+    # NOT IN USE
     def fixMissingGlyphs(self):
         self.fixMissingGlyph(39, 8217) # U+0027 APOSTROPHE;   U+2019 RIGHT SINGLE QUOTATION MARK
         self.fixMissingGlyph(45, 8722) # U+002D HYPHEN-MINUS; U+2212 MINUS SIGN
         self.fixMissingGlyph(96, 8216) # U+0060 GRAVE;        U+2018 LEFT SINGLE QUOTATION MARK
 
+    # NOT IN USE
     def fixMissingGlyph(self, destUni, sourceUni):
         hasSource = False
         hasDest = False
@@ -432,6 +564,7 @@ class BitmapFont2TTF:
             self.font.selection.select(destGlyph)
             self.font.paste()
 
+    # NOT IN USE
     def autoTrace(self):
         glyphCount = self.getGlyphCount()
 
@@ -443,7 +576,7 @@ class BitmapFont2TTF:
                 continue
             glyphIndex += 1
             if self.verbose >= 2:
-                sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\n" % (self.args.full_name, glyphIndex, glyphCount, glyph))
+                sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
             elif self.verbose >= 1:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d]\r" % (self.args.full_name, glyphIndex, glyphCount))
             if self.useOwnBitmapTracing:
@@ -470,9 +603,9 @@ class BitmapFont2TTF:
                     newWidth = round(
                         self.bdf.pixelsToScalableX(bdfChar.devicePixelWidthX) / 1000.0 * self.font.em
                     )
-                elif bdfChar.scalablePixelWidthX:
+                elif bdfChar.scalableWidthX:
                     newWidth = round(
-                        bdfChar.scalablePixelWidthX / 1000.0 * self.font.em
+                        bdfChar.scalableWidthX / 1000.0 * self.font.em
                     )
 
             if newWidth != None and abs(newWidth - oldWidth) > 1:
@@ -487,8 +620,9 @@ class BitmapFont2TTF:
                         glyph.width
                     ))
 
+    # NOT IN USE
     def adjustGlyphSizes(self):
-        if self.fillBoundingBoxWidth:
+        if self.bdf.fillBoundingBoxWidth:
             for glyph in self.font.glyphs():
                 oldWidth = glyph.width
                 if self.bdf.properties["resolutionX"] and self.bdf.properties["resolutionY"]:
@@ -504,20 +638,18 @@ class BitmapFont2TTF:
             for glyph in self.font.glyphs():
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
 
-    def traceGlyph(self, glyph):
-        if not(glyph.encoding in self.bdf.charsByEncoding):
-            return
-        bdfChar = self.bdf.charsByEncoding[glyph.encoding]
+    def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
-
-        pixY = 1000.0 / self.bdf.properties["pixelSize"]
-        pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.aspectRatioXtoY()
-
+        pixY = 1.0 * self.font.em / self.bdf.pixelSize()
+        pixX = 1.0 * self.font.em / self.bdf.pixelSize() * self.bdf.aspectRatioXtoY()
         for line in bdfChar.bitmapData:
             y = y - 1
             x = bdfChar.boundingBoxXOffset
-            deltaX = pixX * (1 - self.dotWidth) / 2
-            deltaY = pixY * (1 - self.dotHeight) / 2
+            deltaX = 0
+            deltaY = 0
+            if False:
+                deltaX = pixX * (1 - self.dotWidth) / 2
+                deltaY = pixY * (1 - self.dotHeight) / 2
             for pixel in line:
                 if pixel == '1':
                     x1 = pixX * x       + deltaX
@@ -532,7 +664,26 @@ class BitmapFont2TTF:
                     contour.closed = True
                     glyph.layers['Fore'] += contour
                 x = x + 1
+        glyph.width = int(round(bdfChar.dwidthX() * pixX))
 
+    def trace(self):
+        count = len(self.bdf.chars)
+        index = 0
+        for char in self.bdf.chars:
+            index = index + 1
+            sys.stderr.write('  %d/%d glyphs...\r' % (index, count))
+            encoding = char.encoding if char.encoding else -1
+            try:
+                glyph = self.font.createChar(encoding, char.name)
+            except:
+                sys.stderr.write('\nencoding %s; name %s\n' % (encoding, char.name))
+                raise
+            self.traceGlyph(glyph, char)
+            glyph.addExtrema()
+            glyph.simplify()
+        sys.stderr.write('  %d/%d glyphs done!\n' % (count, count))
+
+    # NOT IN USE
     def getGlyphCount(self):
         glyphCount = 0
         for glyph in self.font.glyphs():
@@ -542,11 +693,8 @@ class BitmapFont2TTF:
         return glyphCount
 
     def loadBDF(self):
-        # Since FontForge doesn't give us info or properties from the
-        # BDF, we get them ourselves.  And we assume we're pulling a
-        # BDF instead of, say, a PCF file.
         if not re.search(r'\.bdf$', self.filename):
-            raise Exception("BDF required")
+            raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
 
     def setPropertiesFromBDF(self):
@@ -555,13 +703,14 @@ class BitmapFont2TTF:
         if not self.pixelSize:
             if self.bdf.boundingBoxY:
                 self.pixelSize = self.bdf.boundingBoxY
-        self.finalPixelSize = self.pixelSize
-        if self.specifiedPixelSize:
-            self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
-        elif self.nextMultipleOfFour:
-            self.finalPixelSize = 4 * int((self.pixelSize + 3) / 4)
-        elif self.nearestMultipleOfFour:
-            self.finalPixelSize = 4 * int((self.pixelSize + 2) / 4)
+        if False:
+            self.finalPixelSize = self.pixelSize
+            if self.specifiedPixelSize:
+                self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
+            elif self.nextMultipleOfFour:
+                self.finalPixelSize = 4 * int((self.pixelSize + 3) / 4)
+            elif self.nearestMultipleOfFour:
+                self.finalPixelSize = 4 * int((self.pixelSize + 2) / 4)
 
     def setFontMetas(self):
         if self.args != None:
@@ -583,34 +732,49 @@ class BitmapFont2TTF:
                 self.font.italicangle = self.args.italic_angle
 
     def save(self):
-        self.font.generate(self.destfilename)
-        sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, self.destfilename))
-        if self.saveSFD:
-            self.font.save(self.sfdfilename)
-            sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, self.sfdfilename))
+        for dest in self.destfilenames:
+            if re.search(r'\.sfd$', dest):
+                self.font.save(dest)
+            else:
+                self.font.generate(dest)
+            sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, dest))
 
     def setSwidth(self):
         if self.isMonospace:
-            self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSizeX())
-            if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                sys.stderr.write("bitmapfont2ttf: %s: setWidth:\n" % self.args.full_name)
-                sys.stderr.write("    setting font swidth to %s\n" % self.swidth)
-                sys.stderr.write("    self.font.em = %s\n" % self.font.em)
-                sys.stderr.write("    self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
-                sys.stderr.write("    self.pixelSize = %s\n" % self.pixelSize)
+            self.swidthPx = self.bdf.boundingBoxX
+            self.swidthEm = 1.0 * self.swidthPx / self.pixelSize
         else:
-            self.swidth = None
-            if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                sys.stderr.write("bitmapfont2ttf: %s: setSwidth: no font swidth\n" % self.args.full_name)
+            self.swidthPx = None
+            self.swidthEm = None
+        if False:
+            if self.isMonospace:
+                self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSizeX())
+                if os.getenv("BITMAPFONT2TTF_DEBUG"):
+                    sys.stderr.write("bitmapfont2ttf: %s: setWidth:\n" % self.args.full_name)
+                    sys.stderr.write("    setting font swidth to %s\n" % self.swidth)
+                    sys.stderr.write("    self.font.em = %s\n" % self.font.em)
+                    sys.stderr.write("    self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
+                    sys.stderr.write("    self.pixelSize = %s\n" % self.pixelSize)
+            else:
+                self.swidth = None
+                if os.getenv("BITMAPFONT2TTF_DEBUG"):
+                    sys.stderr.write("bitmapfont2ttf: %s: setSwidth: no font swidth\n" % self.args.full_name)
 
     def setInitialAscentDescent(self):
-        self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
-        self.ascentPx = self.bdf.properties["ascent"]
+        self.descentPx = self.bdf.descentPx()
+        self.ascentPx  = self.bdf.ascentPx()
+        self.descentEm = 1.0 * self.descentPx / self.pixelSize
+        self.ascentEm  = 1.0 * self.ascentPx  / self.pixelSize
+        ascent  = round(self.ascentEm * self.font.em)
+        descent = round(self.descentEm * self.font.em)
+        if False:
+            self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
+            self.ascentPx = self.bdf.properties["ascent"]
 
-        # must be specified before bitmap import for baseline alignment
-        em = self.font.em
-        ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
-        descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
+            # must be specified before bitmap import for baseline alignment
+            em = self.font.em
+            ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
+            descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
         self.font.ascent  = ascent
         self.font.descent = descent
 
@@ -644,6 +808,7 @@ class BitmapFont2TTF:
                 self.font.os2_stylemap |= 0x0020
                 self.font.macstyle     |= 0x0001
 
+    # NOT IN USE
     def useFinalPixelSize(self):
         if self.finalPixelSize != self.pixelSize:
             if self.finalPixelSize > self.pixelSize:
@@ -662,22 +827,24 @@ class BitmapFont2TTF:
             self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.finalPixelSize)
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
 
+    # NOT IN USE
     def setFinalMetrics(self):
         ascent  = self.font.ascent
         descent = self.font.descent
 
-        if self.metricsAscent != None: # --ascent
-            ascent = self.metricsAscent
-        if self.metricsDescent != None: # --descent
-            descent = self.metricsDescent
-        if self.metricsLineHeight != None:                           # --line-height, e.g., 1.1
-            height      = self.font.em                               # e.g., 2048
-            finalHeight = int(0.5 + self.metricsLineHeight * height) # e.g., 2253
-            add         = finalHeight - height                       # e.g., 205
-            addAscent   = int(0.5 + 1.0 * add / 2)                   # e.g., 103
-            addDescent  = add - addAscent                            # e.g., 102
-            ascent      = self.font.ascent + addAscent
-            descent     = self.font.descent + addDescent
+        if False:
+            if self.metricsAscent != None: # --ascent
+                ascent = self.metricsAscent
+            if self.metricsDescent != None: # --descent
+                descent = self.metricsDescent
+            if self.metricsLineHeight != None:                           # --line-height, e.g., 1.1
+                height      = self.font.em                               # e.g., 2048
+                finalHeight = int(0.5 + self.metricsLineHeight * height) # e.g., 2253
+                add         = finalHeight - height                       # e.g., 205
+                addAscent   = int(0.5 + 1.0 * add / 2)                   # e.g., 103
+                addDescent  = add - addAscent                            # e.g., 102
+                ascent      = self.font.ascent + addAscent
+                descent     = self.font.descent + addDescent
 
         self.font.hhea_ascent_add     = 0
         self.font.hhea_descent_add    = 0
@@ -697,10 +864,11 @@ class BitmapFont2TTF:
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
 
-    def bitmapfont2ttf(self, args):
-        self.setArgs(args)
-        self.setAutoTraceEnvironment()
-        self.fixFilenames()
+    def bitmapfont2ttf(self):
+        if False:
+            self.setArgs(args)
+            self.setAutoTraceEnvironment()
+            self.fixFilenames()
         self.loadBDF()
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
@@ -711,15 +879,16 @@ class BitmapFont2TTF:
         self.font.encoding = 'iso10646-1'
         self.setItalic()
         self.setWeight()
-        self.useFinalPixelSize()
+        if False:
+            self.useFinalPixelSize()
         self.setFontMetas()
-        self.autoTrace()
-        self.adjustGlyphSizes()
-        self.fixMissingGlyphs()
+        if False:
+            self.autoTrace()
+            self.adjustGlyphSizes()
+            self.fixMissingGlyphs()
+        self.trace()
         self.setFinalMetrics()
         self.save()
-
-bf2ttf = BitmapFont2TTF()
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 parser.add_argument("--copyright",                help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
@@ -745,8 +914,8 @@ parser.add_argument("--dot-width",                type = float, help = 'width  o
 parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 parser.add_argument("filename")
-parser.add_argument("destfilename",               nargs = '?')
+parser.add_argument("destfilenames",               nargs = '*')
 
 args = parser.parse_args()
-
-bf2ttf.bitmapfont2ttf(args)
+bf2ttf = BitmapFont2TTF(args)
+bf2ttf.bitmapfont2ttf()
