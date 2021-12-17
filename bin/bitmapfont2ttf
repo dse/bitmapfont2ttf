@@ -459,7 +459,6 @@ class BitmapFont2TTF:
     # nextMultipleOfFour = False
     # specifiedPixelSize = None
     # verbose = 0
-    # args = None
     # metricsAscent = None
     # metricsDescent = None
     # metricsLineHeight = None
