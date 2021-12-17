@@ -579,15 +579,6 @@ class BitmapFont2TTF:
 
             if newWidth != None and abs(newWidth - oldWidth) > 1:
                 glyph.width = newWidth
-                if os.getenv("BITMAPFONT2TTF_DEBUG"):
-                    sys.stderr.write("bitmapfont2ttf: %s: U+%04X: swidth = %s; dwidthx = %s; glyph.width = %s => %s\n" % (
-                        self.args.full_name,
-                        glyph.encoding,
-                        self.swidth,
-                        bdfChar.devicePixelWidthX,
-                        oldWidth,
-                        glyph.width
-                    ))
 
     # NOT IN USE
     def adjustGlyphSizes(self):
@@ -713,16 +704,8 @@ class BitmapFont2TTF:
             self.swidthEm = None
         # if self.isMonospace:
         #     self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSizeX())
-        #     if os.getenv("BITMAPFONT2TTF_DEBUG"):
-        #         sys.stderr.write("bitmapfont2ttf: %s: setWidth:\n" % self.args.full_name)
-        #         sys.stderr.write("    setting font swidth to %s\n" % self.swidth)
-        #         sys.stderr.write("    self.font.em = %s\n" % self.font.em)
-        #         sys.stderr.write("    self.bdf.boundingBoxX = %s\n" % self.bdf.boundingBoxX)
-        #         sys.stderr.write("    self.pixelSize = %s\n" % self.pixelSize)
         # else:
         #     self.swidth = None
-        #     if os.getenv("BITMAPFONT2TTF_DEBUG"):
-        #         sys.stderr.write("bitmapfont2ttf: %s: setSwidth: no font swidth\n" % self.args.full_name)
 
     def setInitialAscentDescent(self):
         self.descentPx = self.bdf.descentPx()
