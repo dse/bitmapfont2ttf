@@ -457,6 +457,8 @@ class BitmapFont2TTF:
     # nextMultipleOfFour = False
     # specifiedPixelSize = None
     # verbose = 0
+    # dotWidth = 1
+    # dotHeight = 1
     # metricsAscent = None
     # metricsDescent = None
     # metricsLineHeight = None
@@ -473,26 +475,29 @@ class BitmapFont2TTF:
         # self.verbose = 0
         # self.dotWidth = 1
         # self.dotHeight = 1
+        # self.metricsAscent = None
+        # self.metricsDescent = None
+        # self.metricsLineHeight = None
         # self.fillBoundingBoxWidth = False
 
         # if args.nearest_multiple_of_four:
         #     self.nearestMultipleOfFour = args.nearest_multiple_of_four
         # if args.next_multiple_of_four:
         #     self.nextMultipleOfFour = args.next_multiple_of_four
-        # if args.verbose:
-        #     self.verbose = args.verbose
         # if args.pixel_size:
         #     self.specifiedPixelSize = args.pixel_size
+        # if args.verbose:
+        #     self.verbose = args.verbose
+        # if args.dot_width:
+        #     self.dotWidth = args.dot_width
+        # if args.dot_height:
+        #     self.dotHeight = args.dot_height
         # if args.ascent:
         #     self.metricsAscent = args.ascent
         # if args.descent:
         #     self.metricsDescent = args.descent
         # if args.line_height:
         #     self.metricsLineHeight = args.line_height
-        # if args.dot_width:
-        #     self.dotWidth = args.dot_width
-        # if args.dot_height:
-        #     self.dotHeight = args.dot_height
         # if args.fill_bounding_box_width:
         #     self.fillBoundingBoxWidth = True
 
