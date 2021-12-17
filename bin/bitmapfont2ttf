@@ -839,6 +839,8 @@ parser.add_argument("--full-name",                help = "assign full name, e.g.
 parser.add_argument("--version",                  help = "assign version, e.g., '001.000'")
 parser.add_argument("--weight",                   help = "assign font weight, e.g., 'Regular', 'Bold'")
 parser.add_argument("--italic-angle",             type = float, help = "assign font italic angle, e.g., -22.5")
+
+# NOT IN USE RIGHT NOW, MAY BE IN USE AGAIN
 parser.add_argument("--verbose", "-v",            action = 'count', help = "increase output verbosity")
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
 parser.add_argument("--next-multiple-of-four",    action = 'store_true')
@@ -849,6 +851,7 @@ parser.add_argument("--line-height",              type = float, help = "line hei
 parser.add_argument("--dot-width",                type = float, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",               nargs = '*')
 
