@@ -469,22 +469,6 @@ class BitmapFont2TTF:
     # metricsDescent = None
     # metricsLineHeight = None
 
-    # NOT IN USE
-    def setAutoTraceEnvironment(self):
-        if self.verbose == 0:
-            if 'AUTOTRACE_VERBOSE' in os.environ:
-                del os.environ['AUTOTRACE_VERBOSE']
-        else:
-            os.environ['AUTOTRACE_VERBOSE'] = str(self.verbose)
-        self.AUTOTRACE_NAME = 'exact-autotrace-c'
-        self.autotrace = which(self.AUTOTRACE_NAME)
-        if self.autotrace == None:
-            sys.stderr.write('bitmapfont2ttf: %s: no %s program found\n' % (self.args.full_name, self.AUTOTRACE_NAME))
-            exit(1)
-        os.environ['AUTOTRACE'] = self.autotrace
-        fontforge.setPrefs('PreferPotrace', False)
-        fontforge.setPrefs('AutotraceArgs', '')
-
     def setArgs(self, args):
         self.args = args
         self.filename = args.filename
@@ -867,7 +851,6 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         if False:
             self.setArgs(args)
-            self.setAutoTraceEnvironment()
             self.fixFilenames()
         self.loadBDF()
         self.setPropertiesFromBDF()
