@@ -475,7 +475,6 @@ class BitmapFont2TTF:
         # self.nearestMultipleOfFour = False
         # self.nextMultipleOfFour = False
         # self.specifiedPixelSize = None
-        # self.useOwnBitmapTracing = False
         # self.verbose = 0
         # self.dotWidth = 1
         # self.dotHeight = 1
@@ -493,13 +492,9 @@ class BitmapFont2TTF:
         #     self.metricsDescent = args.descent
         # if args.line_height:
         #     self.metricsLineHeight = args.line_height
-        # if args.use_own_bitmap_tracing:
-        #     self.useOwnBitmapTracing = True
         # if args.dot_width:
-        #     self.useOwnBitmapTracing = True
         #     self.dotWidth = args.dot_width
         # if args.dot_height:
-        #     self.useOwnBitmapTracing = True
         #     self.dotHeight = args.dot_height
         # if args.fill_bounding_box_width:
         #     self.fillBoundingBoxWidth = True
@@ -556,10 +551,7 @@ class BitmapFont2TTF:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
             elif self.verbose >= 1:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d]\r" % (self.args.full_name, glyphIndex, glyphCount))
-            if self.useOwnBitmapTracing:
-                self.traceGlyph(glyph)
-            else:
-                glyph.autoTrace()
+            glyph.autoTrace()
             glyph.addExtrema()
             glyph.simplify()
 
@@ -872,7 +864,6 @@ parser.add_argument("--pixel-size",               type = int, help = "pixel font
 parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
 parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
 parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
-parser.add_argument("--use-own-bitmap-tracing",   action = 'store_true')
 parser.add_argument("--dot-width",                type = float, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
