@@ -188,8 +188,6 @@ class MyBDF:
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
 
-        self.fillBoundingBoxWidth = False
-
         if filename != None:
             self.read(filename)
 
@@ -462,17 +460,21 @@ class BitmapFont2TTF:
     # metricsAscent = None
     # metricsDescent = None
     # metricsLineHeight = None
+    # fillBoundingBoxWidth = False
 
     def setArgs(self, args):
         self.args = args
         self.filename = args.filename
         self.destfilenames = args.destfilenames
+
         # self.nearestMultipleOfFour = False
         # self.nextMultipleOfFour = False
         # self.specifiedPixelSize = None
         # self.verbose = 0
         # self.dotWidth = 1
         # self.dotHeight = 1
+        # self.fillBoundingBoxWidth = False
+
         # if args.nearest_multiple_of_four:
         #     self.nearestMultipleOfFour = args.nearest_multiple_of_four
         # if args.next_multiple_of_four:
