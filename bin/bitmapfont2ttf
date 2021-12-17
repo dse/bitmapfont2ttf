@@ -827,8 +827,6 @@ class BitmapFont2TTF:
         self.font.os2_windescent  = descent
 
     def bitmapfont2ttf(self):
-        # self.setArgs(args)
-        # self.fixFilenames()
         self.loadBDF()
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
