@@ -458,7 +458,6 @@ class BitmapFont2TTF:
     # nearestMultipleOfFour = False
     # nextMultipleOfFour = False
     # specifiedPixelSize = None
-    # asciiOnly = False
     # filename = None
     # destfilename = None
     # verbose = 0
@@ -476,7 +475,6 @@ class BitmapFont2TTF:
         # self.nearestMultipleOfFour = False
         # self.nextMultipleOfFour = False
         # self.specifiedPixelSize = None
-        # self.asciiOnly = False
         # self.useOwnBitmapTracing = False
         # self.verbose = 0
         # self.dotWidth = 1
@@ -485,8 +483,6 @@ class BitmapFont2TTF:
         #     self.nearestMultipleOfFour = args.nearest_multiple_of_four
         # if args.next_multiple_of_four:
         #     self.nextMultipleOfFour = args.next_multiple_of_four
-        # if args.ascii_only:
-        #     self.asciiOnly = args.ascii_only
         # if args.verbose:
         #     self.verbose = args.verbose
         # if args.pixel_size:
@@ -555,8 +551,6 @@ class BitmapFont2TTF:
 
         glyphIndex = 0
         for glyph in self.font.glyphs():
-            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
-                continue
             glyphIndex += 1
             if self.verbose >= 2:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
@@ -669,8 +663,6 @@ class BitmapFont2TTF:
     def getGlyphCount(self):
         glyphCount = 0
         for glyph in self.font.glyphs():
-            if self.asciiOnly and (glyph.encoding < 32 or glyph.encoding > 126):
-                continue
             glyphCount += 1
         return glyphCount
 
@@ -878,7 +870,6 @@ parser.add_argument("--verbose", "-v",            action = 'count', help = "incr
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
 parser.add_argument("--next-multiple-of-four",    action = 'store_true')
 parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
-parser.add_argument("--ascii-only",               action = 'store_true')
 parser.add_argument("--sfd-dir",                  type = str)
 parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
 parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
