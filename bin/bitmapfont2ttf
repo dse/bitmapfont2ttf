@@ -529,7 +529,7 @@ class BitmapFont2TTF:
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
         # self.specifiedPixelSize = None
-        # self.verbose = 0
+        self.verbose = 0
         self.dotWidth = 1
         self.dotHeight = 1
         # self.metricsAscent = None
@@ -543,8 +543,8 @@ class BitmapFont2TTF:
             self.nextMultipleOfFour = args.next_multiple_of_four
         # if args.pixel_size:
         #     self.specifiedPixelSize = args.pixel_size
-        # if args.verbose:
-        #     self.verbose = args.verbose
+        if args.verbose:
+            self.verbose = args.verbose
         if args.dot_width:
             self.dotWidth = args.dot_width
         if args.dot_height:
