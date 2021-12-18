@@ -606,15 +606,31 @@ class BitmapFont2TTF:
         pixX = 1.0 * self.font.em / self.bdf.pixelSize() * self.bdf.aspectRatioXtoY()
         for line in bdfChar.bitmapData:
             y = y - 1
-            x = bdfChar.boundingBoxXOffset
             deltaX = pixX * (1 - self.dotWidth) / 2
             deltaY = pixY * (1 - self.dotHeight) / 2
-            for pixel in line:
-                if pixel == '1':
-                    x1 = pixX * x       + deltaX
-                    x2 = pixX * (x + 1) - deltaX
-                    y1 = pixY * y       + deltaY
-                    y2 = pixY * (y + 1) - deltaY
+            if self.dotWidth == 1:
+                # Draw contiguous horizontal sequences of pixels.
+                # This saves considerable disk space.
+                pixelBlocks = []
+                pixelBlock = None
+                x = bdfChar.boundingBoxXOffset
+                for pixel in line:
+                    if pixel == '1':
+                        if pixelBlock == None:
+                            pixelBlock = [x, x]
+                            pixelBlocks.append(pixelBlock)
+                        else:
+                            pixelBlock[1] = x;
+                    else:
+                        pixelBlock = None
+                    x = x + 1
+                for pixelBlock in pixelBlocks:
+                    xa = pixelBlock[0]
+                    xb = pixelBlock[1]
+                    x1 = pixX * xa       + deltaX
+                    x2 = pixX * (xb + 1) - deltaX
+                    y1 = pixY * y        + deltaY
+                    y2 = pixY * (y + 1)  - deltaY
                     contour = fontforge.contour()
                     contour.moveTo(x1, y1)
                     contour.lineTo(x1, y2)
@@ -622,7 +638,23 @@ class BitmapFont2TTF:
                     contour.lineTo(x2, y1)
                     contour.closed = True
                     glyph.layers['Fore'] += contour
-                x = x + 1
+            else:
+                # Draw each individual pixel.
+                x = bdfChar.boundingBoxXOffset
+                for pixel in line:
+                    if pixel == '1':
+                        x1 = pixX * x       + deltaX
+                        x2 = pixX * (x + 1) - deltaX
+                        y1 = pixY * y       + deltaY
+                        y2 = pixY * (y + 1) - deltaY
+                        contour = fontforge.contour()
+                        contour.moveTo(x1, y1)
+                        contour.lineTo(x1, y2)
+                        contour.lineTo(x2, y2)
+                        contour.lineTo(x2, y1)
+                        contour.closed = True
+                        glyph.layers['Fore'] += contour
+                    x = x + 1
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
 
     def trace(self):
