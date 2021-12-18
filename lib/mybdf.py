@@ -22,7 +22,6 @@ def bdfParseLine(line):
         break
     return words
 
-# FOR: keep track of all BDF properties
 def bdfParseLine2(line):
     match = re.match(r'^\s*(\S+)(?:\s+)(\S.*?)\s*$', line)
     if match:
@@ -82,7 +81,6 @@ class MyBDF:
         self.properties["descent"] = None        # FONT_DESCENT
         self.properties["averageWidth10"] = None # AVERAGE_WIDTH
 
-        # FOR: keep track of all BDF properties
         self.bdfProperties = {}
         self.bdfArrayProperties = {}
 
@@ -297,14 +295,12 @@ class MyBDF:
             if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
                 self.properties["averageWidth10"] = float(args[0])
 
-            # FOR: keep track of all BDF properties
             result = bdfParseLine2(line)
             if result:
                 key = result[0]
                 value = result[1]
                 self.addBdfProperty(key, value)
 
-    # FOR: keep track of all BDF properties
     def addBdfProperty(self, key, value):
         self.bdfProperties[key] = value
         if self.bdfArrayProperties.get(key) == None:
