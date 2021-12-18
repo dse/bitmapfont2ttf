@@ -14,13 +14,11 @@ class BitmapFont2TTF:
         self.args = args
         self.filename = args.filename
         self.destfilenames = args.destfilenames
-
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
         self.verbose = 0
         self.dotWidth = 1
         self.dotHeight = 1
-
         if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
@@ -38,7 +36,6 @@ class BitmapFont2TTF:
             # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
             # fine whereas 'foo.pcf' does not.
             self.filename = os.path.join('.', self.filename)
-
         if self.destfilenames == None or len(self.destfilenames) == 0:
             (rootdestfilename, junk) = os.path.splitext(self.filename)
             self.destfilenames = [rootdestfilename + '.ttf']
@@ -125,7 +122,6 @@ class BitmapFont2TTF:
     def setPropertiesFromBDF(self):
         self.isMonospace = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
         self.pixelSize = self.bdf.properties["pixelSize"]
-        print("self.pixelSize is %s" % self.pixelSize)
         if not self.pixelSize:
             if self.bdf.boundingBoxY:
                 self.pixelSize = self.bdf.boundingBoxY
@@ -168,13 +164,10 @@ class BitmapFont2TTF:
     def setInitialAscentDescent(self):
         self.descentPx = self.bdf.descentPx()
         self.ascentPx  = self.bdf.ascentPx()
-        print("ascent %s px; descent %s px" % (self.ascentPx, self.descentPx))
         self.descentEm = 1.0 * self.descentPx / self.pixelSize
         self.ascentEm  = 1.0 * self.ascentPx  / self.pixelSize
-        print("ascent %s em; descent %s em" % (self.ascentEm, self.descentEm))
         ascent  = round(self.ascentEm * self.font.em)
         descent = round(self.descentEm * self.font.em)
-        print("ascent %s; descent %s" % (ascent, descent))
         self.font.ascent  = ascent
         self.font.descent = descent
 
@@ -211,14 +204,12 @@ class BitmapFont2TTF:
     def setFinalMetrics(self):
         ascent  = self.font.ascent
         descent = self.font.descent
-
         self.font.hhea_ascent_add     = 0
         self.font.hhea_descent_add    = 0
         self.font.os2_typoascent_add  = 0
         self.font.os2_typodescent_add = 0
         self.font.os2_winascent_add   = 0
         self.font.os2_windescent_add  = 0
-
         self.font.ascent          = ascent
         self.font.descent         = descent
         self.font.hhea_ascent     = ascent
