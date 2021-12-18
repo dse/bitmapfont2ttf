@@ -632,10 +632,10 @@ class BitmapFont2TTF:
                     y1 = pixY * y        + deltaY
                     y2 = pixY * (y + 1)  - deltaY
                     contour = fontforge.contour()
-                    contour.moveTo(x1, y1)
-                    contour.lineTo(x1, y2)
-                    contour.lineTo(x2, y2)
-                    contour.lineTo(x2, y1)
+                    contour.moveTo(round(x1), round(y1))
+                    contour.lineTo(round(x1), round(y2))
+                    contour.lineTo(round(x2), round(y2))
+                    contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
             else:
@@ -648,10 +648,10 @@ class BitmapFont2TTF:
                         y1 = pixY * y       + deltaY
                         y2 = pixY * (y + 1) - deltaY
                         contour = fontforge.contour()
-                        contour.moveTo(x1, y1)
-                        contour.lineTo(x1, y2)
-                        contour.lineTo(x2, y2)
-                        contour.lineTo(x2, y1)
+                        contour.moveTo(round(x1), round(y1))
+                        contour.lineTo(round(x1), round(y2))
+                        contour.lineTo(round(x2), round(y2))
+                        contour.lineTo(round(x2), round(y1))
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
