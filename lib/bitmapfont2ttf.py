@@ -142,8 +142,6 @@ class BitmapFont2TTF:
                 self.font.version = self.args.version
             if self.args.weight != None:
                 self.font.weight = self.args.weight
-            if self.args.italic_angle != None:
-                self.font.italicangle = self.args.italic_angle
 
     def save(self):
         for dest in self.destfilenames:
@@ -177,7 +175,10 @@ class BitmapFont2TTF:
                          (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
                          (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE)))
         if self.isItalic:
-            self.font.italicangle = 15 # arbitrary
+            if self.args.italic_angle != None:
+                self.font.italicangle = self.args.italic_angle
+            else:
+                self.font.italicangle = 15 # arbitrary
         else:
             self.font.italicangle = 0
 
