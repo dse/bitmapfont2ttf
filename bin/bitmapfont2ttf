@@ -101,28 +101,28 @@ class MyBDFChar:
         if self.scalableWidthX != None:
             return self.scalableWidthX
         if self.devicePixelWidthX != None:
-            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.font.pointSize()
+            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.font.getPointSize()
         return self.font.swidthX()
 
     def swidthY(self):
         if self.scalableWidthY != None:
             return self.scalableWidthY
         if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.font.pointSize()
+            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.font.getPointSize()
         return self.font.swidthY()
 
     def dwidthX(self):
         if self.devicePixelWidthX != None:
             return self.devicePixelWidthX
         if self.scalableWidthX != None:
-            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.font.pointSize()))
+            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.font.getPointSize()))
         return self.font.dwidthX()
 
     def dwidthY(self):
         if self.devicePixelWidthY != None:
             return self.devicePixelWidthY
         if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.font.pointSize()))
+            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.font.getPointSize()))
         return self.font.dwidthY()
 
     def resolutionX(self):
@@ -191,35 +191,93 @@ class MyBDF:
         if filename != None:
             self.read(filename)
 
+    # For windows where you specify 12pt to get a 16px font so you're
+    # only getting crisp bitmaps when you have multiples of 4px
+    # (multiples of 3pt)
+    def alterAscentDescentMultipleFour(self, which = 'nearest'):
+        ascent = self.properties.get('ascent')
+        descent = self.properties.get('descent')
+        if ascent == None or descent == None:
+            # NOTE: we can't do this
+            return
+        pixelHeight = ascent + descent
+
+        origAscent = ascent
+        origDescent = descent
+        origPixelHeight = pixelHeight
+
+        if pixelHeight % 4 == 0:
+            return
+
+        if pixelHeight % 4 == 1:
+            if which == 'nearest':
+                descent -= 1
+                pixelHeight -= 1
+            elif which == 'next':
+                ascent += 1
+                descent += 2
+                pixelHeight += 3
+        elif pixelHeight % 4 == 2:
+            ascent += 1
+            descent += 1
+            pixelHeight += 2
+        elif pixelHeight % 4 == 3:
+            descent += 1
+            pixelHeight += 1
+        
+        pixelSize   = self.properties.get('pixelSize')
+        pointSize10 = self.properties.get('pointSize10')
+        origPixelSize   = pixelSize
+        origPointSize10 = pointSize10
+
+        self.properties['ascent'] = ascent
+        self.properties['descent'] = descent
+
+        if pixelSize != None:
+            pixelSize = round(1.0 * pixelSize / origPixelHeight * pixelHeight)
+            self.properties['pixelSize'] = pixelSize
+        if pointSize10 != None:
+            pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
+            self.properties['pointSize10'] = pointSize10
+
+        print("changing bitmap font height")
+        print("    ascent from %s to %s" % (origAscent, ascent))
+        print("    descent from %s to %s" % (origDescent, descent))
+        print("    pixelHeight from %s to %s" % (origPixelHeight, pixelHeight))
+        if pixelSize != None:
+            print("    pixel size from %s to %s" % (origPixelSize, pixelSize))
+        if pointSize10 != None:
+            print("    decipoint size from %s to %s" % (origPointSize10, pointSize10))
+
     def swidthX(self):
         if self.scalableWidthX != None:
             return self.scalableWidthX
         if self.devicePixelWidthX != None:
-            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.pointSize()
+            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.getPointSize()
         raise Exception('cannot determine swidthX')
 
     def swidthY(self):
         if self.scalableWidthY != None:
             return self.scalableWidthY
         if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.pointSize()
+            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.getPointSize()
         raise Exception('cannot determine swidthY')
 
     def dwidthX(self):
         if self.devicePixelWidthX != None:
             return self.devicePixelWidthX
         if self.scalableWidthX != None:
-            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.pointSize()))
+            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.getPointSize()))
         raise Exception('cannot determine dwidthX')
 
     def dwidthY(self):
         if self.devicePixelWidthY != None:
             return self.devicePixelWidthY
         if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.pointSize()))
+            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.getPointSize()))
         raise Exception('cannot determine dwidthY')
 
-    def pointSize(self):
+    def getPointSize(self):
         pt10 = self.properties['pointSize10']
         if pt10 != None:
             return pt10 / 10.0
@@ -228,7 +286,7 @@ class MyBDF:
             return 72.0 * px / self.resolutionY()
         raise Exception('cannot determine pointSize')
 
-    def pixelSize(self):
+    def getPixelSize(self):
         px = self.properties['pixelSize']
         if px != None:
             return px
@@ -256,10 +314,9 @@ class MyBDF:
         raise Exception('cannot determine ascentPx')
 
     def descentPx(self):
-        bby = self.boundingBoxY
-        ascent = self.properties['ascent']
-        if bby != None and ascent != None:
-            return bby - ascent
+        descent = self.properties['descent']
+        if descent != None:
+            return descent
         raise Exception('cannot determine descentPx')
 
     def read(self, filename):
@@ -469,8 +526,8 @@ class BitmapFont2TTF:
         self.filename = args.filename
         self.destfilenames = args.destfilenames
 
-        # self.nearestMultipleOfFour = False
-        # self.nextMultipleOfFour = False
+        self.nearestMultipleOfFour = False
+        self.nextMultipleOfFour = False
         # self.specifiedPixelSize = None
         # self.verbose = 0
         self.dotWidth = 1
@@ -480,10 +537,10 @@ class BitmapFont2TTF:
         # self.metricsLineHeight = None
         # self.fillBoundingBoxWidth = False
 
-        # if args.nearest_multiple_of_four:
-        #     self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        # if args.next_multiple_of_four:
-        #     self.nextMultipleOfFour = args.next_multiple_of_four
+        if args.nearest_multiple_of_four:
+            self.nearestMultipleOfFour = args.nearest_multiple_of_four
+        if args.next_multiple_of_four:
+            self.nextMultipleOfFour = args.next_multiple_of_four
         # if args.pixel_size:
         #     self.specifiedPixelSize = args.pixel_size
         # if args.verbose:
@@ -602,12 +659,12 @@ class BitmapFont2TTF:
 
     def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
-        pixY = 1.0 * self.font.em / self.bdf.pixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.pixelSize() * self.bdf.aspectRatioXtoY()
+        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
+        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
         for line in bdfChar.bitmapData:
             y = y - 1
-            deltaX = pixX * (1 - self.dotWidth) / 2
-            deltaY = pixY * (1 - self.dotHeight) / 2
+            deltaX = pixX * (1.0 - self.dotWidth) / 2
+            deltaY = pixY * (1.0 - self.dotHeight) / 2
             if self.dotWidth == 1:
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
@@ -689,6 +746,7 @@ class BitmapFont2TTF:
     def setPropertiesFromBDF(self):
         self.isMonospace = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
         self.pixelSize = self.bdf.properties["pixelSize"]
+        print("self.pixelSize is %s" % self.pixelSize)
         if not self.pixelSize:
             if self.bdf.boundingBoxY:
                 self.pixelSize = self.bdf.boundingBoxY
@@ -742,10 +800,13 @@ class BitmapFont2TTF:
     def setInitialAscentDescent(self):
         self.descentPx = self.bdf.descentPx()
         self.ascentPx  = self.bdf.ascentPx()
+        print("ascent %s px; descent %s px" % (self.ascentPx, self.descentPx))
         self.descentEm = 1.0 * self.descentPx / self.pixelSize
         self.ascentEm  = 1.0 * self.ascentPx  / self.pixelSize
+        print("ascent %s em; descent %s em" % (self.ascentEm, self.descentEm))
         ascent  = round(self.ascentEm * self.font.em)
         descent = round(self.descentEm * self.font.em)
+        print("ascent %s; descent %s" % (ascent, descent))
         # self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
         # self.ascentPx = self.bdf.properties["ascent"]
         # # must be specified before bitmap import for baseline alignment
@@ -842,11 +903,15 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self):
         self.loadBDF()
+        if self.args.nearest_multiple_of_four:
+            self.bdf.alterAscentDescentMultipleFour('nearest')
+        elif self.args.next_multiple_of_four:
+            self.bdf.alterAscentDescentMultipleFour('next')
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
         self.setSwidth()
         self.setInitialAscentDescent()
-        self.font.importBitmaps(self.filename, True)
+        self.font.importBitmaps(self.filename, True);
         self.font.os2_vendor = 'PfEd'
         self.font.encoding = 'iso10646-1'
         self.setItalic()
