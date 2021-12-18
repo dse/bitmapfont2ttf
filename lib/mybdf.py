@@ -142,15 +142,6 @@ class MyBDF:
             pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
             self.properties['pointSize10'] = pointSize10
 
-        print("changing bitmap font height")
-        print("    ascent from %s to %s" % (origAscent, ascent))
-        print("    descent from %s to %s" % (origDescent, descent))
-        print("    pixelHeight from %s to %s" % (origPixelHeight, pixelHeight))
-        if pixelSize != None:
-            print("    pixel size from %s to %s" % (origPixelSize, pixelSize))
-        if pointSize10 != None:
-            print("    decipoint size from %s to %s" % (origPointSize10, pointSize10))
-
     def swidthX(self):
         if self.scalableWidthX != None:
             return self.scalableWidthX
