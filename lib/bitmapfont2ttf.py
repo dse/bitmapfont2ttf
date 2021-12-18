@@ -231,7 +231,7 @@ class BitmapFont2TTF:
         self.font = fontforge.font()
         self.setSwidth()
         self.setInitialAscentDescent()
-        self.font.importBitmaps(self.filename, True);
+        self.font.importBitmaps(self.filename, True) # we do this to import everything but the bitmaps
         self.font.os2_vendor = 'PfEd'
         self.font.encoding = 'iso10646-1'
         self.setItalic()
