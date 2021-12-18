@@ -14,14 +14,6 @@ sys.path.append(libdir)
 
 from mybdf import MyBDF
 
-# thanks https://stackoverflow.com/questions/5226958/which-equivalent-function-in-python
-def which(file_name):
-    for path in os.environ["PATH"].split(os.pathsep):
-        full_path = os.path.join(path, file_name)
-        if os.path.exists(full_path) and os.access(full_path, os.X_OK):
-            return full_path
-    return None
-
 class BitmapFont2TTF:
     def __init__(self, args):
         self.setArgs(args)
