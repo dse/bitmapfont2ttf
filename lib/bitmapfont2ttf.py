@@ -177,7 +177,7 @@ class BitmapFont2TTF:
                          (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
                          (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE)))
         if self.isItalic:
-            self.font.italicangle = 15
+            self.font.italicangle = 15 # arbitrary
         else:
             self.font.italicangle = 0
 
