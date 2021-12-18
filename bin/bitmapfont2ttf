@@ -528,10 +528,10 @@ class BitmapFont2TTF:
 
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
-        # self.specifiedPixelSize = None
         self.verbose = 0
         self.dotWidth = 1
         self.dotHeight = 1
+        # self.specifiedPixelSize = None
         # self.metricsAscent = None
         # self.metricsDescent = None
         # self.metricsLineHeight = None
@@ -541,14 +541,14 @@ class BitmapFont2TTF:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
             self.nextMultipleOfFour = args.next_multiple_of_four
-        # if args.pixel_size:
-        #     self.specifiedPixelSize = args.pixel_size
         if args.verbose:
             self.verbose = args.verbose
         if args.dot_width:
             self.dotWidth = args.dot_width
         if args.dot_height:
             self.dotHeight = args.dot_height
+        # if args.pixel_size:
+        #     self.specifiedPixelSize = args.pixel_size
         # if args.ascent:
         #     self.metricsAscent = args.ascent
         # if args.descent:
@@ -571,12 +571,18 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def fixMissingGlyphs(self):
+        sys.stderr.write('fixMissingGlyphs() NOT IN USE')
+        return
+
         self.fixMissingGlyph(39, 8217) # U+0027 APOSTROPHE;   U+2019 RIGHT SINGLE QUOTATION MARK
         self.fixMissingGlyph(45, 8722) # U+002D HYPHEN-MINUS; U+2212 MINUS SIGN
         self.fixMissingGlyph(96, 8216) # U+0060 GRAVE;        U+2018 LEFT SINGLE QUOTATION MARK
 
     # NOT IN USE
     def fixMissingGlyph(self, destUni, sourceUni):
+        sys.stderr.write('fixMissingGlyph() NOT IN USE')
+        return
+
         hasSource = False
         hasDest = False
         sourceGlyph = None
@@ -599,6 +605,9 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def autoTrace(self):
+        sys.stderr.write('autoTrace() NOT IN USE')
+        return
+
         glyphCount = self.getGlyphCount()
 
         sys.stderr.write("bitmapfont2ttf: %s: tracing %d glyphs...\n" % (self.args.full_name, glyphCount))
@@ -641,6 +650,9 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def adjustGlyphSizes(self):
+        sys.stderr.write('adjustGlyphSizes() NOT IN USE')
+        return
+
         if self.bdf.fillBoundingBoxWidth:
             for glyph in self.font.glyphs():
                 oldWidth = glyph.width
@@ -733,6 +745,9 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def getGlyphCount(self):
+        sys.stderr.write('getGlyphCount() NOT IN USE')
+        return
+
         glyphCount = 0
         for glyph in self.font.glyphs():
             glyphCount += 1
@@ -848,6 +863,9 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def useFinalPixelSize(self):
+        sys.stderr.write('useFinalPixelSize() NOT IN USE')
+        return
+
         if self.finalPixelSize != self.pixelSize:
             if self.finalPixelSize > self.pixelSize:
                 diff = self.finalPixelSize - self.pixelSize # 1, 2, 3, ...
@@ -867,6 +885,9 @@ class BitmapFont2TTF:
 
     # NOT IN USE
     def setFinalMetrics(self):
+        sys.stderr.write('setFinalMetrics() NOT IN USE')
+        return
+
         ascent  = self.font.ascent
         descent = self.font.descent
 
@@ -916,9 +937,8 @@ class BitmapFont2TTF:
         self.font.encoding = 'iso10646-1'
         self.setItalic()
         self.setWeight()
-        # self.useFinalPixelSize()
         self.setFontMetas()
-        # self.autoTrace()
+        # self.useFinalPixelSize()
         # self.adjustGlyphSizes()
         # self.fixMissingGlyphs()
         self.trace()
@@ -945,7 +965,7 @@ parser.add_argument("--descent",                  type = int, help = "descent fo
 parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
 parser.add_argument("--dot-width",                type = float, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
-parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
+# parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",               nargs = '*')
