@@ -130,3 +130,33 @@ class BitmapFont2TTF:
             em = self.font.em
             self.font.ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.finalPixelSize)
             self.font.descent = int(0.5 + 1.0 * em * self.descentPx / self.finalPixelSize)
+
+
+    # def traceGlyph(self, glyph):
+    #     if not(glyph.encoding in self.bdf.charsByEncoding):
+    #         return
+    #     bdfChar = self.bdf.charsByEncoding[glyph.encoding]
+    #     y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
+
+    #     pixY = 1000.0 / self.bdf.properties["pixelSize"]
+    #     pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.aspectRatioXtoY()
+
+    #     for line in bdfChar.bitmapData:
+    #         y = y - 1
+    #         x = bdfChar.boundingBoxXOffset
+    #         deltaX = pixX * (1 - self.dotWidth) / 2
+    #         deltaY = pixY * (1 - self.dotHeight) / 2
+    #         for pixel in line:
+    #             if pixel == '1':
+    #                 x1 = pixX * x       + deltaX
+    #                 x2 = pixX * (x + 1) - deltaX
+    #                 y1 = pixY * y       + deltaY
+    #                 y2 = pixY * (y + 1) - deltaY
+    #                 contour = fontforge.contour()
+    #                 contour.moveTo(x1, y1)
+    #                 contour.lineTo(x1, y2)
+    #                 contour.lineTo(x2, y2)
+    #                 contour.lineTo(x2, y1)
+    #                 contour.closed = True
+    #                 glyph.layers['Fore'] += contour
+    #             x = x + 1
