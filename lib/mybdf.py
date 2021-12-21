@@ -90,6 +90,7 @@ class MyBDF:
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
         self.checkPixelCountsFlag = False # before chopping top or bottom pixels
+        self.verbosity = 0
 
         if filename != None:
             self.read(filename)
@@ -112,15 +113,20 @@ class MyBDF:
         if pixelHeight % 4 == 0:
             return
 
+        if self.verbosity > 1:
+            print('checkPixelCountsFlag? %s' % self.checkPixelCountsFlag)
+
         if pixelHeight % 4 == 1:
             if which == 'nearest':
                 if self.checkPixelCountsFlag:
                     rowA = ascent - 1
                     rowB = -descent
                     rowToCrop = self.lesserPixelOccupiedRow(rowA, rowB)
+                    if self.verbosity > 0:
+                        print('%s: CHOPPING OFF ROW %s' % rowA if rowToCrop is None else rowToCrop)
                     if rowToCrop == rowA:
                         ascent -= 1
-                    elif rowToCop == rowB:
+                    elif rowToCrop == rowB:
                         descent -= 1
                     else:
                         ascent -= 1
@@ -154,16 +160,34 @@ class MyBDF:
             pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
             self.properties['pointSize10'] = pointSize10
 
-    def lesserPixelOccupiedRow(rowA, rowB):
-        print('Checking pixel counts on rows %s and %s' % (rowA, rowB))
+    def printPixelCounts(self):
+        rowA = int(round(self.properties['ascent'] - 1))
+        rowB = -int(round(self.properties['descent']))
+        if self.verbosity > 1:
+            print('Counting pixels...')
+        for row in range(rowA, rowB - 1, -1):
+            count = self.pixelCountByRow(row)
+            if self.verbosity > 1:
+                print('  row %3d has %5d pixels' % (row, count))
+
+    def lesserPixelOccupiedRow(self, rowA, rowB):
+        if self.verbosity > 1:
+            print('Checking pixel counts on rows %s and %s' % (rowA, rowB))
         pixelCountRowA = self.pixelCountByRow(rowA)
         pixelCountRowB = self.pixelCountByRow(rowB)
-        print('  row %s has %s pixels total; row %s has %s pixels total' %
-              (rowA, pixelCountRowA, rowB, pixelCountRowB))
+        if self.verbosity > 1:
+            print('  row %s has %s pixels total; row %s has %s pixels total' %
+                  (rowA, pixelCountRowA, rowB, pixelCountRowB))
         if pixelCountRowA < pixelCountRowB:
+            if self.verbosity > 1:
+                print('    returning %d' % rowA)
             return rowA
         if pixelCountRowB < pixelCountRowA:
+            if self.verbosity > 1:
+                print('    returning %d' % rowB)
             return rowB
+        if self.verbosity > 1:
+            print('    it\'s a tie')
         return None
 
     def swidthX(self):

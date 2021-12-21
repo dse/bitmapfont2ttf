@@ -29,6 +29,8 @@ class MyBDFChar:
         self.devicePixelWidthWritingMode1X = None
         self.devicePixelWidthWritingMode1Y = None
 
+        self.verbosity = 0
+
     def __str__(self):
         result = "<MyBDFChar"
         if self.name != None:
@@ -81,8 +83,9 @@ class MyBDFChar:
 
     # row =  0 for pixel row just above baseline
     # row = -1 for pixel row just below baseline
-    def pixelCountByRow(row):
-        yTop = self.boundingBoxYOffset + self.boundingBoxY
+    def pixelCountByRow(self, row):
+        row = int(round(row))
+        yTop = self.boundingBoxYOffset + self.boundingBoxY - 1
         rowIndex = yTop - row   # into bitmapData
         if rowIndex < 0 or rowIndex >= len(self.bitmapData):
             return 0
