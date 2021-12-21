@@ -11,6 +11,7 @@ sys.path.append(libdir)
 from bitmapfont2ttf import BitmapFont2TTF
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
+
 parser.add_argument("--copyright",                help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
 parser.add_argument("--comment",                  help = "assign comment string, e.g., '2020-01-01'")
 parser.add_argument("--family-name",              help = "assign family name, e.g., 'Comic Sans'")
@@ -18,22 +19,30 @@ parser.add_argument("--font-name",                help = "assign font name, e.g.
 parser.add_argument("--full-name",                help = "assign full name, e.g., 'Comic Sans Bold Italic'")
 parser.add_argument("--version",                  help = "assign version, e.g., '001.000'")
 parser.add_argument("--weight",                   help = "assign font weight, e.g., 'Regular', 'Bold'")
-parser.add_argument("--italic-angle",             type = float, help = "assign font italic angle, e.g., -22.5")
+parser.add_argument("--italic-angle",             type = float, default = 0.0, help = "assign font italic angle, e.g., -22.5")
 
 # NOT IN USE RIGHT NOW, MAY BE IN USE AGAIN
 parser.add_argument("--verbosity", "-v",          action = 'count', help = "increase output verbosity", default = 0)
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
 parser.add_argument("--next-multiple-of-four",    action = 'store_true')
-parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
-parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
-parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
-parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
-parser.add_argument("--dot-width",                type = float, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
-parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
+parser.add_argument("--fix-windows-pixel-height", action = 'store_true')
+
+# parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
+# parser.add_argument("--ascent",                   type = int, help = "ascent for metrics, positive above baseline, e.g., 1853")
+# parser.add_argument("--descent",                  type = int, help = "descent for metrics, positive below baseline, e.g., 605")
+# parser.add_argument("--line-height",              type = float, help = "line height to use for final metrics, e.g., 1.2")
+
+parser.add_argument("--add-ascent",               type = int, default = 0)
+parser.add_argument("--add-descent",              type = int, default = 0)
+parser.add_argument("--dot-width",                type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
+parser.add_argument("--dot-height",               type = float, default = 1.0, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 # parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 
 parser.add_argument("--monospace",                action = 'store_true')
 parser.add_argument("--check-pixel-counts",       action = 'store_true')
+
+parser.add_argument("--no-save", action = 'store_true')
+parser.add_argument("--no-trace", action = 'store_true')
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",               nargs = '*')
