@@ -20,22 +20,22 @@ class BitmapFont2TTF:
 
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
-        self.verbose = 0
+        self.verbosity = 0
         self.dotWidth = 1
         self.dotHeight = 1
         self.checkPixelCountsFlag = False # before chopping top or bottom pixels
 
-        if args.nearest_multiple_of_four:
+        if args.nearest_multiple_of_four != None:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        if args.next_multiple_of_four:
+        if args.next_multiple_of_four != None:
             self.nextMultipleOfFour = args.next_multiple_of_four
-        if args.verbose:
-            self.verbose = args.verbose
-        if args.dot_width:
+        if args.verbosity != None:
+            self.verbosity = args.verbosity
+        if args.dot_width != None:
             self.dotWidth = args.dot_width
-        if args.dot_height:
+        if args.dot_height != None:
             self.dotHeight = args.dot_height
-        if args.check_pixel_counts:
+        if args.check_pixel_counts != None:
             self.checkPixelCountsFlag = args.check_pixel_counts
 
     def fixFilenames(self):
@@ -126,6 +126,7 @@ class BitmapFont2TTF:
         if not re.search(r'\.bdf$', self.filename):
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
+        self.bdf.verbosity            = self.verbosity
         self.bdf.checkPixelCountsFlag = self.checkPixelCountsFlag
 
     def setPropertiesFromBDF(self):
