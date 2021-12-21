@@ -166,8 +166,8 @@ class BitmapFont2TTF:
         ascentEm  = 1.0 * ascentPx  / total
         origFontAscent  = self.font.ascent
         origFontDescent = self.font.descent
-        ascent  = round(ascentEm * self.font.em)
-        descent = round(descentEm * self.font.em)
+        ascent  = int(round(ascentEm * self.font.em))
+        descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
         if self.verbosity >= 1:
