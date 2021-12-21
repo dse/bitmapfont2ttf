@@ -378,6 +378,12 @@ class MyBDF:
     def aspectRatioXtoY(self):
         return 1.0 * self.properties["resolutionY"] / self.properties["resolutionX"]
 
+    def pixelCountByRow(self, row):
+        count = 0
+        for char in self.chars:
+            count += char.pixelCountByRow(row)
+        return count
+
     def __str__(self):
         result = "<MyBDF"
         if self.filename != None:

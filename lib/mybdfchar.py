@@ -78,3 +78,12 @@ class MyBDFChar:
 
     def resolutionY(self):
         return self.font.resolutionY()
+
+    # row =  0 for pixel row just above baseline
+    # row = -1 for pixel row just below baseline
+    def pixelCountByRow(row):
+        yTop = self.boundingBoxYOffset + self.boundingBoxY
+        rowIndex = yTop - row   # into bitmapData
+        if rowIndex < 0 or rowIndex >= len(self.bitmapData):
+            return 0
+        return self.bitmapData[rowIndex].count('1')
