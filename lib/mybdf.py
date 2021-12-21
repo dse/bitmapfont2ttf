@@ -123,7 +123,7 @@ class MyBDF:
                     rowB = -descent
                     rowToCrop = self.lesserPixelOccupiedRow(rowA, rowB)
                     if self.verbosity > 0:
-                        print('%s: CHOPPING OFF ROW %s' % rowA if rowToCrop is None else rowToCrop)
+                        print('%s: CHOPPING OFF ROW %s' % (self.filename, (rowA if rowToCrop is None else rowToCrop)))
                     if rowToCrop == rowA:
                         ascent -= 1
                     elif rowToCrop == rowB:
@@ -171,6 +171,8 @@ class MyBDF:
                 print('  row %3d has %5d pixels' % (row, count))
 
     def lesserPixelOccupiedRow(self, rowA, rowB):
+        rowA = int(round(rowA))
+        rowB = int(round(rowB))
         if self.verbosity > 1:
             print('Checking pixel counts on rows %s and %s' % (rowA, rowB))
         pixelCountRowA = self.pixelCountByRow(rowA)
