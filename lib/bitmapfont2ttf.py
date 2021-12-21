@@ -11,32 +11,21 @@ class BitmapFont2TTF:
         self.fixFilenames()
 
     def setArgs(self, args):
-        self.args = args
-        self.filename = args.filename
-        self.destfilenames = args.destfilenames
-        self.verbosity = 0
-
-        self.monospaceConfidence = 75
-
-        self.nearestMultipleOfFour = False
-        self.nextMultipleOfFour = False
-        self.verbosity = 0
-        self.dotWidth = 1
-        self.dotHeight = 1
-        self.checkPixelCountsFlag = False # before chopping top or bottom pixels
-
-        if args.nearest_multiple_of_four != None:
-            self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        if args.next_multiple_of_four != None:
-            self.nextMultipleOfFour = args.next_multiple_of_four
-        if args.verbosity != None:
-            self.verbosity = args.verbosity
-        if args.dot_width != None:
-            self.dotWidth = args.dot_width
-        if args.dot_height != None:
-            self.dotHeight = args.dot_height
-        if args.check_pixel_counts != None:
-            self.checkPixelCountsFlag = args.check_pixel_counts
+        self.args                  = args
+        self.filename              = args.filename
+        self.destfilenames         = args.destfilenames
+        self.monospaceConfidence   = 75
+        self.nearestMultipleOfFour = args.nearest_multiple_of_four
+        self.nextMultipleOfFour    = args.next_multiple_of_four
+        self.verbosity             = args.verbosity
+        self.dotWidth              = args.dot_width
+        self.dotHeight             = args.dot_height
+        self.checkPixelCountsFlag  = args.check_pixel_counts
+        self.fixWindowsPixelHeight = args.fix_windows_pixel_height
+        self.addAscent             = args.add_ascent
+        self.addDescent            = args.add_descent
+        self.noSave                = args.no_save
+        self.noTrace               = args.no_trace
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -170,14 +159,22 @@ class BitmapFont2TTF:
             self.swidthEm = None
 
     def setInitialAscentDescent(self):
-        self.descentPx = self.bdf.descentPx()
-        self.ascentPx  = self.bdf.ascentPx()
-        self.descentEm = 1.0 * self.descentPx / self.pixelSize
-        self.ascentEm  = 1.0 * self.ascentPx  / self.pixelSize
-        ascent  = round(self.ascentEm * self.font.em)
-        descent = round(self.descentEm * self.font.em)
+        descentPx = self.bdf.descentPx()
+        ascentPx  = self.bdf.ascentPx()
+        total     = descentPx + ascentPx
+        descentEm = 1.0 * descentPx / total
+        ascentEm  = 1.0 * ascentPx  / total
+        origFontAscent  = self.font.ascent
+        origFontDescent = self.font.descent
+        ascent  = round(ascentEm * self.font.em)
+        descent = round(descentEm * self.font.em)
         self.font.ascent  = ascent
         self.font.descent = descent
+        if self.verbosity >= 1:
+            print('%s: ASCENT/DESCENT: ==> %4d + %4d = %4d' % (self.filename, origFontAscent, origFontDescent, origFontAscent + origFontDescent))
+            print('%s: ASCENT/DESCENT:     %4d + %4d = %4d' % (self.filename, ascent, descent, ascent + descent))
+            print('%s: ASCENT/DESCENT:     %4d + %4d = %4d' % (self.filename, self.font.ascent, self.font.descent, self.font.ascent + self.font.descent))
+            print('%s: ASCENT/DESCENT:     addAscent = %s; addDescent = %s' % (self.filename, self.addAscent, self.addDescent))
 
     def setItalic(self):
         self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
@@ -289,10 +286,12 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         self.loadBDF()
         self.bdf.printPixelCounts()
-        if self.args.nearest_multiple_of_four:
-            self.bdf.alterAscentDescentMultipleFour('nearest')
+        if self.fixWindowsPixelHeight:
+            self.bdf.fixPixelHeightForWindows()
+        elif self.args.nearest_multiple_of_four:
+            self.bdf.fixPixelHeightToMultipleOfFour('nearest')
         elif self.args.next_multiple_of_four:
-            self.bdf.alterAscentDescentMultipleFour('next')
+            self.bdf.fixPixelHeightToMultipleOfFour('next')
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
         self.setSwidth()
@@ -303,8 +302,10 @@ class BitmapFont2TTF:
         self.setItalic()
         self.setWeight()
         self.setFontMetas()
-        self.trace()
+        if not self.noTrace:
+            self.trace()
         if self.args.monospace:
             self.fixMonospace()
         self.setFinalMetrics()
-        self.save()
+        if not self.noSave:
+            self.save()
