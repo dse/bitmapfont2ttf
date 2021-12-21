@@ -14,12 +14,16 @@ class BitmapFont2TTF:
         self.args = args
         self.filename = args.filename
         self.destfilenames = args.destfilenames
+
+        self.monospaceConfidence = 75
+
         self.nearestMultipleOfFour = False
         self.nextMultipleOfFour = False
         self.verbose = 0
         self.dotWidth = 1
         self.dotHeight = 1
-        self.monospaceConfidence = 75
+        self.checkPixelCountsFlag = False # before chopping top or bottom pixels
+
         if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
@@ -30,6 +34,8 @@ class BitmapFont2TTF:
             self.dotWidth = args.dot_width
         if args.dot_height:
             self.dotHeight = args.dot_height
+        if args.check_pixel_counts:
+            self.checkPixelCountsFlag = args.check_pixel_counts
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -119,6 +125,7 @@ class BitmapFont2TTF:
         if not re.search(r'\.bdf$', self.filename):
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
+        self.bdf.checkPixelCountsFlag = self.checkPixelCountsFlag
 
     def setPropertiesFromBDF(self):
         self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'

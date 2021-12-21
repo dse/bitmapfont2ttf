@@ -89,6 +89,7 @@ class MyBDF:
         self.charsByEncoding = {}
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
+        self.checkPixelCountsFlag = False # before chopping top or bottom pixels
 
         if filename != None:
             self.read(filename)
@@ -113,7 +114,18 @@ class MyBDF:
 
         if pixelHeight % 4 == 1:
             if which == 'nearest':
-                descent -= 1
+                if self.checkPixelCountsFlag:
+                    rowA = ascent - 1
+                    rowB = -descent
+                    rowToCrop = self.lesserPixelOccupiedRow(rowA, rowB)
+                    if rowToCrop == rowA:
+                        ascent -= 1
+                    elif rowToCop == rowB:
+                        descent -= 1
+                    else:
+                        ascent -= 1
+                else:
+                    ascent -= 1
                 pixelHeight -= 1
             elif which == 'next':
                 ascent += 1
@@ -141,6 +153,18 @@ class MyBDF:
         if pointSize10 != None:
             pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
             self.properties['pointSize10'] = pointSize10
+
+    def lesserPixelOccupiedRow(rowA, rowB):
+        print('Checking pixel counts on rows %s and %s' % (rowA, rowB))
+        pixelCountRowA = self.pixelCountByRow(rowA)
+        pixelCountRowB = self.pixelCountByRow(rowB)
+        print('  row %s has %s pixels total; row %s has %s pixels total' %
+              (rowA, pixelCountRowA, rowB, pixelCountRowB))
+        if pixelCountRowA < pixelCountRowB:
+            return rowA
+        if pixelCountRowB < pixelCountRowA:
+            return rowB
+        return None
 
     def swidthX(self):
         if self.scalableWidthX != None:
