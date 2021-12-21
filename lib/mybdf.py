@@ -95,27 +95,54 @@ class MyBDF:
         if filename != None:
             self.read(filename)
 
-    # For windows where you specify 12pt to get a 16px font so you're
-    # only getting crisp bitmaps when you have multiples of 4px
-    # (multiples of 3pt)
-    def alterAscentDescentMultipleFour(self, which = 'nearest'):
+    def fixPixelHeight(self, ascentIncr, descentIncr):
         ascent = self.properties.get('ascent')
         descent = self.properties.get('descent')
         if ascent == None or descent == None:
-            # NOTE: we can't do this
             return
         pixelHeight = ascent + descent
-
-        origAscent = ascent
-        origDescent = descent
         origPixelHeight = pixelHeight
+        ascent += ascentIncr
+        descent += descentIncr
+        pixelHeight += ascentIncr + descentIncr
+        pixelSize   = self.properties.get('pixelSize')
+        pointSize10 = self.properties.get('pointSize10')
+        self.properties['ascent'] = ascent
+        self.properties['descent'] = descent
+        if pixelSize != None:
+            pixelSize = round(1.0 * pixelSize / origPixelHeight * pixelHeight)
+            self.properties['pixelSize'] = pixelSize
+        if pointSize10 != None:
+            pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
+            self.properties['pointSize10'] = pointSize10
 
+    def fixPixelHeightForWindows(self):
+        ascent = self.properties.get('ascent')
+        descent = self.properties.get('descent')
+        if ascent == None or descent == None:
+            return
+        pixelHeight = ascent + descent
+        if pixelHeight % 4 == 0 or pixelHeight % 4 == 1:
+            if self.verbosity > 0:
+                print('%s: WINDOWS PIXEL HEIGHT is %d; not touching' % (self.filename, pixelHeight))
+            return
+        elif pixelHeight % 4 == 2:
+            if self.verbosity > 0:
+                print('%s: WINDOWS PIXEL HEIGHT is %d; adding 2 more' % (self.filename, pixelHeight))
+            self.fixPixelHeight(1, 1)
+        else:
+            if self.verbosity > 0:
+                print('%s: WINDOWS PIXEL HEIGHT is %d; adding 1 more' % (self.filename, pixelHeight))
+            self.fixPixelHeight(0, 1)
+
+    def fixPixelHeightToMultipleOfFour(self, which = 'nearest'):
+        ascent = self.properties.get('ascent')
+        descent = self.properties.get('descent')
+        if ascent == None or descent == None:
+            return
+        pixelHeight = ascent + descent
         if pixelHeight % 4 == 0:
             return
-
-        if self.verbosity > 1:
-            print('checkPixelCountsFlag? %s' % self.checkPixelCountsFlag)
-
         if pixelHeight % 4 == 1:
             if which == 'nearest':
                 if self.checkPixelCountsFlag:
@@ -125,40 +152,19 @@ class MyBDF:
                     if self.verbosity > 0:
                         print('%s: CHOPPING OFF ROW %s' % (self.filename, (rowA if rowToCrop is None else rowToCrop)))
                     if rowToCrop == rowA:
-                        ascent -= 1
+                        self.fixPixelHeight(-1, 0)
                     elif rowToCrop == rowB:
-                        descent -= 1
+                        self.fixPixelHeight(0, -1)
                     else:
-                        ascent -= 1
+                        self.fixPixelHeight(-1, 0)
                 else:
-                    ascent -= 1
-                pixelHeight -= 1
+                    self.fixPixelHeight(-1, 0)
             elif which == 'next':
-                ascent += 1
-                descent += 2
-                pixelHeight += 3
+                self.fixPixelHeight(1, 2)
         elif pixelHeight % 4 == 2:
-            ascent += 1
-            descent += 1
-            pixelHeight += 2
+            self.fixPixelHeight(1, 1)
         elif pixelHeight % 4 == 3:
-            descent += 1
-            pixelHeight += 1
-
-        pixelSize   = self.properties.get('pixelSize')
-        pointSize10 = self.properties.get('pointSize10')
-        origPixelSize   = pixelSize
-        origPointSize10 = pointSize10
-
-        self.properties['ascent'] = ascent
-        self.properties['descent'] = descent
-
-        if pixelSize != None:
-            pixelSize = round(1.0 * pixelSize / origPixelHeight * pixelHeight)
-            self.properties['pixelSize'] = pixelSize
-        if pointSize10 != None:
-            pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
-            self.properties['pointSize10'] = pointSize10
+            self.fixPixelHeight(0, 1)
 
     def printPixelCounts(self):
         rowA = int(round(self.properties['ascent'] - 1))
