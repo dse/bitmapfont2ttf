@@ -14,6 +14,7 @@ class BitmapFont2TTF:
         self.args = args
         self.filename = args.filename
         self.destfilenames = args.destfilenames
+        self.verbosity = 0
 
         self.monospaceConfidence = 75
 
@@ -228,7 +229,8 @@ class BitmapFont2TTF:
         if len(keys) == 1:
             return True
         keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        print('%s' % keys)
+        if self.verbosity > 1:
+            print('%s' % keys)
         if checkOnly:
             print('-' * 79)
             print('WARNING: font will probably not be detected as monospace!')
@@ -246,16 +248,19 @@ class BitmapFont2TTF:
         mostCommonWidth = keys[0]
         mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
         if mostCommonWidthPercentage < float(self.monospaceConfidence):
-            print('=' * 79)
-            print('WARNING: not confident enough in monospacedness!')
-            print('%5.1f%%, less than %5.1f%%, of glyphs have majority width %6.1f' %
-                  (mostCommonWidthPercentage, float(self.monospaceConfidence), mostCommonWidth))
-            print('=' * 79)
+            if self.verbosity > 0:
+                print('=' * 79)
+                print('WARNING: not confident enough in monospacedness!')
+                print('%5.1f%%, less than %5.1f%%, of glyphs have majority width %6.1f' %
+                      (mostCommonWidthPercentage, float(self.monospaceConfidence), mostCommonWidth))
+                print('=' * 79)
             return
-        print('Fixing monospacedness...')
+        if self.verbosity > 1:
+            print('Fixing monospacedness...')
         for glyph in self.font.glyphs():
             glyph.width = mostCommonWidth
-        print('Done.')
+        if self.verbosity > 1:
+            print('Done.')
 
     def checkMonospace(self):
         self.fixMonospace(checkOnly=True)
@@ -282,6 +287,7 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self):
         self.loadBDF()
+        self.bdf.printPixelCounts()
         if self.args.nearest_multiple_of_four:
             self.bdf.alterAscentDescentMultipleFour('nearest')
         elif self.args.next_multiple_of_four:
