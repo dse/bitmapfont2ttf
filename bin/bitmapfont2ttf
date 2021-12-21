@@ -21,7 +21,7 @@ parser.add_argument("--weight",                   help = "assign font weight, e.
 parser.add_argument("--italic-angle",             type = float, help = "assign font italic angle, e.g., -22.5")
 
 # NOT IN USE RIGHT NOW, MAY BE IN USE AGAIN
-parser.add_argument("--verbose", "-v",            action = 'count', help = "increase output verbosity")
+parser.add_argument("--verbosity", "-v",          action = 'count', help = "increase output verbosity", default = 0)
 parser.add_argument("--nearest-multiple-of-four", action = 'store_true')
 parser.add_argument("--next-multiple-of-four",    action = 'store_true')
 parser.add_argument("--pixel-size",               type = int, help = "pixel font size in mult. of 4")
