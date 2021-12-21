@@ -19,6 +19,7 @@ class BitmapFont2TTF:
         self.verbose = 0
         self.dotWidth = 1
         self.dotHeight = 1
+        self.monospaceConfidence = 75
         if args.nearest_multiple_of_four:
             self.nearestMultipleOfFour = args.nearest_multiple_of_four
         if args.next_multiple_of_four:
@@ -120,7 +121,7 @@ class BitmapFont2TTF:
         self.bdf = MyBDF(self.filename)
 
     def setPropertiesFromBDF(self):
-        self.isMonospace = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
+        self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
         self.pixelSize = self.bdf.properties["pixelSize"]
         if not self.pixelSize:
             if self.bdf.boundingBoxY:
@@ -152,7 +153,7 @@ class BitmapFont2TTF:
             sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, dest))
 
     def setSwidth(self):
-        if self.isMonospace:
+        if self.isMonospaceFlagged:
             self.swidthPx = self.bdf.boundingBoxX
             self.swidthEm = 1.0 * self.swidthPx / self.pixelSize
         else:
@@ -202,6 +203,56 @@ class BitmapFont2TTF:
                 self.font.os2_stylemap |= 0x0020
                 self.font.macstyle     |= 0x0001
 
+    # If all glyph widths aren't the same, many Windows terminals and
+    # other applications where you want monospace fonts won't show it
+    # in menus.
+    def fixMonospace(self, checkOnly=False):
+        widthCounts = {}
+        glyphsByWidth = {}
+        totalGlyphCount = 0
+        for glyph in self.font.glyphs():
+            totalGlyphCount += 1
+            width = glyph.width
+            count = widthCounts.get(width)
+            widthCounts[width] = count = 1 if count is None else count + 1
+            glyphsByWidth[width] = [] if glyphsByWidth.get(width) is None else glyphsByWidth[width]
+            glyphsByWidth[width].append(glyph)
+        keys = list(widthCounts.keys())
+        if len(keys) == 1:
+            return True
+        keys.sort(key = lambda width: widthCounts[width], reverse = True)
+        print('%s' % keys)
+        if checkOnly:
+            print('-' * 79)
+            print('WARNING: font will probably not be detected as monospace!')
+            for width in keys[:5]:
+                count = widthCounts[width]
+                percentage = 100.0 * count / totalGlyphCount
+                print('%6d glyphs (%5.1f%%) have width %6.1f' % (count, percentage, width))
+                if count < 20:
+                    glyphs = glyphsByWidth[width]
+                    for glyph in glyphs:
+                        hexEncoding = ('U+%04X' % glyph.encoding) if glyph.encoding >= 0 else glyph.encoding
+                        print('        %-8s %s' % (hexEncoding, glyph.glyphname))
+            print('-' * 79)
+            return
+        mostCommonWidth = keys[0]
+        mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
+        if mostCommonWidthPercentage < float(self.monospaceConfidence):
+            print('=' * 79)
+            print('WARNING: not confident enough in monospacedness!')
+            print('%5.1f%%, less than %5.1f%%, of glyphs have majority width %6.1f' %
+                  (mostCommonWidthPercentage, float(self.monospaceConfidence), mostCommonWidth))
+            print('=' * 79)
+            return
+        print('Fixing monospacedness...')
+        for glyph in self.font.glyphs():
+            glyph.width = mostCommonWidth
+        print('Done.')
+
+    def checkMonospace(self):
+        self.fixMonospace(checkOnly=True)
+
     def setFinalMetrics(self):
         ascent  = self.font.ascent
         descent = self.font.descent
@@ -239,5 +290,7 @@ class BitmapFont2TTF:
         self.setWeight()
         self.setFontMetas()
         self.trace()
+        if self.args.monospace:
+            self.fixMonospace()
         self.setFinalMetrics()
         self.save()

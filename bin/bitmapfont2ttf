@@ -32,6 +32,8 @@ parser.add_argument("--dot-width",                type = float, help = 'width  o
 parser.add_argument("--dot-height",               type = float, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 # parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 
+parser.add_argument("--monospace",                action = 'store_true')
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",               nargs = '*')
 
