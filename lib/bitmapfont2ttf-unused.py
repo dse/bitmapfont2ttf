@@ -1,4 +1,46 @@
 class BitmapFont2TTF:
+    def setArgs(self, args):
+        # self.specifiedPixelSize = None
+        # self.metricsAscent = None
+        # self.metricsDescent = None
+        # self.metricsLineHeight = None
+        # self.fillBoundingBoxWidth = False
+        # if args.pixel_size:
+        #     self.specifiedPixelSize = args.pixel_size
+        # if args.ascent:
+        #     self.metricsAscent = args.ascent
+        # if args.descent:
+        #     self.metricsDescent = args.descent
+        # if args.line_height:
+        #     self.metricsLineHeight = args.line_height
+        # if args.fill_bounding_box_width:
+        #     self.fillBoundingBoxWidth = True
+    def setPropertiesFromBDF(self):
+        # self.finalPixelSize = self.pixelSize
+        # if self.specifiedPixelSize:
+        #     self.finalPixelSize = 4 * int((self.specifiedPixelSize + 2) / 4)
+        # elif self.nextMultipleOfFour:
+        #     self.finalPixelSize = 4 * int((self.pixelSize + 3) / 4)
+        # elif self.nearestMultipleOfFour:
+        #     self.finalPixelSize = 4 * int((self.pixelSize + 2) / 4)
+    def setSwidth(self):
+        # if self.isMonospace:
+        #     self.swidth = int(0.5 + 1.0 * self.font.em * self.bdf.boundingBoxX / self.pixelSizeX())
+        # else:
+        #     self.swidth = None
+    def setInitialAscentDescent(self):
+        # self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
+        # self.ascentPx = self.bdf.properties["ascent"]
+        # # must be specified before bitmap import for baseline alignment
+        # em = self.font.em
+        # ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
+        # descent = int(0.5 + 1.0 * em * self.descentPx / self.pixelSize)
+    def bitmapfont2ttf(self):
+        # self.useFinalPixelSize()
+        # self.adjustGlyphSizes()
+        # self.fixMissingGlyphs()
+
+
     # NOT IN USE
     def fixMissingGlyphs(self):
         sys.stderr.write('>>>>>>> fixMissingGlyphs() NOT IN USE <<<<<<<\n')
