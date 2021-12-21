@@ -87,9 +87,9 @@ class BitmapFont2TTF:
         glyphIndex = 0
         for glyph in self.font.glyphs():
             glyphIndex += 1
-            if self.verbose >= 2:
+            if self.verbosity >= 2:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
-            elif self.verbose >= 1:
+            elif self.verbosity >= 1:
                 sys.stderr.write("bitmapfont2ttf: %s: [%d/%d]\r" % (self.args.full_name, glyphIndex, glyphCount))
             glyph.autoTrace()
             glyph.addExtrema()
