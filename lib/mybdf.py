@@ -101,10 +101,14 @@ class MyBDF:
         if ascent == None or descent == None:
             return
         pixelHeight = ascent + descent
+        origAscent = ascent
+        origDescent = descent
         origPixelHeight = pixelHeight
         ascent += ascentIncr
         descent += descentIncr
         pixelHeight += ascentIncr + descentIncr
+        if self.verbosity > 0:
+            print("%s: FIXING PIXEL HEIGHT: ascent %d => %d; descent %d => %d; pixel height %d => %d" % (self.filename, origAscent, ascent, origDescent, descent, origPixelHeight, pixelHeight))
         pixelSize   = self.properties.get('pixelSize')
         pointSize10 = self.properties.get('pointSize10')
         self.properties['ascent'] = ascent
@@ -122,10 +126,10 @@ class MyBDF:
         if ascent == None or descent == None:
             return
         pixelHeight = ascent + descent
+        origPixelHeight = pixelHeight
         if pixelHeight % 4 == 0 or pixelHeight % 4 == 1:
             if self.verbosity > 0:
                 print('%s: WINDOWS PIXEL HEIGHT is %d; not touching' % (self.filename, pixelHeight))
-            return
         elif pixelHeight % 4 == 2:
             if self.verbosity > 0:
                 print('%s: WINDOWS PIXEL HEIGHT is %d; adding 2 more' % (self.filename, pixelHeight))
@@ -134,6 +138,9 @@ class MyBDF:
             if self.verbosity > 0:
                 print('%s: WINDOWS PIXEL HEIGHT is %d; adding 1 more' % (self.filename, pixelHeight))
             self.fixPixelHeight(0, 1)
+        newPixelHeight = self.properties.get('ascent') + self.properties.get('descent')
+        if self.verbosity > 0:
+            print('%s: WINDOWS PIXEL HEIGHT: %d => %d' % (origPixelHeight, newPixelHeight))
 
     def fixPixelHeightToMultipleOfFour(self, which = 'nearest'):
         ascent = self.properties.get('ascent')
