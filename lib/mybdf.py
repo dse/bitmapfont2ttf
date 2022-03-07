@@ -140,7 +140,7 @@ class MyBDF:
             self.fixPixelHeight(0, 1)
         newPixelHeight = self.properties.get('ascent') + self.properties.get('descent')
         if self.verbosity > 0:
-            print('%s: WINDOWS PIXEL HEIGHT: %d => %d' % (origPixelHeight, newPixelHeight))
+            print('%s: WINDOWS PIXEL HEIGHT: %d => %d' % (self.filename, origPixelHeight, newPixelHeight))
 
     def fixPixelHeightToMultipleOfFour(self, which = 'nearest'):
         ascent = self.properties.get('ascent')
