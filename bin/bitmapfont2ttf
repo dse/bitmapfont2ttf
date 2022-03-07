@@ -34,6 +34,9 @@ parser.add_argument("--fix-windows-pixel-height", action = 'store_true')
 
 parser.add_argument("--add-ascent",               type = int, default = 0)
 parser.add_argument("--add-descent",              type = int, default = 0)
+parser.add_argument("--ascent",                   type = int)
+parser.add_argument("--descent",                  type = int)
+
 parser.add_argument("--dot-width",                type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",               type = float, default = 1.0, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
 # parser.add_argument("--fill-bounding-box-width",  action = 'store_true')

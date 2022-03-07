@@ -26,6 +26,8 @@ class BitmapFont2TTF:
         self.addDescent            = args.add_descent
         self.noSave                = args.no_save
         self.noTrace               = args.no_trace
+        self.setAscent             = args.ascent;
+        self.setDescent            = args.descent;
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -170,11 +172,6 @@ class BitmapFont2TTF:
         descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
-        if self.verbosity >= 1:
-            print('%s: ASCENT/DESCENT: ==> %4d + %4d = %4d' % (self.filename, origFontAscent, origFontDescent, origFontAscent + origFontDescent))
-            print('%s: ASCENT/DESCENT:     %4d + %4d = %4d' % (self.filename, ascent, descent, ascent + descent))
-            print('%s: ASCENT/DESCENT:     %4d + %4d = %4d' % (self.filename, self.font.ascent, self.font.descent, self.font.ascent + self.font.descent))
-            print('%s: ASCENT/DESCENT:     addAscent = %s; addDescent = %s' % (self.filename, self.addAscent, self.addDescent))
 
     def setItalic(self):
         self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
@@ -284,6 +281,11 @@ class BitmapFont2TTF:
         self.font.os2_windescent  = descent
 
     def adjustPixelHeight(self):
+        if self.setAscent != None:
+            self.bdf.setPixelAscent(self.setAscent)
+        if self.setDescent != None:
+            self.bdf.setPixelDescent(self.setDescent)
+
         if self.fixWindowsPixelHeight:
             self.bdf.fixPixelHeightForWindows()
         elif self.args.nearest_multiple_of_four:
@@ -291,7 +293,7 @@ class BitmapFont2TTF:
         elif self.args.next_multiple_of_four:
             self.bdf.fixPixelHeightToMultipleOfFour('next')
         if self.addAscent or self.addDescent:
-            self.bdf.fixPixelHeight(addAscent, addDescent)
+            self.bdf.fixPixelHeight(self.addAscent, self.addDescent, "MANUAL")
 
     def bitmapfont2ttf(self):
         self.loadBDF()
