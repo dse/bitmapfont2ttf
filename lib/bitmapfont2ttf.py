@@ -290,6 +290,8 @@ class BitmapFont2TTF:
             self.bdf.fixPixelHeightToMultipleOfFour('nearest')
         elif self.args.next_multiple_of_four:
             self.bdf.fixPixelHeightToMultipleOfFour('next')
+        if self.addAscent or self.addDescent:
+            self.bdf.fixPixelHeight(addAscent, addDescent)
 
     def bitmapfont2ttf(self):
         self.loadBDF()

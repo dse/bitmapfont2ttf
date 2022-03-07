@@ -95,20 +95,34 @@ class MyBDF:
         if filename != None:
             self.read(filename)
 
-    def fixPixelHeight(self, ascentIncr, descentIncr):
+    def fixPixelHeight(self, addAscent, addDescent):
+        if addAscent is None and addDescent is None:
+            return
+        if addAscent is None:
+            addAscent = 0
+        if addDescent is None:
+            addDescent = 0
+        if addAscent == 0 and addDescent == 0:
+            return
+
         ascent = self.properties.get('ascent')
         descent = self.properties.get('descent')
         if ascent == None or descent == None:
             return
         pixelHeight = ascent + descent
+
         origAscent = ascent
         origDescent = descent
         origPixelHeight = pixelHeight
-        ascent += ascentIncr
-        descent += descentIncr
-        pixelHeight += ascentIncr + descentIncr
+        ascent += addAscent
+        descent += addDescent
+        pixelHeight += addAscent + addDescent
+
         if self.verbosity > 0:
-            print("%s: FIXING PIXEL HEIGHT: ascent %d => %d; descent %d => %d; pixel height %d => %d" % (self.filename, origAscent, ascent, origDescent, descent, origPixelHeight, pixelHeight))
+            print("%s: FIXING PIXEL HEIGHT: ascent %d => %d; descent %d => %d; pixel height %d => %d" % (
+                self.filename, origAscent, ascent, origDescent, descent, origPixelHeight, pixelHeight
+            ))
+
         pixelSize   = self.properties.get('pixelSize')
         pointSize10 = self.properties.get('pointSize10')
         self.properties['ascent'] = ascent
