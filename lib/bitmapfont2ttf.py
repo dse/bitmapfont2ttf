@@ -283,15 +283,18 @@ class BitmapFont2TTF:
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
 
-    def bitmapfont2ttf(self):
-        self.loadBDF()
-        self.bdf.printPixelCounts()
+    def adjustPixelHeight(self):
         if self.fixWindowsPixelHeight:
             self.bdf.fixPixelHeightForWindows()
         elif self.args.nearest_multiple_of_four:
             self.bdf.fixPixelHeightToMultipleOfFour('nearest')
         elif self.args.next_multiple_of_four:
             self.bdf.fixPixelHeightToMultipleOfFour('next')
+
+    def bitmapfont2ttf(self):
+        self.loadBDF()
+        self.bdf.printPixelCounts()
+        self.adjustPixelHeight()
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
         self.setSwidth()
