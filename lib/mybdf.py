@@ -89,135 +89,10 @@ class MyBDF:
         self.charsByEncoding = {}
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
-        self.checkPixelCountsFlag = False # before chopping top or bottom pixels
         self.verbosity = 0
 
         if filename != None:
             self.read(filename)
-
-    def fixPixelHeight(self, addAscent, addDescent):
-        if addAscent is None and addDescent is None:
-            return
-        if addAscent is None:
-            addAscent = 0
-        if addDescent is None:
-            addDescent = 0
-        if addAscent == 0 and addDescent == 0:
-            return
-
-        ascent = self.properties.get('ascent')
-        descent = self.properties.get('descent')
-        if ascent == None or descent == None:
-            return
-        pixelHeight = ascent + descent
-
-        origAscent = ascent
-        origDescent = descent
-        origPixelHeight = pixelHeight
-        ascent += addAscent
-        descent += addDescent
-        pixelHeight += addAscent + addDescent
-
-        if self.verbosity > 0:
-            print("%s: FIXING PIXEL HEIGHT: ascent %d => %d; descent %d => %d; pixel height %d => %d" % (
-                self.filename, origAscent, ascent, origDescent, descent, origPixelHeight, pixelHeight
-            ))
-
-        pixelSize   = self.properties.get('pixelSize')
-        pointSize10 = self.properties.get('pointSize10')
-        self.properties['ascent'] = ascent
-        self.properties['descent'] = descent
-        if pixelSize != None:
-            pixelSize = round(1.0 * pixelSize / origPixelHeight * pixelHeight)
-            self.properties['pixelSize'] = pixelSize
-        if pointSize10 != None:
-            pointSize10 = round(1.0 * pointSize10 / origPixelHeight * pixelHeight)
-            self.properties['pointSize10'] = pointSize10
-
-    def fixPixelHeightForWindows(self):
-        ascent = self.properties.get('ascent')
-        descent = self.properties.get('descent')
-        if ascent == None or descent == None:
-            return
-        pixelHeight = ascent + descent
-        origPixelHeight = pixelHeight
-        if pixelHeight % 4 == 0 or pixelHeight % 4 == 1:
-            if self.verbosity > 0:
-                print('%s: WINDOWS PIXEL HEIGHT is %d; not touching' % (self.filename, pixelHeight))
-        elif pixelHeight % 4 == 2:
-            if self.verbosity > 0:
-                print('%s: WINDOWS PIXEL HEIGHT is %d; adding 2 more' % (self.filename, pixelHeight))
-            self.fixPixelHeight(1, 1)
-        else:
-            if self.verbosity > 0:
-                print('%s: WINDOWS PIXEL HEIGHT is %d; adding 1 more' % (self.filename, pixelHeight))
-            self.fixPixelHeight(0, 1)
-        newPixelHeight = self.properties.get('ascent') + self.properties.get('descent')
-        if self.verbosity > 0:
-            print('%s: WINDOWS PIXEL HEIGHT: %d => %d' % (self.filename, origPixelHeight, newPixelHeight))
-
-    def fixPixelHeightToMultipleOfFour(self, which = 'nearest'):
-        ascent = self.properties.get('ascent')
-        descent = self.properties.get('descent')
-        if ascent == None or descent == None:
-            return
-        pixelHeight = ascent + descent
-        if pixelHeight % 4 == 0:
-            return
-        if pixelHeight % 4 == 1:
-            if which == 'nearest':
-                if self.checkPixelCountsFlag:
-                    rowA = ascent - 1
-                    rowB = -descent
-                    rowToCrop = self.lesserPixelOccupiedRow(rowA, rowB)
-                    if self.verbosity > 0:
-                        print('%s: CHOPPING OFF ROW %s' % (self.filename, (rowA if rowToCrop is None else rowToCrop)))
-                    if rowToCrop == rowA:
-                        self.fixPixelHeight(-1, 0)
-                    elif rowToCrop == rowB:
-                        self.fixPixelHeight(0, -1)
-                    else:
-                        self.fixPixelHeight(-1, 0)
-                else:
-                    self.fixPixelHeight(-1, 0)
-            elif which == 'next':
-                self.fixPixelHeight(1, 2)
-        elif pixelHeight % 4 == 2:
-            self.fixPixelHeight(1, 1)
-        elif pixelHeight % 4 == 3:
-            self.fixPixelHeight(0, 1)
-
-    def printPixelCounts(self):
-        rowA = int(round(self.properties['ascent'] - 1))
-        rowB = -int(round(self.properties['descent']))
-        if self.verbosity > 1:
-            print('Counting pixels...')
-        for row in range(rowA, rowB - 1, -1):
-            count = self.pixelCountByRow(row)
-            if self.verbosity > 1:
-                print('  row %3d has %5d pixels' % (row, count))
-
-    def lesserPixelOccupiedRow(self, rowA, rowB):
-        rowA = int(round(rowA))
-        rowB = int(round(rowB))
-        if self.verbosity > 1:
-            print('Checking pixel counts on rows %s and %s' % (rowA, rowB))
-        pixelCountRowA = self.pixelCountByRow(rowA)
-        pixelCountRowB = self.pixelCountByRow(rowB)
-        if self.verbosity > 1:
-            print('  row %s has %s pixels total; row %s has %s pixels total' %
-                  (rowA, pixelCountRowA, rowB, pixelCountRowB))
-        if pixelCountRowA < pixelCountRowB:
-            if self.verbosity > 1:
-                print('    returning %d' % rowA)
-            return rowA
-        if pixelCountRowB < pixelCountRowA:
-            if self.verbosity > 1:
-                print('    returning %d' % rowB)
-            return rowB
-        if self.verbosity > 1:
-            print('    it\'s a tie')
-        return None
 
     def swidthX(self):
         if self.scalableWidthX != None:
@@ -251,19 +126,28 @@ class MyBDF:
         pt10 = self.properties['pointSize10']
         if pt10 != None:
             return pt10 / 10.0
-        px = self.properties['pixelSize']
-        if px != None:
-            return 72.0 * px / self.resolutionY()
-        raise Exception('cannot determine pointSize')
+        raise Exception('font does not have a POINT_SIZE property')
+        # if self.pointSize != None:
+        #     return self.pointSize * 1.0
+        # px = self.properties['pixelSize']
+        # if px != None:
+        #     return 72.0 * px / self.resolutionY()
+        # raise Exception('cannot determine pointSize')
+
+    def setPixelSize(self, px):
+        self.properties['pixelSize']   = px
+        self.properties['pointSize10'] = int(round(px * 720.0 / self.resolutionY()))
+        self.pointSize                 = int(round(px * 72.0 / self.resolutionY()))
 
     def getPixelSize(self):
         px = self.properties['pixelSize']
         if px != None:
             return px
-        pt10 = self.properties['pointSize10']
-        if pt10 != None:
-            return pt10 / 720.0 * self.resolutionY()
-        raise Exception('cannot determine pixelSize')
+        raise Exception('font does not specify pixel size')
+        # pt10 = self.properties['pointSize10']
+        # if pt10 != None:
+        #     return pt10 / 720.0 * self.resolutionY()
+        # raise Exception('cannot determine pixelSize')
 
     def resolutionX(self):
         r = self.properties['resolutionX']
@@ -454,12 +338,6 @@ class MyBDF:
     # less than 1 means taller than wide; greater than 1 means wider than tall
     def aspectRatioXtoY(self):
         return 1.0 * self.properties["resolutionY"] / self.properties["resolutionX"]
-
-    def pixelCountByRow(self, row):
-        count = 0
-        for char in self.chars:
-            count += char.pixelCountByRow(row)
-        return count
 
     def __str__(self):
         result = "<MyBDF"

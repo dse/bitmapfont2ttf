@@ -15,19 +15,14 @@ class BitmapFont2TTF:
         self.filename              = args.filename
         self.destfilenames         = args.destfilenames
         self.monospaceConfidence   = 75
-        self.nearestMultipleOfFour = args.nearest_multiple_of_four
-        self.nextMultipleOfFour    = args.next_multiple_of_four
-        self.verbosity             = args.verbosity
         self.dotWidth              = args.dot_width
         self.dotHeight             = args.dot_height
-        self.checkPixelCountsFlag  = args.check_pixel_counts
-        self.fixWindowsPixelHeight = args.fix_windows_pixel_height
-        self.addAscent             = args.add_ascent
-        self.addDescent            = args.add_descent
         self.noSave                = args.no_save
         self.noTrace               = args.no_trace
-        self.setAscent             = args.ascent;
-        self.setDescent            = args.descent;
+
+        self.newPixelSize          = args.new_pixel_size
+        self.newAscent             = args.new_ascent
+        self.newDescent            = args.new_descent
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -113,19 +108,19 @@ class BitmapFont2TTF:
             glyph.simplify()
         sys.stderr.write('  %d/%d glyphs done!\n' % (count, count))
 
+        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
+        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
+        print("%s: pixX = %.2f; pixY = %.2f" % (self.filename, pixX, pixY))
+        print("%s:     self.font.em = %d" % (self.filename, self.font.em))
+        print("%s:     self.bdf.getPixelSize() = %.2f" % (self.filename, self.bdf.getPixelSize()))
+
     def loadBDF(self):
         if not re.search(r'\.bdf$', self.filename):
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
-        self.bdf.verbosity            = self.verbosity
-        self.bdf.checkPixelCountsFlag = self.checkPixelCountsFlag
 
     def setPropertiesFromBDF(self):
         self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
-        self.pixelSize = self.bdf.properties["pixelSize"]
-        if not self.pixelSize:
-            if self.bdf.boundingBoxY:
-                self.pixelSize = self.bdf.boundingBoxY
 
     def setFontMetas(self):
         if self.args != None:
@@ -155,7 +150,7 @@ class BitmapFont2TTF:
     def setSwidth(self):
         if self.isMonospaceFlagged:
             self.swidthPx = self.bdf.boundingBoxX
-            self.swidthEm = 1.0 * self.swidthPx / self.pixelSize
+            self.swidthEm = 1.0 * self.swidthPx / self.bdf.getPixelSize()
         else:
             self.swidthPx = None
             self.swidthEm = None
@@ -172,19 +167,30 @@ class BitmapFont2TTF:
         descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
+        print("%s: milliem ascent = %d; descent = %d; self.font.em = %d" % (self.filename, self.font.ascent, self.font.descent, self.font.em))
 
     def setItalic(self):
+        if self.args.italic_angle != None:
+            self.isItalic = False
+            self.font.italicangle = self.args.italic_angle
+            return
+
         self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
                          re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
                          (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
                          (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE)))
         if self.isItalic:
+            print("ITALIC ANGLE OF %s: A" % self.filename)
             if self.args.italic_angle != None:
+                print("ITALIC ANGLE OF %s: A1" % self.filename)
                 self.font.italicangle = self.args.italic_angle
             else:
+                print("ITALIC ANGLE OF %s: A2" % self.filename)
                 self.font.italicangle = 15 # arbitrary
         else:
+            print("ITALIC ANGLE OF %s: B" % self.filename)
             self.font.italicangle = 0
+        print("ITALIC ANGLE OF %s IS %.2f" % (self.filename, self.font.italicangle))
 
     def setWeight(self):
         if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
@@ -224,8 +230,6 @@ class BitmapFont2TTF:
         if len(keys) == 1:
             return True
         keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        if self.verbosity > 1:
-            print('%s' % keys)
         if checkOnly:
             print('-' * 79)
             print('WARNING: font will probably not be detected as monospace!')
@@ -243,19 +247,9 @@ class BitmapFont2TTF:
         mostCommonWidth = keys[0]
         mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
         if mostCommonWidthPercentage < float(self.monospaceConfidence):
-            if self.verbosity > 0:
-                print('=' * 79)
-                print('WARNING: not confident enough in monospacedness!')
-                print('%5.1f%%, less than %5.1f%%, of glyphs have majority width %6.1f' %
-                      (mostCommonWidthPercentage, float(self.monospaceConfidence), mostCommonWidth))
-                print('=' * 79)
             return
-        if self.verbosity > 1:
-            print('Fixing monospacedness...')
         for glyph in self.font.glyphs():
             glyph.width = mostCommonWidth
-        if self.verbosity > 1:
-            print('Done.')
 
     def checkMonospace(self):
         self.fixMonospace(checkOnly=True)
@@ -280,27 +274,32 @@ class BitmapFont2TTF:
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
 
-    def adjustPixelHeight(self):
-        if self.setAscent != None:
-            self.bdf.setPixelAscent(self.setAscent)
-        if self.setDescent != None:
-            self.bdf.setPixelDescent(self.setDescent)
+    def setNewMetrics(self):
+        if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
+            return
 
-        if self.fixWindowsPixelHeight:
-            self.bdf.fixPixelHeightForWindows()
-        elif self.args.nearest_multiple_of_four:
-            self.bdf.fixPixelHeightToMultipleOfFour('nearest')
-        elif self.args.next_multiple_of_four:
-            self.bdf.fixPixelHeightToMultipleOfFour('next')
-        if self.addAscent or self.addDescent:
-            self.bdf.fixPixelHeight(self.addAscent, self.addDescent, "MANUAL")
+        if self.newPixelSize != None:
+            self.bdf.setPixelSize(self.newPixelSize)
+        if self.newAscent != None:
+            self.bdf.properties['ascent'] = newAscent
+        if self.newDescent != None:
+            self.bdf.properties['ascent'] = newDescent
+
+        emFloat = self.font.em * 1.0
+        pixelSizeFloat = self.bdf.getPixelSize() * 1.0
+        ascentEm  = emFloat / pixelSizeFloat * self.bdf.ascentPx()
+        descentEm = emFloat / pixelSizeFloat * self.bdf.descentPx()
+        fix       = emFloat - ascentEm + descentEm
+        newAscent  = int(round(ascentEm + fix / 2.0))
+        newDescent = self.font.em - newAscent
+        self.font.ascent  = newAscent
+        self.font.descent = newDescent
 
     def bitmapfont2ttf(self):
         self.loadBDF()
-        self.bdf.printPixelCounts()
-        self.adjustPixelHeight()
         self.setPropertiesFromBDF()
         self.font = fontforge.font()
+        self.setNewMetrics()
         self.setSwidth()
         self.setInitialAscentDescent()
         self.font.importBitmaps(self.filename, True) # we do this to import everything but the bitmaps
