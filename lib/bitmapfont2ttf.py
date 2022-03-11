@@ -5,6 +5,14 @@ import os
 import re
 import sys
 
+MACSTYLE_BOLD    = 0x01
+MACSTYLE_ITALIC  = 0x02
+
+# https://docs.microsoft.com/ja-jp/typography/opentype/spec/os2#fss
+STYLEMAP_ITALIC  = 0x01
+STYLEMAP_BOLD    = 0x20
+STYLEMAP_REGULAR = 0x40
+
 class BitmapFont2TTF:
     def __init__(self, args):
         self.setArgs(args)
@@ -170,47 +178,55 @@ class BitmapFont2TTF:
         print("%s: milliem ascent = %d; descent = %d; self.font.em = %d" % (self.filename, self.font.ascent, self.font.descent, self.font.em))
 
     def setItalic(self):
-        if self.args.italic_angle != None:
-            self.isItalic = False
-            self.font.italicangle = self.args.italic_angle
-            return
-
-        self.isItalic = (re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
-                         re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
-                         (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
-                         (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE)))
+        self.isItalic = (
+            (self.args.italic_angle != None and self.args.italic_angle != 0) or
+            re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
+            re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
+            (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
+            (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE))
+        )
         if self.isItalic:
-            print("ITALIC ANGLE OF %s: A" % self.filename)
             if self.args.italic_angle != None:
-                print("ITALIC ANGLE OF %s: A1" % self.filename)
                 self.font.italicangle = self.args.italic_angle
             else:
-                print("ITALIC ANGLE OF %s: A2" % self.filename)
                 self.font.italicangle = 15 # arbitrary
         else:
-            print("ITALIC ANGLE OF %s: B" % self.filename)
             self.font.italicangle = 0
-        print("ITALIC ANGLE OF %s IS %.2f" % (self.filename, self.font.italicangle))
 
     def setWeight(self):
         if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
+            self.isBold = False
             self.font.weight = 'Book'
             self.font.os2_weight = 400
-            if self.isItalic:
-                self.font.os2_stylemap |= 0x0201
-                self.font.macstyle     |= 0x0002
-            else:
-                self.font.os2_stylemap |= 0x0040
-                self.font.macstyle     |= 0x0000
         elif self.font.weight == 'Bold':
+            self.isBold = True
             self.font.weight = 'Bold'
             self.font.os2_weight = 700
-            if self.isItalic:
-                self.font.os2_stylemap |= 0x0221
-                self.font.macstyle     |= 0x0003
-            else:
-                self.font.os2_stylemap |= 0x0020
-                self.font.macstyle     |= 0x0001
+
+    def setStyleMapBits(self):
+        bits = 0
+        if self.isItalic:
+            print("StyleMap: is italic")
+            bits |= STYLEMAP_ITALIC
+        if self.isBold:
+            print("StyleMap: is bold")
+            bits |= STYLEMAP_BOLD
+        if not self.isItalic and not self.isBold:
+            print("StyleMap: is regular")
+            bits |= STYLEMAP_REGULAR
+        self.font.os2_stylemap = bits
+        print("StyleMap: %s" % self.font.os2_stylemap)
+
+    def setMacStyleBits(self):
+        bits = 0
+        if self.isItalic:
+            print("MacStyle: is italic")
+            bits |= MACSTYLE_ITALIC
+        if self.isBold:
+            print("MacStyle: is bold")
+            bits |= MACSTYLE_BOLD
+        self.font.macstyle = bits
+        print("MacStyle: %s" % self.font.macstyle)
 
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
@@ -307,6 +323,8 @@ class BitmapFont2TTF:
         self.font.encoding = 'iso10646-1'
         self.setItalic()
         self.setWeight()
+        self.setStyleMapBits()
+        self.setMacStyleBits()
         self.setFontMetas()
         if not self.noTrace:
             self.trace()
