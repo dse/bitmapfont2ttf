@@ -1,4 +1,5 @@
 import re
+import sys
 from bdfchar import BDFChar
 
 class BDF:
@@ -164,12 +165,16 @@ class BDF:
                 if char.name != None:
                     self.charsByName[char.name] = char
 
-    def readBitmapDataFp(self, fp):
+    def readBitmapDataFp(self, fp, char):
         bitmapData = []
         for line in fp:
             if re.match(r'^\s*ENDCHAR\s*$', line, flags = re.IGNORECASE):
                 break
             bitmapData.append(line.strip())
+        if len(bitmapData) < 1:
+            raise Exception("No bitmap data for %s in %s" % (char.name, self.filename))
+        for s in bitmapData:
+            sys.stderr.write("[%s]\n" % s)
         numBits = max(len(s) * 4 for s in bitmapData)
         bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in bitmapData]
         return bitmapData
@@ -182,7 +187,7 @@ class BDF:
                 continue
             (cmd, args) = (args[0].upper(), args[1:])
             if cmd == 'BITMAP':
-                char.bitmapData = self.readBitmapDataFp(fp)
+                char.bitmapData = self.readBitmapDataFp(fp, char)
                 return char
             elif cmd == 'ENDCHAR':
                 return char
