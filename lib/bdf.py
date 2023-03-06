@@ -102,7 +102,7 @@ class BDF:
                 self.devicePixelWidthWritingMode1X = float(args[0])
                 self.devicePixelWidthWritingMode1Y = float(args[1])
             if cmd == 'VVECTOR':
-                sys.stderr.write("bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
+                sys.stderr.write("ERROR: bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
                 exit(1)
             if cmd == 'STARTPROPERTIES':
                 self.readPropertiesFp(fp)
@@ -211,7 +211,7 @@ class BDF:
                 char.devicePixelWidthWritingMode1X = int(args[0])
                 char.devicePixelWidthWritingMode1Y = int(args[1])
             elif cmd == 'VVECTOR':
-                sys.stderr.write("bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
+                sys.stderr.write("ERROR: bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
                 exit(1)
 
     def __str__(self):
