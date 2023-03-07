@@ -82,15 +82,15 @@ class BitmapFont2TTF:
 
         glyphCount = self.getGlyphCount()
 
-        sys.stderr.write("bitmapfont2ttf: %s: tracing %d glyphs...\n" % (self.args.full_name, glyphCount))
+        # sys.stderr.write("INFO: bitmapfont2ttf: %s: tracing %d glyphs...\n" % (self.args.full_name, glyphCount))
 
         glyphIndex = 0
         for glyph in self.font.glyphs():
             glyphIndex += 1
-            if self.verbosity >= 2:
-                sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
-            elif self.verbosity >= 1:
-                sys.stderr.write("bitmapfont2ttf: %s: [%d/%d]\r" % (self.args.full_name, glyphIndex, glyphCount))
+            # if self.verbosity >= 2:
+            #     sys.stderr.write("bitmapfont2ttf: %s: [%d/%d] %s\r" % (self.args.full_name, glyphIndex, glyphCount, glyph))
+            # elif self.verbosity >= 1:
+            #     sys.stderr.write("bitmapfont2ttf: %s: [%d/%d]\r" % (self.args.full_name, glyphIndex, glyphCount))
             glyph.autoTrace()
             glyph.addExtrema()
             glyph.simplify()
@@ -137,7 +137,7 @@ class BitmapFont2TTF:
                 glyph.transform(psMat.translate((newWidth - oldWidth) / 2, 0))
                 glyph.width = newWidth
         if self.finalPixelSize != self.pixelSize:
-            sys.stderr.write("bitmapfont2ttf: %s: adjusting pixel size from %d to %d\n" % (self.args.full_name, self.pixelSize, self.finalPixelSize))
+            # sys.stderr.write("bitmapfont2ttf: %s: adjusting pixel size from %d to %d\n" % (self.args.full_name, self.pixelSize, self.finalPixelSize))
             for glyph in self.font.glyphs():
                 glyph.transform(psMat.scale(1.0 * self.pixelSize / self.finalPixelSize))
 

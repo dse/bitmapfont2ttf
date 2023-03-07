@@ -27,12 +27,18 @@ class BitmapFont2TTF:
         self.dotHeight             = args.dot_height
         self.noSave                = args.no_save
         self.noTrace               = args.no_trace
-
+        self.fillBoundingBoxWidth  = args.fill_bounding_box_width
         self.newPixelSize          = args.new_pixel_size
         self.newAscent             = args.new_ascent
         self.newDescent            = args.new_descent
         self.circularDots          = args.circular_dots
         self.aspectRatio           = args.aspect_ratio
+        self.isBottomHalf          = args.bottom_half
+        self.isTopHalf             = args.top_half
+        self.isBottomThreeQuarters = args.bottom_three_quarters
+        self.isTopThreeQuarters    = args.top_three_quarters
+        self.isBottomFiveEighths   = args.bottom_five_eighths
+        self.isTopFiveEighths      = args.top_five_eighths
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -44,20 +50,46 @@ class BitmapFont2TTF:
             (rootdestfilename, junk) = os.path.splitext(self.filename)
             self.destfilenames = [rootdestfilename + '.ttf']
 
+    def traceGlyphUsingHorizontalLines(self, glyph, bdfChar):
+        return
+
+    def traceGlyphUsingCircleDots(self, glyph, bdfChar):
+        return
+
+    def traceGlyphUsingRectangleDots(self, glyph, bdfChar):
+        return
+
     def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
+
         deltaX = pixX * (1.0 - self.dotWidth) / 2
         deltaY = pixY * (1.0 - self.dotHeight) / 2
+
         for line in bdfChar.bitmapData:
             y = y - 1
             if self.dotWidth == 1 and not self.circularDots:
+                [y1unit, y2unit] = [0, 1]
+                if self.isBottomHalf:
+                    [y1unit, y2unit] = [0, 0.5]
+                elif self.isTopHalf:
+                    [y1unit, y2unit] = [0.5, 1]
+                elif self.isBottomThreeQuarters:
+                    [y1unit, y2unit] = [0, 0.75]
+                elif self.isTopThreeQuarters:
+                    [y1unit, y2unit] = [0.25, 1]
+                elif self.isBottomFiveEighths:
+                    [y1unit, y2unit] = [0, 0.625]
+                elif self.isTopFiveEighths:
+                    [y1unit, y2unit] = [0.375, 1]
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
                 pixelBlocks = []
                 pixelBlock = None
                 x = bdfChar.boundingBoxXOffset
+                bottom = 0
+                top = 1
                 for pixel in line:
                     if pixel == '1':
                         if pixelBlock == None:
@@ -75,6 +107,9 @@ class BitmapFont2TTF:
                     x2 = pixX * (xb + 1) - deltaX
                     y1 = pixY * y        + deltaY
                     y2 = pixY * (y + 1)  - deltaY
+                    if y1unit != 0 or y2unit != 1:
+                        [y1, y2] = [y1 + (y2 - y1) * y1unit,
+                                    y1 + (y2 - y1) * y2unit]
                     contour = fontforge.contour()
                     contour.moveTo(round(x1), round(y1))
                     contour.lineTo(round(x1), round(y2))
@@ -127,28 +162,39 @@ class BitmapFont2TTF:
 
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
 
+        if (glyph.encoding == 32):
+            sys.stderr.write("[DEBUG] pixX = %s; pixY = %s; bdf aspectRatioXtoY = %s; aspectRatio = %s; isMonospaceFlagged = %s\n" % (
+                pixX, pixY, self.bdf.aspectRatioXtoY(), self.aspectRatio, self.isMonospaceFlagged
+            ))
+            sys.stderr.write("[DEBUG] deltaX = %s; deltaY = %s; swidthX = %s; dWidthX = %s; glyph width = %s\n" % (
+                deltaX, deltaY, bdfChar.swidthX(), bdfChar.dwidthX(), glyph.width
+            ))
+
     def trace(self):
         count = len(self.bdf.chars)
         index = 0
         for char in self.bdf.chars:
             index = index + 1
-            sys.stderr.write('  %d/%d glyphs...\r' % (index, count))
+            # sys.stderr.write('  %d/%d glyphs...\r' % (index, count))
             encoding = char.encoding if char.encoding else -1
             try:
                 glyph = self.font.createChar(encoding, char.name)
             except:
-                sys.stderr.write('\nencoding %s; name %s\n' % (encoding, char.name))
+                sys.stderr.write('\nERROR: encoding %s; name %s\n' % (encoding, char.name))
                 raise
             self.traceGlyph(glyph, char)
             glyph.addExtrema()
             glyph.simplify()
-        sys.stderr.write('  %d/%d glyphs done!\n' % (count, count))
+            # if glyph.encoding == 0xab:
+            #     print("fore = %s" % glyph.layers['Fore'])
+        # sys.stderr.write('  %d/%d glyphs done!\n' % (count, count))
 
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
-        print("%s: pixX = %.2f; pixY = %.2f" % (self.filename, pixX, pixY))
-        print("%s:     self.font.em = %d" % (self.filename, self.font.em))
-        print("%s:     self.bdf.getPixelSize() = %.2f" % (self.filename, self.bdf.getPixelSize()))
+
+        # print("%s: pixX = %.2f; pixY = %.2f" % (self.filename, pixX, pixY))
+        # print("%s:     self.font.em = %d" % (self.filename, self.font.em))
+        # print("%s:     self.bdf.getPixelSize() = %.2f" % (self.filename, self.bdf.getPixelSize()))
 
     def loadBDF(self):
         if not re.search(r'\.bdf$', self.filename):
@@ -181,7 +227,7 @@ class BitmapFont2TTF:
                 self.font.save(dest)
             else:
                 self.font.generate(dest)
-            sys.stderr.write("bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, dest))
+            # sys.stderr.write("INFO: bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, dest))
 
     def setSwidth(self):
         if self.isMonospaceFlagged:
@@ -203,7 +249,7 @@ class BitmapFont2TTF:
         descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
-        print("%s: milliem ascent = %d; descent = %d; self.font.em = %d" % (self.filename, self.font.ascent, self.font.descent, self.font.em))
+        # print("%s: milliem ascent = %d; descent = %d; self.font.em = %d" % (self.filename, self.font.ascent, self.font.descent, self.font.em))
 
     def setItalic(self):
         self.isItalic = (
@@ -234,27 +280,27 @@ class BitmapFont2TTF:
     def setStyleMapBits(self):
         bits = 0
         if self.isItalic:
-            print("StyleMap: is italic")
+            # print("StyleMap: is italic")
             bits |= STYLEMAP_ITALIC
         if self.isBold:
-            print("StyleMap: is bold")
+            # print("StyleMap: is bold")
             bits |= STYLEMAP_BOLD
         if not self.isItalic and not self.isBold:
-            print("StyleMap: is regular")
+            # print("StyleMap: is regular")
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
-        print("StyleMap: %s" % self.font.os2_stylemap)
+        # print("StyleMap: %s" % self.font.os2_stylemap)
 
     def setMacStyleBits(self):
         bits = 0
         if self.isItalic:
-            print("MacStyle: is italic")
+            # print("MacStyle: is italic")
             bits |= MACSTYLE_ITALIC
         if self.isBold:
-            print("MacStyle: is bold")
+            # print("MacStyle: is bold")
             bits |= MACSTYLE_BOLD
         self.font.macstyle = bits
-        print("MacStyle: %s" % self.font.macstyle)
+        # print("MacStyle: %s" % self.font.macstyle)
 
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
@@ -275,24 +321,25 @@ class BitmapFont2TTF:
             return True
         keys.sort(key = lambda width: widthCounts[width], reverse = True)
         if checkOnly:
-            print('-' * 79)
-            print('WARNING: font will probably not be detected as monospace!')
+            sys.stderr.write("-------------------------------------------------------------------------------\n")
+            sys.stderr.write("WARNING: font will probably not be detected as monospace!\n")
             for width in keys[:5]:
                 count = widthCounts[width]
                 percentage = 100.0 * count / totalGlyphCount
-                print('%6d glyphs (%5.1f%%) have width %6.1f' % (count, percentage, width))
+                sys.stderr.write("%6d glyphs (%5.1f%%) have width %6.1f\n" % (count, percentage, width))
                 if count < 20:
                     glyphs = glyphsByWidth[width]
                     for glyph in glyphs:
                         hexEncoding = ('U+%04X' % glyph.encoding) if glyph.encoding >= 0 else glyph.encoding
-                        print('        %-8s %s' % (hexEncoding, glyph.glyphname))
-            print('-' * 79)
+                        sys.stderr.write("        %-8s %s\n" % (hexEncoding, glyph.glyphname))
+            sys.stderr.write("-------------------------------------------------------------------------------\n")
             return
         mostCommonWidth = keys[0]
         mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
         if mostCommonWidthPercentage < float(self.monospaceConfidence):
             return
         for glyph in self.font.glyphs():
+            debug = glyph.encoding == 0xab
             glyph.width = mostCommonWidth
 
     def checkMonospace(self):
@@ -317,6 +364,7 @@ class BitmapFont2TTF:
         self.font.os2_typolinegap = 0
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
+        self.font.vhea_linegap    = 0
 
     def setNewMetrics(self):
         if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
@@ -346,7 +394,7 @@ class BitmapFont2TTF:
         self.setNewMetrics()
         self.setSwidth()
         self.setInitialAscentDescent()
-        self.font.importBitmaps(self.filename, True) # we do this to import everything but the bitmaps
+        self.font.importBitmaps(self.filename, True) # we do this to import everything BUT the bitmaps
         self.font.os2_vendor = 'PfEd'
         self.font.encoding = 'iso10646-1'
         self.setItalic()

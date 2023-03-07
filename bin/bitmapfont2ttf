@@ -29,6 +29,7 @@ parser.add_argument("--new-descent",    type = int, help = "change font's pixel 
 # for emulation of LCD dot matrix fonts
 parser.add_argument("--dot-width",     type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",    type = float, default = 1.0, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
+parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 
 # for emulation of printer dot matrix fonts
 parser.add_argument("--aspect-ratio",  type = float, default = 1.0)
@@ -37,9 +38,17 @@ parser.add_argument("--circular-dots", action = 'store_true')
 parser.add_argument("--monospace",    action = 'store_true')
 parser.add_argument("--no-save",      action = 'store_true')
 parser.add_argument("--no-trace",     action = 'store_true')
+
+parser.add_argument("--bottom-half", action = "store_true")
+parser.add_argument("--top-half", action = "store_true")
+parser.add_argument("--bottom-three-quarters", action = "store_true")
+parser.add_argument("--top-three-quarters", action = "store_true")
+parser.add_argument("--bottom-five-eighths", action = "store_true")
+parser.add_argument("--top-five-eighths", action = "store_true")
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
 
 args = parser.parse_args()
 bf2ttf = BitmapFont2TTF(args)
-bf2ttf.bitmapfont2ttf()
+bf2ttf.bitmapfont2ttf()         # loop is in here
