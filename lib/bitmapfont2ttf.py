@@ -33,12 +33,12 @@ class BitmapFont2TTF:
         self.newDescent            = args.new_descent
         self.circularDots          = args.circular_dots
         self.aspectRatio           = args.aspect_ratio
-        self.isBottomHalf          = args.bottom_half
-        self.isTopHalf             = args.top_half
-        self.isBottomThreeQuarters = args.bottom_three_quarters
-        self.isTopThreeQuarters    = args.top_three_quarters
-        self.isBottomFiveEighths   = args.bottom_five_eighths
-        self.isTopFiveEighths      = args.top_five_eighths
+        self.bottom = args.bottom
+        self.top    = args.top
+        # if self.bottom != None:
+        #     print("[DEBUG] bottom = %s" % self.bottom)
+        # if self.top != None:
+        #     print("[DEBUG] top = %s" % self.top)
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -71,18 +71,10 @@ class BitmapFont2TTF:
             y = y - 1
             if self.dotWidth == 1 and not self.circularDots:
                 [y1unit, y2unit] = [0, 1]
-                if self.isBottomHalf:
-                    [y1unit, y2unit] = [0, 0.5]
-                elif self.isTopHalf:
-                    [y1unit, y2unit] = [0.5, 1]
-                elif self.isBottomThreeQuarters:
-                    [y1unit, y2unit] = [0, 0.75]
-                elif self.isTopThreeQuarters:
-                    [y1unit, y2unit] = [0.25, 1]
-                elif self.isBottomFiveEighths:
-                    [y1unit, y2unit] = [0, 0.625]
-                elif self.isTopFiveEighths:
-                    [y1unit, y2unit] = [0.375, 1]
+                if self.bottom != None:
+                    y1unit = self.bottom
+                if self.top != None:
+                    y2unit = self.top
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
                 pixelBlocks = []
@@ -107,7 +99,7 @@ class BitmapFont2TTF:
                     x2 = pixX * (xb + 1) - deltaX
                     y1 = pixY * y        + deltaY
                     y2 = pixY * (y + 1)  - deltaY
-                    if y1unit != 0 or y2unit != 1:
+                    if y1unit != 0.0 or y2unit != 1.0:
                         [y1, y2] = [y1 + (y2 - y1) * y1unit,
                                     y1 + (y2 - y1) * y2unit]
                     contour = fontforge.contour()
@@ -162,13 +154,13 @@ class BitmapFont2TTF:
 
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
 
-        if (glyph.encoding == 32):
-            sys.stderr.write("[DEBUG] pixX = %s; pixY = %s; bdf aspectRatioXtoY = %s; aspectRatio = %s; isMonospaceFlagged = %s\n" % (
-                pixX, pixY, self.bdf.aspectRatioXtoY(), self.aspectRatio, self.isMonospaceFlagged
-            ))
-            sys.stderr.write("[DEBUG] deltaX = %s; deltaY = %s; swidthX = %s; dWidthX = %s; glyph width = %s\n" % (
-                deltaX, deltaY, bdfChar.swidthX(), bdfChar.dwidthX(), glyph.width
-            ))
+        # if (glyph.encoding == 32):
+        #     sys.stderr.write("[DEBUG] pixX = %s; pixY = %s; bdf aspectRatioXtoY = %s; aspectRatio = %s; isMonospaceFlagged = %s\n" % (
+        #         pixX, pixY, self.bdf.aspectRatioXtoY(), self.aspectRatio, self.isMonospaceFlagged
+        #     ))
+        #     sys.stderr.write("[DEBUG] deltaX = %s; deltaY = %s; swidthX = %s; dWidthX = %s; glyph width = %s\n" % (
+        #         deltaX, deltaY, bdfChar.swidthX(), bdfChar.dwidthX(), glyph.width
+        #     ))
 
     def trace(self):
         count = len(self.bdf.chars)
@@ -176,7 +168,7 @@ class BitmapFont2TTF:
         for char in self.bdf.chars:
             index = index + 1
             # sys.stderr.write('  %d/%d glyphs...\r' % (index, count))
-            encoding = char.encoding if char.encoding else -1
+            encoding = char.encoding if char.encoding != None else -1
             try:
                 glyph = self.font.createChar(encoding, char.name)
             except:
