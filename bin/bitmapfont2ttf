@@ -42,6 +42,9 @@ parser.add_argument("--no-trace",     action = 'store_true')
 parser.add_argument("--bottom", type = float, default = 0.0)
 parser.add_argument("--top", type = float, default = 1.0)
 
+parser.add_argument("--res-x", type = int)
+parser.add_argument("--res-y", type = int)
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
 

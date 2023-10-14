@@ -33,6 +33,8 @@ class BitmapFont2TTF:
         self.newDescent            = args.new_descent
         self.circularDots          = args.circular_dots
         self.aspectRatio           = args.aspect_ratio
+        self.resX                  = args.res_x # default 96
+        self.resY                  = args.res_y # default 96
         self.bottom = args.bottom
         self.top    = args.top
         # if self.bottom != None:
@@ -357,6 +359,10 @@ class BitmapFont2TTF:
         self.font.os2_winascent   = ascent
         self.font.os2_windescent  = descent
         self.font.vhea_linegap    = 0
+        if self.resX != None:
+            self.font.xRes = self.resX
+        if self.resY != None:
+            self.font.yRes = self.resY
 
     def setNewMetrics(self):
         if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
