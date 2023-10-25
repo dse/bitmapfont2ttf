@@ -26,10 +26,9 @@ parser.add_argument("--new-pixel-size", type = int, help = "change font's pixel 
 parser.add_argument("--new-ascent",     type = int, help = "change font's pixel ascent")
 parser.add_argument("--new-descent",    type = int, help = "change font's pixel descent")
 
-# for emulation of LCD dot matrix fonts
+# for emulation of LCD dot matrix fonts or CRT lookin' fonts
 parser.add_argument("--dot-width",     type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
 parser.add_argument("--dot-height",    type = float, default = 1.0, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
-parser.add_argument("--fill-bounding-box-width",  action = 'store_true')
 
 # for emulation of printer dot matrix fonts
 parser.add_argument("--aspect-ratio",  type = float, default = 1.0)
@@ -39,6 +38,7 @@ parser.add_argument("--monospace",    action = 'store_true')
 parser.add_argument("--no-save",      action = 'store_true')
 parser.add_argument("--no-trace",     action = 'store_true')
 
+# also for emulation of CRT lookin' fonts
 parser.add_argument("--bottom", type = float, default = 0.0)
 parser.add_argument("--top", type = float, default = 1.0)
 

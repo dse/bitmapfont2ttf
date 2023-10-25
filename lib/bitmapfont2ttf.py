@@ -27,7 +27,6 @@ class BitmapFont2TTF:
         self.dotHeight             = args.dot_height
         self.noSave                = args.no_save
         self.noTrace               = args.no_trace
-        self.fillBoundingBoxWidth  = args.fill_bounding_box_width
         self.newAscent             = args.new_ascent
         self.newDescent            = args.new_descent
         self.resX                  = args.res_x # default 96
