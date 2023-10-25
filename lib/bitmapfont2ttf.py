@@ -137,7 +137,6 @@ class BitmapFont2TTF:
         index = 0
         for char in self.bdf.chars:
             index = index + 1
-            # sys.stderr.write('  %d/%d glyphs...\r' % (index, count))
             encoding = char.encoding if char.encoding != None else -1
             try:
                 glyph = self.font.createChar(encoding, char.name)
@@ -181,7 +180,6 @@ class BitmapFont2TTF:
                 self.font.save(dest)
             else:
                 self.font.generate(dest)
-            # sys.stderr.write("INFO: bitmapfont2ttf: %s: Wrote %s\n" % (self.args.full_name, dest))
 
     def setSwidth(self):
         if self.isMonospaceFlagged:
