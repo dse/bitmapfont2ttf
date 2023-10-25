@@ -31,10 +31,6 @@ class BitmapFont2TTF:
         self.resY                  = args.res_y # default 96
         self.bottom = args.bottom
         self.top    = args.top
-        # if self.bottom != None:
-        #     print("[DEBUG] bottom = %s" % self.bottom)
-        # if self.top != None:
-        #     print("[DEBUG] top = %s" % self.top)
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -50,10 +46,8 @@ class BitmapFont2TTF:
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.args.aspect_ratio
-
         deltaX = pixX * (1.0 - self.dotWidth) / 2
         deltaY = pixY * (1.0 - self.dotHeight) / 2
-
         for line in bdfChar.bitmapData:
             y = y - 1
             if self.dotWidth == 1 and not self.args.circular_dots:
@@ -138,16 +132,7 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
-
-        # if (glyph.encoding == 32):
-        #     sys.stderr.write("[DEBUG] pixX = %s; pixY = %s; bdf aspectRatioXtoY = %s; aspectRatio = %s; isMonospaceFlagged = %s\n" % (
-        #         pixX, pixY, self.bdf.aspectRatioXtoY(), self.aspectRatio, self.isMonospaceFlagged
-        #     ))
-        #     sys.stderr.write("[DEBUG] deltaX = %s; deltaY = %s; swidthX = %s; dWidthX = %s; glyph width = %s\n" % (
-        #         deltaX, deltaY, bdfChar.swidthX(), bdfChar.dwidthX(), glyph.width
-        #     ))
 
     def trace(self):
         count = len(self.bdf.chars)
@@ -164,16 +149,8 @@ class BitmapFont2TTF:
             self.traceGlyph(glyph, char)
             glyph.addExtrema()
             glyph.simplify()
-            # if glyph.encoding == 0xab:
-            #     print("fore = %s" % glyph.layers['Fore'])
-        # sys.stderr.write('  %d/%d glyphs done!\n' % (count, count))
-
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
-
-        # print("%s: pixX = %.2f; pixY = %.2f" % (self.filename, pixX, pixY))
-        # print("%s:     self.font.em = %d" % (self.filename, self.font.em))
-        # print("%s:     self.bdf.getPixelSize() = %.2f" % (self.filename, self.bdf.getPixelSize()))
 
     def loadBDF(self):
         if not re.search(r'\.bdf$', self.filename):
@@ -228,7 +205,6 @@ class BitmapFont2TTF:
         descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
-        # print("%s: milliem ascent = %d; descent = %d; self.font.em = %d" % (self.filename, self.font.ascent, self.font.descent, self.font.em))
 
     def setItalic(self):
         self.isItalic = (
@@ -259,27 +235,20 @@ class BitmapFont2TTF:
     def setStyleMapBits(self):
         bits = 0
         if self.isItalic:
-            # print("StyleMap: is italic")
             bits |= STYLEMAP_ITALIC
         if self.isBold:
-            # print("StyleMap: is bold")
             bits |= STYLEMAP_BOLD
         if not self.isItalic and not self.isBold:
-            # print("StyleMap: is regular")
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
-        # print("StyleMap: %s" % self.font.os2_stylemap)
 
     def setMacStyleBits(self):
         bits = 0
         if self.isItalic:
-            # print("MacStyle: is italic")
             bits |= MACSTYLE_ITALIC
         if self.isBold:
-            # print("MacStyle: is bold")
             bits |= MACSTYLE_BOLD
         self.font.macstyle = bits
-        # print("MacStyle: %s" % self.font.macstyle)
 
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
@@ -352,14 +321,12 @@ class BitmapFont2TTF:
     def setNewMetrics(self):
         if self.args.new_pixel_size is None and self.newAscent is None and self.newDescent is None:
             return
-
         if self.args.new_pixel_size != None:
             self.bdf.setPixelSize(self.args.new_pixel_size)
         if self.newAscent != None:
             self.bdf.properties['ascent'] = newAscent
         if self.newDescent != None:
             self.bdf.properties['descent'] = newDescent
-
         emFloat = self.font.em * 1.0
         pixelSizeFloat = self.bdf.getPixelSize() * 1.0
         ascentEm  = emFloat / pixelSizeFloat * self.bdf.ascentPx()
