@@ -364,7 +364,7 @@ class BitmapFont2TTF:
         if self.newAscent != None:
             self.bdf.properties['ascent'] = newAscent
         if self.newDescent != None:
-            self.bdf.properties['ascent'] = newDescent
+            self.bdf.properties['descent'] = newDescent
 
         emFloat = self.font.em * 1.0
         pixelSizeFloat = self.bdf.getPixelSize() * 1.0
