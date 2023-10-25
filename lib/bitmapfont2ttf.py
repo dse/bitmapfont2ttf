@@ -28,11 +28,8 @@ class BitmapFont2TTF:
         self.noSave                = args.no_save
         self.noTrace               = args.no_trace
         self.fillBoundingBoxWidth  = args.fill_bounding_box_width
-        self.newPixelSize          = args.new_pixel_size
         self.newAscent             = args.new_ascent
         self.newDescent            = args.new_descent
-        self.circularDots          = args.circular_dots
-        self.aspectRatio           = args.aspect_ratio
         self.resX                  = args.res_x # default 96
         self.resY                  = args.res_y # default 96
         self.bottom = args.bottom
@@ -55,14 +52,14 @@ class BitmapFont2TTF:
     def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
+        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.args.aspect_ratio
 
         deltaX = pixX * (1.0 - self.dotWidth) / 2
         deltaY = pixY * (1.0 - self.dotHeight) / 2
 
         for line in bdfChar.bitmapData:
             y = y - 1
-            if self.dotWidth == 1 and not self.circularDots:
+            if self.dotWidth == 1 and not self.args.circular_dots:
                 [y1unit, y2unit] = [0, 1]
                 if self.bottom != None:
                     y1unit = self.bottom
@@ -102,7 +99,7 @@ class BitmapFont2TTF:
                     contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
-            elif not self.circularDots:
+            elif not self.args.circular_dots:
                 # Draw each individual pixel.
                 x = bdfChar.boundingBoxXOffset
                 for pixel in line:
@@ -356,11 +353,11 @@ class BitmapFont2TTF:
             self.font.yRes = self.resY
 
     def setNewMetrics(self):
-        if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
+        if self.args.new_pixel_size is None and self.newAscent is None and self.newDescent is None:
             return
 
-        if self.newPixelSize != None:
-            self.bdf.setPixelSize(self.newPixelSize)
+        if self.args.new_pixel_size != None:
+            self.bdf.setPixelSize(self.args.new_pixel_size)
         if self.newAscent != None:
             self.bdf.properties['ascent'] = newAscent
         if self.newDescent != None:
