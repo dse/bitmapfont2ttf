@@ -25,8 +25,6 @@ class BitmapFont2TTF:
         self.monospaceConfidence   = 75
         self.dotWidth              = args.dot_width
         self.dotHeight             = args.dot_height
-        self.noSave                = args.no_save
-        self.noTrace               = args.no_trace
         self.newAscent             = args.new_ascent
         self.newDescent            = args.new_descent
         self.resX                  = args.res_x # default 96
@@ -387,7 +385,7 @@ class BitmapFont2TTF:
         self.setStyleMapBits()
         self.setMacStyleBits()
         self.setFontMetas()
-        if not self.noTrace:
+        if not self.args.no_trace:
             self.trace()
         if self.args.monospace:
             self.fixMonospace()
@@ -406,5 +404,5 @@ class BitmapFont2TTF:
             print(self.font.os2_panose)
         if self.args.os2_weight != None:
             self.font.os2_weight = self.args.os2_weight
-        if not self.noSave:
+        if not self.args.no_save:
             self.save()
