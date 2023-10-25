@@ -396,5 +396,19 @@ class BitmapFont2TTF:
         if self.args.monospace:
             self.fixMonospace()
         self.setFinalMetrics()
+        if self.args.panose2 != None:
+            self.font.os2_panose = (self.font.os2_panose[0],
+                                    self.font.os2_panose[1],
+                                    self.args.panose2,
+                                    self.font.os2_panose[3],
+                                    self.font.os2_panose[4],
+                                    self.font.os2_panose[5],
+                                    self.font.os2_panose[6],
+                                    self.font.os2_panose[7],
+                                    self.font.os2_panose[8],
+                                    self.font.os2_panose[9])
+            print(self.font.os2_panose)
+        if self.args.os2_weight != None:
+            self.font.os2_weight = self.args.os2_weight
         if not self.noSave:
             self.save()
