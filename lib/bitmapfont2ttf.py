@@ -52,15 +52,6 @@ class BitmapFont2TTF:
             (rootdestfilename, junk) = os.path.splitext(self.filename)
             self.destfilenames = [rootdestfilename + '.ttf']
 
-    def traceGlyphUsingHorizontalLines(self, glyph, bdfChar):
-        return
-
-    def traceGlyphUsingCircleDots(self, glyph, bdfChar):
-        return
-
-    def traceGlyphUsingRectangleDots(self, glyph, bdfChar):
-        return
-
     def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
