@@ -60,20 +60,6 @@ class BDF:
         if filename != None:
             self.read(filename)
 
-        # sys.stderr.write("[DEBUG] xRes = %s; yRes = %s; sWidth = %s; dWidth = %s\n" % (
-        #     self.xRes, self.yRes, self.scalableWidthX, self.devicePixelWidthX
-        # ))
-        # sys.stderr.write("[DEBUG] PIXEL_SIZE = %s; POINT_SIZE = %s; RESOLUTION_X = %s; RESOLUTION_Y = %s\n" % (
-        #     self.properties["pixelSize"],
-        #     self.properties["pointSize10"],
-        #     self.properties["resolutionX"],
-        #     self.properties["resolutionY"],
-        # ))
-        # sys.stderr.write("[DEBUG] aspectRatioXtoY = %s\n" % (
-        #     self.aspectRatioXtoY()
-        # ))
-        # can we even compute sWidth and dWidth?
-
     def newChar(self, name, font):
         return BDFChar(name = name, font = font)
 
