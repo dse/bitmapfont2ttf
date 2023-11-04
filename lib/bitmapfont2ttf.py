@@ -130,7 +130,9 @@ class BitmapFont2TTF:
                     contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
+        sys.stderr.write("before: glyph.width = %d" % glyph.width)
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
+        sys.stderr.write("; after = %d\n" % glyph.width)
 
     def trace(self):
         count = len(self.bdf.chars)
@@ -341,6 +343,9 @@ class BitmapFont2TTF:
         self.setSwidth()
         self.setInitialAscentDescent()
         self.font.importBitmaps(self.filename, True) # we do this to import everything BUT the bitmaps
+        if self.args.autotrace:
+            for glyph in self.font.glyphs():
+                glyph.autoTrace()
         self.font.os2_vendor = 'PfEd'
         self.font.encoding = 'iso10646-1'
         self.setItalic()
@@ -348,7 +353,11 @@ class BitmapFont2TTF:
         self.setStyleMapBits()
         self.setMacStyleBits()
         self.setFontMetas()
-        if not self.args.no_trace:
+        if self.args.no_trace:
+            pass
+        elif self.args.autotrace:
+            pass
+        else:
             self.trace()
         if self.args.monospace:
             self.fixMonospace()
