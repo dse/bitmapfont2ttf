@@ -21,7 +21,6 @@ class BitmapFont2TTF:
         self.fixFilenames()
 
     def setArgs(self, args):
-        self.args                  = args
         self.filename              = args.filename
         self.destfilenames         = args.destfilenames
         self.monospaceConfidence   = 75
@@ -31,6 +30,27 @@ class BitmapFont2TTF:
         self.newDescent            = args.new_descent
         self.resX                  = args.res_x # default 96
         self.resY                  = args.res_y # default 96
+
+        self.newPixelSize          = args.new_pixel_size
+        self.italicAngle           = args.italic_angle
+        self.fontName              = args.font_name
+        self.familyName            = args.family_name
+        self.copyright             = args.copyright
+        self.comment               = args.comment
+        self.full_name             = args.fullName
+        self.version               = args.version
+        self.weight                = args.weight
+        self.aspectRatio           = args.aspect_ratio
+        self.circularDots          = args.circular_dots
+        self.bottom                = args.bottom
+        self.top                   = args.top
+        self.noGuess               = args.no_guess
+        self.autotrace             = args.autotrace
+        self.noTrace               = args.noTrace
+        self.monospace             = args.monospace
+        self.panose2               = args.panose2
+        self.os2Weight             = args.os2_weight
+        self.noSave                = args.no_save
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -51,10 +71,10 @@ class BitmapFont2TTF:
         self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
 
     def setNewMetrics(self):
-        if self.args.new_pixel_size is None and self.newAscent is None and self.newDescent is None:
+        if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
             return
-        if self.args.new_pixel_size != None:
-            self.bdf.setPixelSize(self.args.new_pixel_size)
+        if self.newPixelSize != None:
+            self.bdf.setPixelSize(self.newPixelSize)
         if self.newAscent != None:
             self.bdf.properties['ascent'] = newAscent
         if self.newDescent != None:
@@ -96,15 +116,15 @@ class BitmapFont2TTF:
 
     def setItalic(self):
         self.isItalic = (
-            (self.args.italic_angle != None and self.args.italic_angle != 0) or
+            (self.italicAngle != None and self.italicAngle != 0) or
             re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
             re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
-            (self.args.font_name   != None and re.search(r'\b(italic|oblique)\b', self.args.font_name,   flags = re.IGNORECASE)) or
-            (self.args.family_name != None and re.search(r'\b(italic|oblique)\b', self.args.family_name, flags = re.IGNORECASE))
+            (self.fontName   != None and re.search(r'\b(italic|oblique)\b', self.fontName,   flags = re.IGNORECASE)) or
+            (self.familyName != None and re.search(r'\b(italic|oblique)\b', self.familyName, flags = re.IGNORECASE))
         )
         if self.isItalic:
-            if self.args.italic_angle != None:
-                self.font.italicangle = self.args.italic_angle
+            if self.italicAngle != None:
+                self.font.italicangle = self.italicAngle
             else:
                 self.font.italicangle = 15 # arbitrary
         else:
@@ -139,31 +159,30 @@ class BitmapFont2TTF:
         self.font.macstyle = bits
 
     def setFontMetas(self):
-        if self.args != None:
-            if self.args.copyright != None:
-                self.font.copyright = self.args.copyright
-            if self.args.comment != None:
-                self.font.comment = self.args.comment
-            if self.args.font_name != None:
-                self.font.fontname = self.args.font_name
-            if self.args.family_name != None:
-                self.font.familyname = self.args.family_name
-            if self.args.full_name != None:
-                self.font.fullname = self.args.full_name
-            if self.args.version != None:
-                self.font.version = self.args.version
-            if self.args.weight != None:
-                self.font.weight = self.args.weight
+        if self.copyright != None:
+            self.font.copyright = self.copyright
+        if self.comment != None:
+            self.font.comment = self.comment
+        if self.fontName != None:
+            self.font.fontname = self.fontName
+        if self.familyName != None:
+            self.font.familyname = self.familyName
+        if self.fullName != None:
+            self.font.fullname = self.fullName
+        if self.version != None:
+            self.font.version = self.version
+        if self.weight != None:
+            self.font.weight = self.weight
 
     def traceGlyph(self, glyph, bdfChar):
         y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.args.aspect_ratio
+        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
         deltaX = pixX * (1.0 - self.dotWidth) / 2
         deltaY = pixY * (1.0 - self.dotHeight) / 2
         for line in bdfChar.bitmapData:
             y = y - 1
-            if self.args.circular_dots:
+            if self.circularDots:
                 x = bdfChar.boundingBoxXOffset
                 for pixel in line:
                     if pixel == '1':
@@ -205,10 +224,10 @@ class BitmapFont2TTF:
                     x = x + 1
             else:
                 [y1unit, y2unit] = [0, 1]
-                if self.args.bottom != None:
-                    y1unit = self.args.bottom
-                if self.args.top != None:
-                    y2unit = self.args.top
+                if self.bottom != None:
+                    y1unit = self.bottom
+                if self.top != None:
+                    y2unit = self.top
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
                 pixelBlocks = []
@@ -341,10 +360,10 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self):
         self.loadBDF()
-        if not self.args.no_guess:
+        if not self.noGuess:
             self.setPropertiesFromBDF()
         self.font = fontforge.font()
-        if not self.args.no_guess:
+        if not self.noGuess:
             self.setNewMetrics()
             self.setSwidth()
             self.setInitialAscentDescent()
@@ -355,11 +374,11 @@ class BitmapFont2TTF:
         #                                                                                                      self.font[32].width,
         #                                                                                                      self.font[72].width,
         #                                                                                                      ))
-        if self.args.no_guess or self.args.autotrace:
+        if self.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
 
-        if not self.args.no_guess:
+        if not self.noGuess:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
             self.setItalic()
@@ -368,20 +387,20 @@ class BitmapFont2TTF:
             self.setMacStyleBits()
             self.setFontMetas()
 
-        if self.args.no_guess or self.args.no_trace or self.args.autotrace:
+        if self.noTrace or self.autotrace:
             pass
         else:
             self.trace()
 
-        if not self.args.no_guess:
-            if self.args.monospace:
+        if not self.noGuess:
+            if self.monospace:
                 self.fixMonospace()
             self.setFinalMetrics()
-            if self.args.panose2 != None:
+            if self.panose2 != None:
                 panose = list(self.font.os2_panose)
-                panose[2] = self.args.panose2
+                panose[2] = self.panose2
                 self.font.os2_panose = tuple(panose)
-            if self.args.os2_weight != None:
-                self.font.os2_weight = self.args.os2_weight
-        if not self.args.no_save:
+            if self.os2Weight != None:
+                self.font.os2_weight = self.os2Weight
+        if not self.noSave:
             self.save()
