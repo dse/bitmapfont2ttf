@@ -360,24 +360,16 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self):
         self.loadBDF()
-        if not self.noGuess:
-            self.setPropertiesFromBDF()
         self.font = fontforge.font()
         if not self.noGuess:
+            self.setPropertiesFromBDF()
             self.setNewMetrics()
             self.setSwidth()
             self.setInitialAscentDescent()
         self.font.importBitmaps(self.filename, True) # we do this to import everything BUT the bitmaps
-        # sys.stderr.write("loadBDF: ascent = %d; descent = %d; em = %d; space width = %d; H width is %d\n" % (self.font.ascent,
-        #                                                                                                      self.font.descent,
-        #                                                                                                      self.font.em,
-        #                                                                                                      self.font[32].width,
-        #                                                                                                      self.font[72].width,
-        #                                                                                                      ))
         if self.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
-
         if not self.noGuess:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
@@ -386,12 +378,10 @@ class BitmapFont2TTF:
             self.setStyleMapBits()
             self.setMacStyleBits()
             self.setFontMetas()
-
         if self.noTrace or self.autotrace:
             pass
         else:
             self.trace()
-
         if not self.noGuess:
             if self.monospace:
                 self.fixMonospace()
