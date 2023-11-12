@@ -49,6 +49,7 @@ parser.add_argument("--panose2", type = int)
 parser.add_argument("--os2-weight", type = int)
 
 parser.add_argument("--autotrace", action = 'store_true')
+parser.add_argument("--no-guess", action = 'store_true')
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')

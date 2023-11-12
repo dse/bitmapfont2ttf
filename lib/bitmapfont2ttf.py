@@ -341,11 +341,13 @@ class BitmapFont2TTF:
 
     def bitmapfont2ttf(self):
         self.loadBDF()
-        self.setPropertiesFromBDF()
+        if not self.args.no_guess:
+            self.setPropertiesFromBDF()
         self.font = fontforge.font()
-        self.setNewMetrics()
-        self.setSwidth()
-        self.setInitialAscentDescent()
+        if not self.args.no_guess:
+            self.setNewMetrics()
+            self.setSwidth()
+            self.setInitialAscentDescent()
         self.font.importBitmaps(self.filename, True) # we do this to import everything BUT the bitmaps
         # sys.stderr.write("loadBDF: ascent = %d; descent = %d; em = %d; space width = %d; H width is %d\n" % (self.font.ascent,
         #                                                                                                      self.font.descent,
@@ -353,30 +355,33 @@ class BitmapFont2TTF:
         #                                                                                                      self.font[32].width,
         #                                                                                                      self.font[72].width,
         #                                                                                                      ))
-        if self.args.autotrace:
+        if self.args.no_guess or self.args.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
-        self.font.os2_vendor = 'PfEd'
-        self.font.encoding = 'iso10646-1'
-        self.setItalic()
-        self.setWeight()
-        self.setStyleMapBits()
-        self.setMacStyleBits()
-        self.setFontMetas()
-        if self.args.no_trace:
-            pass
-        elif self.args.autotrace:
+
+        if not self.args.no_guess:
+            self.font.os2_vendor = 'PfEd'
+            self.font.encoding = 'iso10646-1'
+            self.setItalic()
+            self.setWeight()
+            self.setStyleMapBits()
+            self.setMacStyleBits()
+            self.setFontMetas()
+
+        if self.args.no_guess or self.args.no_trace or self.args.autotrace:
             pass
         else:
             self.trace()
-        if self.args.monospace:
-            self.fixMonospace()
-        self.setFinalMetrics()
-        if self.args.panose2 != None:
-            panose = list(self.font.os2_panose)
-            panose[2] = self.args.panose2
-            self.font.os2_panose = tuple(panose)
-        if self.args.os2_weight != None:
-            self.font.os2_weight = self.args.os2_weight
+
+        if not self.args.no_guess:
+            if self.args.monospace:
+                self.fixMonospace()
+            self.setFinalMetrics()
+            if self.args.panose2 != None:
+                panose = list(self.font.os2_panose)
+                panose[2] = self.args.panose2
+                self.font.os2_panose = tuple(panose)
+            if self.args.os2_weight != None:
+                self.font.os2_weight = self.args.os2_weight
         if not self.args.no_save:
             self.save()
