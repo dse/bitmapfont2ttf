@@ -366,7 +366,7 @@ class BitmapFont2TTF:
             self.setNewMetrics()
             self.setSwidth()
             self.setInitialAscentDescent()
-        self.font.importBitmaps(self.filename, True) # we do this to import everything BUT the bitmaps
+        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         if self.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
