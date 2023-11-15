@@ -37,7 +37,7 @@ class BitmapFont2TTF:
         self.familyName            = args.family_name
         self.copyright             = args.copyright
         self.comment               = args.comment
-        self.full_name             = args.full_name
+        self.fullName              = args.full_name
         self.version               = args.version
         self.weight                = args.weight
         self.aspectRatio           = args.aspect_ratio
