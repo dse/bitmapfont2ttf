@@ -1,6 +1,7 @@
 class BDFChar:
     def __init__(self, name = None, font = None):
         self.name = name
+        self.font = font
 
         # ENCODING
         self.encoding = None
