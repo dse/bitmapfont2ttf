@@ -175,7 +175,28 @@ class BitmapFont2TTF:
             self.font.weight = self.weight
 
     def traceGlyph(self, glyph, bdfChar):
-        y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
+        yOffset = bdfChar.boundingBoxYOffset
+        if yOffset == None:
+            yOffset = self.bdf.boundingBoxYOffset
+        if yOffset == None:
+            raise Exception("cannot find bounding box y offset: %s" % glyph)
+        xOffset = bdfChar.boundingBoxXOffset
+        if xOffset == None:
+            xOffset = self.bdf.boundingBoxXOffset
+        if xOffset == None:
+            raise Exception("cannot find bounding box x offset: %s" % glyph)
+        height = bdfChar.boundingBoxY
+        if height == None:
+            height = self.bdf.boundingBoxY
+        if height == None:
+            raise Exception("cannot find bounding box height: %s" % glyph)
+        width = bdfChar.boundingBoxX
+        if width == None:
+            width = self.bdf.boundingBoxX
+        if width == None:
+            raise Exception("cannot find bounding box width: %s" % glyph)
+
+        y = yOffset + height
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
         deltaX = pixX * (1.0 - self.dotWidth) / 2
@@ -183,7 +204,7 @@ class BitmapFont2TTF:
         for line in bdfChar.bitmapData:
             y = y - 1
             if self.circularDots:
-                x = bdfChar.boundingBoxXOffset
+                x = xOffset
                 for pixel in line:
                     if pixel == '1':
                         xh = round(pixX * self.dotWidth * 0.5)
@@ -207,7 +228,7 @@ class BitmapFont2TTF:
                         glyph.layers['Fore'] += contour
                     x = x + 1
             elif self.dotWidth != 1:
-                x = bdfChar.boundingBoxXOffset
+                x = xOffset
                 for pixel in line:
                     if pixel == '1':
                         x1 = pixX * x       + deltaX
@@ -232,7 +253,7 @@ class BitmapFont2TTF:
                 # This saves considerable disk space.
                 pixelBlocks = []
                 pixelBlock = None
-                x = bdfChar.boundingBoxXOffset
+                x = xOffset
                 bottom = 0
                 top = 1
                 for pixel in line:
