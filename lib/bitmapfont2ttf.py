@@ -51,6 +51,7 @@ class BitmapFont2TTF:
         self.panose2               = args.panose2
         self.os2Weight             = args.os2_weight
         self.noSave                = args.no_save
+        self.guessType2            = args.guess_type_2
 
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
@@ -67,8 +68,9 @@ class BitmapFont2TTF:
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
 
-    def setPropertiesFromBDF(self):
-        self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
+    # --- not in use ---
+    # def setPropertiesFromBDF(self):
+    #     self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
 
     def setNewMetrics(self):
         if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
@@ -91,13 +93,23 @@ class BitmapFont2TTF:
         self.font.descent = newDescent
         # sys.stderr.write("setNewMetrics: after:  em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
 
-    def setSwidth(self):
-        if self.isMonospaceFlagged:
-            self.swidthPx = self.bdf.boundingBoxX
-            self.swidthEm = 1.0 * self.swidthPx / self.bdf.getPixelSize()
-        else:
-            self.swidthPx = None
-            self.swidthEm = None
+    def computeAscentDescentFromBDF(self): # guess type 2
+        ascentPx = self.bdf.ascentPx()
+        descentPx = self.bdf.descentPx()
+        pixelSize = self.bdf.getPixelSize()
+        emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
+        self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
+        self.font.descent = int(round(descentPx * emUnitsPerPixel))
+        print("new ascent and descent are %d and %d" % (self.font.ascent, self.font.descent))
+
+    # --- not in use ---
+    # def setSwidth(self):
+    #     if self.isMonospaceFlagged:
+    #         self.swidthPx = self.bdf.boundingBoxX
+    #         self.swidthEm = 1.0 * self.swidthPx / self.bdf.getPixelSize()
+    #     else:
+    #         self.swidthPx = None
+    #         self.swidthEm = None
 
     def setInitialAscentDescent(self):
         # sys.stderr.write("setInitialAscentDescent: before: em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
@@ -383,10 +395,14 @@ class BitmapFont2TTF:
         self.loadBDF()
         self.font = fontforge.font()
         if not self.noGuess:
-            self.setPropertiesFromBDF()
+            # --- not in use ---
+            # self.setPropertiesFromBDF()
             self.setNewMetrics()
-            self.setSwidth()
+            # self.setSwidth()
             self.setInitialAscentDescent()
+        elif self.guessType2:
+            self.computeAscentDescentFromBDF()
+
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         if self.autotrace:
             for glyph in self.font.glyphs():
