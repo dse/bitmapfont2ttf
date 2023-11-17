@@ -417,7 +417,6 @@ class BitmapFont2TTF:
         emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
         self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
         self.font.descent = int(round(descentPx * emUnitsPerPixel))
-        print("new ascent and descent are %d and %d" % (self.font.ascent, self.font.descent))
 
     # guess type 2
     # If all glyph widths aren't the same, many Windows terminals and
