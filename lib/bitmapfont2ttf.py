@@ -93,15 +93,6 @@ class BitmapFont2TTF:
         self.font.descent = newDescent
         # sys.stderr.write("setNewMetrics: after:  em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
 
-    def computeAscentDescentFromBDF(self): # guess type 2
-        ascentPx = self.bdf.ascentPx()
-        descentPx = self.bdf.descentPx()
-        pixelSize = self.bdf.getPixelSize()
-        emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
-        self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
-        self.font.descent = int(round(descentPx * emUnitsPerPixel))
-        print("new ascent and descent are %d and %d" % (self.font.ascent, self.font.descent))
-
     # --- not in use ---
     # def setSwidth(self):
     #     if self.isMonospaceFlagged:
@@ -394,7 +385,7 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         self.loadBDF()
         self.font = fontforge.font()
-        if not self.noGuess:
+        if not self.noGuess and not self.guessType2:
             # --- not in use ---
             # self.setPropertiesFromBDF()
             self.setNewMetrics()
@@ -407,7 +398,7 @@ class BitmapFont2TTF:
         if self.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
-        if not self.noGuess:
+        if not self.noGuess and not self.guessType2:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
             self.setItalic()
@@ -419,7 +410,12 @@ class BitmapFont2TTF:
             pass
         else:
             self.trace()
-        if not self.noGuess:
+        if self.guessType2 and (self.monospace or ("SPACING" in self.bdf.properties and
+                                                   (self.bdf.properties["SPACING"] == "M" or
+                                                    self.bdf.properties["SPACING"] == "C"))):
+            self.fixWidthsForDetectionAsMonospace()
+
+        if not self.noGuess and not self.guessType2:
             if self.monospace:
                 self.fixMonospace()
             self.setFinalMetrics()
@@ -431,3 +427,31 @@ class BitmapFont2TTF:
                 self.font.os2_weight = self.os2Weight
         if not self.noSave:
             self.save()
+
+    # guess type 2
+    def computeAscentDescentFromBDF(self):
+        ascentPx = self.bdf.ascentPx()
+        descentPx = self.bdf.descentPx()
+        pixelSize = self.bdf.getPixelSize()
+        emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
+        self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
+        self.font.descent = int(round(descentPx * emUnitsPerPixel))
+        print("new ascent and descent are %d and %d" % (self.font.ascent, self.font.descent))
+
+    # guess type 2
+    def fixWidthsForDetectionAsMonospace(self):
+        widthCounts = {}
+        glyphCount = 0
+        for glyph in self.font.glyphs():
+            glyphCount += 1
+            if glyph.width not in widthCounts:
+                widthCounts[glyph.width] = 0
+            widthCounts[glyph.width] += 1
+        keys = list(widthCounts.keys())
+        if len(keys) == 1:
+            # already will be detected as monospace
+            return
+        keys.sort(key = lambda width: widthCounts[width], reverse = True)
+        width = keys[0]
+        for glyph in self.font.glyphs():
+            glyph.width = width
