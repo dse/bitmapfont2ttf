@@ -53,6 +53,10 @@ class BitmapFont2TTF:
         self.noSave                = args.no_save
         self.guessType2            = args.guess_type_2
 
+        if self.noGuess:
+            self.guessType2 = False
+        self.guessType1 = not self.guessType2 and not self.noGuess
+
     def fixFilenames(self):
         if self.filename == os.path.basename(self.filename):
             # Work around an issue where importBitmaps segfaults if you only
@@ -366,16 +370,16 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         self.loadBDF()
         self.font = fontforge.font()
-        if not self.noGuess and not self.guessType2:
+        if self.guessType1:
             self.setNewMetrics()
             self.setInitialAscentDescent()
-        elif self.guessType2:
+        if self.guessType2:
             self.computeAscentDescentFromBDF()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         if self.autotrace:
             for glyph in self.font.glyphs():
                 glyph.autoTrace()
-        if not self.noGuess and not self.guessType2:
+        if self.guessType1:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
             self.setItalic()
@@ -387,11 +391,12 @@ class BitmapFont2TTF:
             pass
         else:
             self.trace()
-        if self.guessType2 and (self.monospace or ("SPACING" in self.bdf.properties and
-                                                   (self.bdf.properties["SPACING"] == "M" or
-                                                    self.bdf.properties["SPACING"] == "C"))):
-            self.fixWidthsForDetectionAsMonospace()
-        if not self.noGuess and not self.guessType2:
+        if self.guessType2:
+            if (self.monospace or ("SPACING" in self.bdf.properties and
+                                   (self.bdf.properties["SPACING"] == "M" or
+                                    self.bdf.properties["SPACING"] == "C"))):
+                self.fixWidthsForDetectionAsMonospace()
+        if self.guessType1:
             if self.monospace:
                 self.fixMonospace()
             self.setFinalMetrics()
