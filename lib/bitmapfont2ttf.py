@@ -68,10 +68,6 @@ class BitmapFont2TTF:
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
 
-    # --- not in use ---
-    # def setPropertiesFromBDF(self):
-    #     self.isMonospaceFlagged = self.bdf.properties["spacing"] == 'M' or self.bdf.properties["spacing"] == 'C'
-
     def setNewMetrics(self):
         if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
             return
@@ -81,7 +77,6 @@ class BitmapFont2TTF:
             self.bdf.properties['ascent'] = newAscent
         if self.newDescent != None:
             self.bdf.properties['descent'] = newDescent
-        # sys.stderr.write("setNewMetrics: before: em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
         emFloat = self.font.em * 1.0
         pixelSizeFloat = self.bdf.getPixelSize() * 1.0
         ascentEm  = emFloat / pixelSizeFloat * self.bdf.ascentPx()
@@ -91,19 +86,8 @@ class BitmapFont2TTF:
         newDescent = self.font.em - newAscent
         self.font.ascent  = newAscent
         self.font.descent = newDescent
-        # sys.stderr.write("setNewMetrics: after:  em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
-
-    # --- not in use ---
-    # def setSwidth(self):
-    #     if self.isMonospaceFlagged:
-    #         self.swidthPx = self.bdf.boundingBoxX
-    #         self.swidthEm = 1.0 * self.swidthPx / self.bdf.getPixelSize()
-    #     else:
-    #         self.swidthPx = None
-    #         self.swidthEm = None
 
     def setInitialAscentDescent(self):
-        # sys.stderr.write("setInitialAscentDescent: before: em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
         descentPx = self.bdf.descentPx()
         ascentPx  = self.bdf.ascentPx()
         total     = descentPx + ascentPx
@@ -115,7 +99,6 @@ class BitmapFont2TTF:
         descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
         self.font.ascent  = ascent
         self.font.descent = descent
-        # sys.stderr.write("setInitialAscentDescent: after:  em = %d; ascent = %d; descent = %d\n" % (self.font.em, self.font.ascent, self.font.descent))
 
     def setItalic(self):
         self.isItalic = (
@@ -286,9 +269,7 @@ class BitmapFont2TTF:
                     contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
-        # sys.stderr.write("traceGlyph: before: glyph.width = %d\n" % glyph.width)
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
-        # sys.stderr.write("traceGlyph: after:  glyph.width = %d\n" % glyph.width)
 
     def trace(self):
         count = len(self.bdf.chars)
@@ -386,14 +367,10 @@ class BitmapFont2TTF:
         self.loadBDF()
         self.font = fontforge.font()
         if not self.noGuess and not self.guessType2:
-            # --- not in use ---
-            # self.setPropertiesFromBDF()
             self.setNewMetrics()
-            # self.setSwidth()
             self.setInitialAscentDescent()
         elif self.guessType2:
             self.computeAscentDescentFromBDF()
-
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         if self.autotrace:
             for glyph in self.font.glyphs():
@@ -414,7 +391,6 @@ class BitmapFont2TTF:
                                                    (self.bdf.properties["SPACING"] == "M" or
                                                     self.bdf.properties["SPACING"] == "C"))):
             self.fixWidthsForDetectionAsMonospace()
-
         if not self.noGuess and not self.guessType2:
             if self.monospace:
                 self.fixMonospace()
@@ -439,6 +415,9 @@ class BitmapFont2TTF:
         print("new ascent and descent are %d and %d" % (self.font.ascent, self.font.descent))
 
     # guess type 2
+    # If all glyph widths aren't the same, many Windows terminals and
+    # other applications where you want monospace fonts won't show it
+    # in menus.
     def fixWidthsForDetectionAsMonospace(self):
         widthCounts = {}
         glyphCount = 0
