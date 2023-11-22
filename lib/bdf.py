@@ -125,7 +125,7 @@ class BDF:
             if cmd == 'RESOLUTION_Y' and len(args) >= 1:
                 self.properties["resolutionY"] = float(args[0])
             if cmd == 'SPACING' and len(args) >= 1:
-                self.properties["spacing"] = args[0].upper()
+                self.properties["spacing"] = args[0].upper().replace("\"", "")
             if cmd == 'CAP_HEIGHT' and len(args) >= 1:
                 self.properties["capHeight"] = float(args[0])
             if cmd == 'X_HEIGHT' and len(args) >= 1:
