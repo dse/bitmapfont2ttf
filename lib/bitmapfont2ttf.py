@@ -72,6 +72,7 @@ class BitmapFont2TTF:
             raise Exception("only bdfs are supported")
         self.bdf = MyBDF(self.filename)
 
+    # LEGACY
     def setNewMetrics(self):
         if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
             return
@@ -91,6 +92,7 @@ class BitmapFont2TTF:
         self.font.ascent  = newAscent
         self.font.descent = newDescent
 
+    # LEGACY
     def setInitialAscentDescent(self):
         descentPx = self.bdf.descentPx()
         ascentPx  = self.bdf.ascentPx()
@@ -104,6 +106,7 @@ class BitmapFont2TTF:
         self.font.ascent  = ascent
         self.font.descent = descent
 
+    # LEGACY
     def setItalic(self):
         self.isItalic = (
             (self.italicAngle != None and self.italicAngle != 0) or
@@ -120,6 +123,7 @@ class BitmapFont2TTF:
         else:
             self.font.italicangle = 0
 
+    # LEGACY
     def setWeight(self):
         if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
             self.isBold = False
@@ -130,6 +134,7 @@ class BitmapFont2TTF:
             self.font.weight = 'Bold'
             self.font.os2_weight = 700
 
+    # LEGACY
     def setStyleMapBits(self):
         bits = 0
         if self.isItalic:
@@ -140,6 +145,7 @@ class BitmapFont2TTF:
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
 
+    # LEGACY
     def setMacStyleBits(self):
         bits = 0
         if self.isItalic:
@@ -148,6 +154,7 @@ class BitmapFont2TTF:
             bits |= MACSTYLE_BOLD
         self.font.macstyle = bits
 
+    # LEGACY
     def setFontMetas(self):
         if self.copyright != None:
             self.font.copyright = self.copyright
@@ -292,6 +299,7 @@ class BitmapFont2TTF:
         pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
 
+    # LEGACY
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
     # in menus.
@@ -332,6 +340,7 @@ class BitmapFont2TTF:
             debug = glyph.encoding == 0xab
             glyph.width = mostCommonWidth
 
+    # LEGACY
     def setFinalMetrics(self):
         ascent  = self.font.ascent
         descent = self.font.descent
@@ -400,6 +409,7 @@ class BitmapFont2TTF:
             if self.monospace:
                 self.fixMonospace()
             self.setFinalMetrics()
+        if self.guessType1 or self.guessType2:
             if self.panose2 != None:
                 panose = list(self.font.os2_panose)
                 panose[2] = self.panose2
