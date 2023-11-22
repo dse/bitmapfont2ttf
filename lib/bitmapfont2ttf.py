@@ -435,7 +435,7 @@ class BitmapFont2TTF:
             if (self.monospace or ("SPACING" in self.bdf.properties and
                                    (self.bdf.properties["SPACING"] == "M" or
                                     self.bdf.properties["SPACING"] == "C"))):
-                self.fixWidthsForDetectionAsMonospace()
+                self.doFixForMonospace()
         if self.guessType1:
             if self.monospace:
                 self.fixMonospace()
@@ -478,7 +478,7 @@ class BitmapFont2TTF:
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
     # in menus.
-    def fixWidthsForDetectionAsMonospace(self):
+    def doFixForMonospace(self):
         widthCounts = {}
         glyphCount = 0
         for glyph in self.font.glyphs():
