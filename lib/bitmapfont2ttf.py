@@ -56,6 +56,8 @@ class BitmapFont2TTF:
         self.fixAscentDescent      = args.fix_ascent_descent
         self.fixWeight             = args.fix_weight
         self.fixStyleMap           = args.fix_style_map
+        self.fixSlant              = args.fix_slant
+        self.fixMacStyle           = args.fix_mac_style
 
         if self.noGuess:
             self.guessType2 = False
@@ -448,6 +450,8 @@ class BitmapFont2TTF:
                 self.doFixWeight()
             if self.fixStyleMap:
                 self.doFixStyleMap()
+            if self.fixSlant:
+                self.doFixSlant()
         if self.guessType1 or self.guessType2:
             if self.panose2 != None:
                 # weight
@@ -518,3 +522,20 @@ class BitmapFont2TTF:
         if not self.isItalic and not self.isBold:
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
+
+    def doFixSlant(self):
+        if self.isItalic:
+            if self.italicAngle != None:
+                self.font.italicangle = self.italicAngle
+            else:
+                self.font.italicangle = 15 # arbitrary
+        else:
+            self.font.italicangle = 0
+
+    def doFixMacStyle(self):
+        bits = self.font.macstyle
+        if self.isItalic:
+            bits |= MACSTYLE_ITALIC
+        if self.isBold:
+            bits |= MACSTYLE_BOLD
+        self.font.macstyle = bits
