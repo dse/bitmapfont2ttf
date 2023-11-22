@@ -52,6 +52,10 @@ class BitmapFont2TTF:
         self.os2Weight             = args.os2_weight
         self.noSave                = args.no_save
         self.guessType2            = args.guess_type_2
+        self.lineGap               = args.line_gap
+        self.fixAscentDescent      = args.fix_ascent_descent
+        self.fixWeight             = args.fix_weight
+        self.fixStyleMap           = args.fix_style_map
 
         if self.noGuess:
             self.guessType2 = False
@@ -340,6 +344,27 @@ class BitmapFont2TTF:
             debug = glyph.encoding == 0xab
             glyph.width = mostCommonWidth
 
+    def doFixLineGap(self):
+        self.font.hhea_linegap    = self.lineGap
+        self.font.os2_typolinegap = self.lineGap
+        self.font.vhea_linegap    = self.lineGap
+
+    def doFixAscentDescent(self):
+        self.font.hhea_ascent_add     = 0
+        self.font.hhea_descent_add    = 0
+        self.font.os2_typoascent_add  = 0
+        self.font.os2_typodescent_add = 0
+        self.font.os2_winascent_add   = 0
+        self.font.os2_windescent_add  = 0
+        self.font.ascent          = self.font.ascent
+        self.font.descent         = self.font.descent
+        self.font.hhea_ascent     = self.font.ascent
+        self.font.hhea_descent    = -self.font.descent
+        self.font.os2_typoascent  = self.font.ascent
+        self.font.os2_typodescent = -self.font.descent
+        self.font.os2_winascent   = self.font.ascent
+        self.font.os2_windescent  = self.font.descent
+
     # LEGACY
     def setFinalMetrics(self):
         ascent  = self.font.ascent
@@ -384,6 +409,10 @@ class BitmapFont2TTF:
             self.setInitialAscentDescent()
         if self.guessType2:
             self.computeAscentDescentFromBDF()
+            if self.lineGap != None:
+                self.doFixLineGap()
+            if self.fixAscentDescent:
+                self.doFixAscentDescent()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         if self.autotrace:
             for glyph in self.font.glyphs():
@@ -409,11 +438,24 @@ class BitmapFont2TTF:
             if self.monospace:
                 self.fixMonospace()
             self.setFinalMetrics()
+        if self.guessType2:
+            self.setFlagInfo()
+            if self.lineGap != None:
+                self.doFixLineGap()
+            if self.fixAscentDescent:
+                self.doFixAscentDescent()
+            if self.fixWeight:
+                self.doFixWeight()
+            if self.fixStyleMap:
+                self.doFixStyleMap()
         if self.guessType1 or self.guessType2:
             if self.panose2 != None:
+                # weight
+                print(self.font.os2_panose)
                 panose = list(self.font.os2_panose)
                 panose[2] = self.panose2
                 self.font.os2_panose = tuple(panose)
+                print(self.font.os2_panose)
             if self.os2Weight != None:
                 self.font.os2_weight = self.os2Weight
         if not self.noSave:
@@ -448,3 +490,31 @@ class BitmapFont2TTF:
         width = keys[0]
         for glyph in self.font.glyphs():
             glyph.width = width
+
+    def doFixWeight(self):
+        if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
+            self.font.weight = 'Book'
+            self.font.os2_weight = 400
+        elif self.font.weight == 'Bold':
+            self.font.weight = 'Bold'
+            self.font.os2_weight = 700
+
+    def setFlagInfo(self):
+        self.isItalic = (
+            (self.italicAngle != None and self.italicAngle != 0) or
+            re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
+            re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
+            (self.fontName   != None and re.search(r'\b(italic|oblique)\b', self.fontName,   flags = re.IGNORECASE)) or
+            (self.familyName != None and re.search(r'\b(italic|oblique)\b', self.familyName, flags = re.IGNORECASE))
+        )
+        self.isBold = self.font.weight == 'Bold'
+
+    def doFixStyleMap(self):
+        bits = self.font.os2_stylemap
+        if self.isItalic:
+            bits |= STYLEMAP_ITALIC
+        if self.isBold:
+            bits |= STYLEMAP_BOLD
+        if not self.isItalic and not self.isBold:
+            bits |= STYLEMAP_REGULAR
+        self.font.os2_stylemap = bits
