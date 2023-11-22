@@ -49,7 +49,16 @@ parser.add_argument("--panose2", type = int)
 parser.add_argument("--os2-weight", type = int)
 
 parser.add_argument("--autotrace", action = 'store_true')
+
 parser.add_argument("--no-guess", action = 'store_true')
+parser.add_argument("--guess-type-2", action = 'store_true')
+
+parser.add_argument("--line-gap", type = int)
+parser.add_argument("--fix-ascent-descent", action = "store_true")
+parser.add_argument("--fix-weight", action = "store_true")
+parser.add_argument("--fix-style-map", action = "store_true")
+parser.add_argument("--fix-slant", action = "store_true")
+parser.add_argument("--fix-mac-style", action = "store_true")
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
