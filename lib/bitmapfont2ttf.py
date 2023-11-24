@@ -446,7 +446,7 @@ class BitmapFont2TTF:
                 self.fixMonospace()
             self.setFinalMetrics()
         if self.guessType2:
-            self.setFlagInfo()
+            self.setIsItalicAndIsBoldAttributes()
             if self.lineGap != None:
                 self.doFixLineGap()
             if self.fixAscentDescent:
@@ -454,9 +454,11 @@ class BitmapFont2TTF:
             if self.fixWeight:
                 self.doFixWeight()
             if self.fixStyleMap:
-                self.doFixStyleMap()
+                self.updateStyleMapFlags()
+            if self.fixMacStyle:
+                self.updateMacStyleFlags()
             if self.fixSlant:
-                self.doFixSlant()
+                self.updateItalicAngle()
         if self.guessType1 or self.guessType2:
             if self.panose2 != None:
                 # weight
@@ -517,7 +519,7 @@ class BitmapFont2TTF:
 
     # Add isItalic and isBold attributes based on various
     # font attributes.
-    def setFlagInfo(self):
+    def setIsItalicAndIsBoldAttributes(self):
         self.isItalic = (
             (self.italicAngle != None and self.italicAngle != 0) or
             re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
@@ -528,7 +530,7 @@ class BitmapFont2TTF:
         self.isBold = self.font.weight == 'Bold'
 
     # Update the stylemap flags.
-    def doFixStyleMap(self):
+    def updateStyleMapFlags(self):
         bits = self.font.os2_stylemap
         if self.isItalic:
             bits |= STYLEMAP_ITALIC
@@ -539,7 +541,7 @@ class BitmapFont2TTF:
         self.font.os2_stylemap = bits
 
     # Update the italic angle.
-    def doFixSlant(self):
+    def updateItalicAngle(self):
         if self.isItalic:
             if self.italicAngle != None:
                 self.font.italicangle = self.italicAngle
@@ -549,7 +551,7 @@ class BitmapFont2TTF:
             self.font.italicangle = 0
 
     # Update the macstyle flags.
-    def doFixMacStyle(self):
+    def updateMacStyleFlags(self):
         bits = self.font.macstyle
         if self.isItalic:
             bits |= MACSTYLE_ITALIC
