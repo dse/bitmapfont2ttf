@@ -303,8 +303,6 @@ class BitmapFont2TTF:
             self.traceGlyph(glyph, char)
             glyph.addExtrema()
             glyph.simplify()
-        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY()
 
     # LEGACY
     # If all glyph widths aren't the same, many Windows terminals and
