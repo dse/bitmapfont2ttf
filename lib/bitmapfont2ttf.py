@@ -192,6 +192,132 @@ class BitmapFont2TTF:
             (rootdestfilename, junk) = os.path.splitext(self.filename)
             self.destfilenames = [rootdestfilename + '.ttf']
 
+    def trace(self):
+        count = len(self.bdf.chars)
+        index = 0
+        for char in self.bdf.chars:
+            index = index + 1
+            encoding = char.encoding if char.encoding != None else -1
+            try:
+                glyph = self.font.createChar(encoding, char.name)
+            except:
+                sys.stderr.write('\nERROR: encoding %s; name %s\n' % (encoding, char.name))
+                raise
+            self.traceGlyph(glyph, char)
+            glyph.addExtrema()
+            glyph.simplify()
+
+    def traceGlyph(self, glyph, bdfChar):
+        yOffset = bdfChar.boundingBoxYOffset
+        if yOffset == None:
+            yOffset = self.bdf.boundingBoxYOffset
+        if yOffset == None:
+            raise Exception("cannot find bounding box y offset: %s" % glyph)
+        xOffset = bdfChar.boundingBoxXOffset
+        if xOffset == None:
+            xOffset = self.bdf.boundingBoxXOffset
+        if xOffset == None:
+            raise Exception("cannot find bounding box x offset: %s" % glyph)
+        height = bdfChar.boundingBoxY
+        if height == None:
+            height = self.bdf.boundingBoxY
+        if height == None:
+            raise Exception("cannot find bounding box height: %s" % glyph)
+        width = bdfChar.boundingBoxX
+        if width == None:
+            width = self.bdf.boundingBoxX
+        if width == None:
+            raise Exception("cannot find bounding box width: %s" % glyph)
+
+        y = yOffset + height
+        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
+        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
+        deltaX = pixX * (1.0 - self.dotWidth) / 2
+        deltaY = pixY * (1.0 - self.dotHeight) / 2
+        for line in bdfChar.bitmapData:
+            y = y - 1
+            if self.circularDots:
+                x = xOffset
+                for pixel in line:
+                    if pixel == '1':
+                        xh = round(pixX * self.dotWidth * 0.5)
+                        yh = round(pixY * self.dotHeight * 0.5)
+                        r = max(xh, yh)
+                        xc = round(pixX * (x + 0.5))
+                        yc = round(pixY * (y + 0.5))
+                        x1 = xc - r
+                        x2 = xc + r
+                        y1 = yc - r
+                        y2 = yc + r
+                        xcp = round(pixX * self.dotWidth * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        ycp = round(pixY * self.dotHeight * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        contour = fontforge.contour();
+                        contour.moveTo(xc, y1)
+                        contour.cubicTo((xc + xcp, y1), (x2, yc - ycp), (x2, yc))
+                        contour.cubicTo((x2, yc + ycp), (xc + xcp, y2), (xc, y2))
+                        contour.cubicTo((xc - xcp, y2), (x1, yc + ycp), (x1, yc))
+                        contour.cubicTo((x1, yc - ycp), (xc - xcp, y1), (xc, y1))
+                        contour.closed = True
+                        glyph.layers['Fore'] += contour
+                    x = x + 1
+            elif self.dotWidth != 1:
+                x = xOffset
+                for pixel in line:
+                    if pixel == '1':
+                        x1 = pixX * x       + deltaX
+                        x2 = pixX * (x + 1) - deltaX
+                        y1 = pixY * y       + deltaY
+                        y2 = pixY * (y + 1) - deltaY
+                        contour = fontforge.contour()
+                        contour.moveTo(round(x1), round(y1))
+                        contour.lineTo(round(x1), round(y2))
+                        contour.lineTo(round(x2), round(y2))
+                        contour.lineTo(round(x2), round(y1))
+                        contour.closed = True
+                        glyph.layers['Fore'] += contour
+                    x = x + 1
+            else:
+                [y1unit, y2unit] = [0, 1]
+                if self.bottom != None:
+                    y1unit = self.bottom
+                if self.top != None:
+                    y2unit = self.top
+                # Draw contiguous horizontal sequences of pixels.
+                # This saves considerable disk space.
+                pixelBlocks = []
+                pixelBlock = None
+                x = xOffset
+                bottom = 0
+                top = 1
+                for pixel in line:
+                    if pixel == '1':
+                        if pixelBlock == None:
+                            pixelBlock = [x, x]
+                            pixelBlocks.append(pixelBlock)
+                        else:
+                            pixelBlock[1] = x;
+                    else:
+                        pixelBlock = None
+                    x = x + 1
+                for pixelBlock in pixelBlocks:
+                    xa = pixelBlock[0]
+                    xb = pixelBlock[1]
+                    x1 = pixX * xa       + deltaX
+                    x2 = pixX * (xb + 1) - deltaX
+                    y1 = pixY * y        + deltaY
+                    y2 = pixY * (y + 1)  - deltaY
+                    if y1unit != 0.0 or y2unit != 1.0:
+                        [y1, y2] = [y1 + (y2 - y1) * y1unit,
+                                    y1 + (y2 - y1) * y2unit]
+                    contour = fontforge.contour()
+                    contour.moveTo(round(x1), round(y1))
+                    contour.lineTo(round(x1), round(y2))
+                    contour.lineTo(round(x2), round(y2))
+                    contour.lineTo(round(x2), round(y1))
+                    contour.closed = True
+                    glyph.layers['Fore'] += contour
+        glyph.width = int(round(bdfChar.dwidthX() * pixX))
+
 ###############################################################################
     def bitmapfont2ttfOld(self):
         self.loadBDF()
@@ -306,132 +432,6 @@ class BitmapFont2TTF:
             self.font.version = self.version
         if self.weight != None:
             self.font.weight = self.weight
-
-    def traceGlyph(self, glyph, bdfChar):
-        yOffset = bdfChar.boundingBoxYOffset
-        if yOffset == None:
-            yOffset = self.bdf.boundingBoxYOffset
-        if yOffset == None:
-            raise Exception("cannot find bounding box y offset: %s" % glyph)
-        xOffset = bdfChar.boundingBoxXOffset
-        if xOffset == None:
-            xOffset = self.bdf.boundingBoxXOffset
-        if xOffset == None:
-            raise Exception("cannot find bounding box x offset: %s" % glyph)
-        height = bdfChar.boundingBoxY
-        if height == None:
-            height = self.bdf.boundingBoxY
-        if height == None:
-            raise Exception("cannot find bounding box height: %s" % glyph)
-        width = bdfChar.boundingBoxX
-        if width == None:
-            width = self.bdf.boundingBoxX
-        if width == None:
-            raise Exception("cannot find bounding box width: %s" % glyph)
-
-        y = yOffset + height
-        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
-        deltaX = pixX * (1.0 - self.dotWidth) / 2
-        deltaY = pixY * (1.0 - self.dotHeight) / 2
-        for line in bdfChar.bitmapData:
-            y = y - 1
-            if self.circularDots:
-                x = xOffset
-                for pixel in line:
-                    if pixel == '1':
-                        xh = round(pixX * self.dotWidth * 0.5)
-                        yh = round(pixY * self.dotHeight * 0.5)
-                        r = max(xh, yh)
-                        xc = round(pixX * (x + 0.5))
-                        yc = round(pixY * (y + 0.5))
-                        x1 = xc - r
-                        x2 = xc + r
-                        y1 = yc - r
-                        y2 = yc + r
-                        xcp = round(pixX * self.dotWidth * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
-                        ycp = round(pixY * self.dotHeight * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
-                        contour = fontforge.contour();
-                        contour.moveTo(xc, y1)
-                        contour.cubicTo((xc + xcp, y1), (x2, yc - ycp), (x2, yc))
-                        contour.cubicTo((x2, yc + ycp), (xc + xcp, y2), (xc, y2))
-                        contour.cubicTo((xc - xcp, y2), (x1, yc + ycp), (x1, yc))
-                        contour.cubicTo((x1, yc - ycp), (xc - xcp, y1), (xc, y1))
-                        contour.closed = True
-                        glyph.layers['Fore'] += contour
-                    x = x + 1
-            elif self.dotWidth != 1:
-                x = xOffset
-                for pixel in line:
-                    if pixel == '1':
-                        x1 = pixX * x       + deltaX
-                        x2 = pixX * (x + 1) - deltaX
-                        y1 = pixY * y       + deltaY
-                        y2 = pixY * (y + 1) - deltaY
-                        contour = fontforge.contour()
-                        contour.moveTo(round(x1), round(y1))
-                        contour.lineTo(round(x1), round(y2))
-                        contour.lineTo(round(x2), round(y2))
-                        contour.lineTo(round(x2), round(y1))
-                        contour.closed = True
-                        glyph.layers['Fore'] += contour
-                    x = x + 1
-            else:
-                [y1unit, y2unit] = [0, 1]
-                if self.bottom != None:
-                    y1unit = self.bottom
-                if self.top != None:
-                    y2unit = self.top
-                # Draw contiguous horizontal sequences of pixels.
-                # This saves considerable disk space.
-                pixelBlocks = []
-                pixelBlock = None
-                x = xOffset
-                bottom = 0
-                top = 1
-                for pixel in line:
-                    if pixel == '1':
-                        if pixelBlock == None:
-                            pixelBlock = [x, x]
-                            pixelBlocks.append(pixelBlock)
-                        else:
-                            pixelBlock[1] = x;
-                    else:
-                        pixelBlock = None
-                    x = x + 1
-                for pixelBlock in pixelBlocks:
-                    xa = pixelBlock[0]
-                    xb = pixelBlock[1]
-                    x1 = pixX * xa       + deltaX
-                    x2 = pixX * (xb + 1) - deltaX
-                    y1 = pixY * y        + deltaY
-                    y2 = pixY * (y + 1)  - deltaY
-                    if y1unit != 0.0 or y2unit != 1.0:
-                        [y1, y2] = [y1 + (y2 - y1) * y1unit,
-                                    y1 + (y2 - y1) * y2unit]
-                    contour = fontforge.contour()
-                    contour.moveTo(round(x1), round(y1))
-                    contour.lineTo(round(x1), round(y2))
-                    contour.lineTo(round(x2), round(y2))
-                    contour.lineTo(round(x2), round(y1))
-                    contour.closed = True
-                    glyph.layers['Fore'] += contour
-        glyph.width = int(round(bdfChar.dwidthX() * pixX))
-
-    def trace(self):
-        count = len(self.bdf.chars)
-        index = 0
-        for char in self.bdf.chars:
-            index = index + 1
-            encoding = char.encoding if char.encoding != None else -1
-            try:
-                glyph = self.font.createChar(encoding, char.name)
-            except:
-                sys.stderr.write('\nERROR: encoding %s; name %s\n' % (encoding, char.name))
-                raise
-            self.traceGlyph(glyph, char)
-            glyph.addExtrema()
-            glyph.simplify()
 
     # Set various ascent and descent metrics based on
     # main ascent and descent metrics.
