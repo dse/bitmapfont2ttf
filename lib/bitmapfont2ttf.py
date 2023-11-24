@@ -32,6 +32,75 @@ class BitmapFont2TTF:
         self.setArgs(args)
         self.fixFilenames()
 
+    def bitmapfont2ttf(self):
+        self.loadBDF()
+        self.font = fontforge.font()
+        if self.guessType1:
+            self.setNewMetrics()
+            self.setInitialAscentDescent()
+        if self.guessType2:
+            self.computeAscentDescentFromBDF()
+            if self.lineGap != None:
+                self.doFixLineGap()
+            if self.fixAscentDescent:
+                self.doFixAscentDescent()
+        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
+        if self.autotrace:
+            for glyph in self.font.glyphs():
+                glyph.autoTrace()
+        if self.guessType1:
+            self.font.os2_vendor = 'PfEd'
+            self.font.encoding = 'iso10646-1'
+            self.setIsItalicAttribute()
+            self.setIsBoldAttribute()
+            self.updateItalicAngle()
+            self.doFixWeight()
+            self.updateStyleMapFlags()
+            self.updateMacStyleFlags()
+            self.setFontMetas()
+        if self.noTrace or self.autotrace:
+            pass
+        else:
+            self.trace()
+        if self.guessType2:
+            if (self.monospace or ("SPACING" in self.bdf.properties and
+                                   (self.bdf.properties["SPACING"] == "M" or
+                                    self.bdf.properties["SPACING"] == "C"))):
+                self.doFixForMonospace()
+        if self.guessType1:
+            if self.monospace:
+                self.fixMonospace()
+            self.doFixLineGap()
+            self.doFixAscentDescent()
+        if self.guessType2:
+            self.setIsItalicAttribute()
+            self.setIsBoldAttribute()
+            if self.lineGap != None:
+                self.doFixLineGap()
+            if self.fixAscentDescent:
+                self.doFixAscentDescent()
+            if self.fixWeight:
+                self.doFixWeight()
+            if self.fixStyleMap:
+                self.updateStyleMapFlags()
+            if self.fixMacStyle:
+                self.updateMacStyleFlags()
+            if self.fixSlant:
+                self.updateItalicAngle()
+            self.setFontMetas()
+        if self.guessType1 or self.guessType2:
+            if self.panose2 != None:
+                # weight
+                print(self.font.os2_panose)
+                panose = list(self.font.os2_panose)
+                panose[2] = self.panose2
+                self.font.os2_panose = tuple(panose)
+                print(self.font.os2_panose)
+            if self.os2Weight != None:
+                self.font.os2_weight = self.os2Weight
+        if not self.noSave:
+            self.save()
+
     def setArgs(self, args):
         self.filename              = args.filename
         self.destfilenames         = args.destfilenames
@@ -326,75 +395,6 @@ class BitmapFont2TTF:
                 self.font.save(dest)
             else:
                 self.font.generate(dest)
-
-    def bitmapfont2ttf(self):
-        self.loadBDF()
-        self.font = fontforge.font()
-        if self.guessType1:
-            self.setNewMetrics()
-            self.setInitialAscentDescent()
-        if self.guessType2:
-            self.computeAscentDescentFromBDF()
-            if self.lineGap != None:
-                self.doFixLineGap()
-            if self.fixAscentDescent:
-                self.doFixAscentDescent()
-        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
-        if self.autotrace:
-            for glyph in self.font.glyphs():
-                glyph.autoTrace()
-        if self.guessType1:
-            self.font.os2_vendor = 'PfEd'
-            self.font.encoding = 'iso10646-1'
-            self.setIsItalicAttribute()
-            self.setIsBoldAttribute()
-            self.updateItalicAngle()
-            self.doFixWeight()
-            self.updateStyleMapFlags()
-            self.updateMacStyleFlags()
-            self.setFontMetas()
-        if self.noTrace or self.autotrace:
-            pass
-        else:
-            self.trace()
-        if self.guessType2:
-            if (self.monospace or ("SPACING" in self.bdf.properties and
-                                   (self.bdf.properties["SPACING"] == "M" or
-                                    self.bdf.properties["SPACING"] == "C"))):
-                self.doFixForMonospace()
-        if self.guessType1:
-            if self.monospace:
-                self.fixMonospace()
-            self.doFixLineGap()
-            self.doFixAscentDescent()
-        if self.guessType2:
-            self.setIsItalicAttribute()
-            self.setIsBoldAttribute()
-            if self.lineGap != None:
-                self.doFixLineGap()
-            if self.fixAscentDescent:
-                self.doFixAscentDescent()
-            if self.fixWeight:
-                self.doFixWeight()
-            if self.fixStyleMap:
-                self.updateStyleMapFlags()
-            if self.fixMacStyle:
-                self.updateMacStyleFlags()
-            if self.fixSlant:
-                self.updateItalicAngle()
-            self.setFontMetas()
-        if self.guessType1 or self.guessType2:
-            if self.panose2 != None:
-                # weight
-                print(self.font.os2_panose)
-                panose = list(self.font.os2_panose)
-                panose[2] = self.panose2
-                self.font.os2_panose = tuple(panose)
-                print(self.font.os2_panose)
-            if self.os2Weight != None:
-                self.font.os2_weight = self.os2Weight
-        if not self.noSave:
-            self.save()
 
     # guess type 2
     #
