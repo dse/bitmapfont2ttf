@@ -33,12 +33,97 @@ class BitmapFont2TTF:
         self.fixFilenames()
 
     def bitmapfont2ttf(self):
-        self.loadBDF()
+        if (os.path.splitext(self.filename))[1].lower() != '.bdf':
+            raise Exception("only bdf bitmap fonts are supported")
+        self.bdf = MyBDF(self.filename)
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
+        if self.monospace:
+            self.fixForMonospaceDetection()
+        if self.bdfAscentDescent:
+            ascentPx = self.bdf.ascentPx()
+            descentPx = self.bdf.descentPx()
+            pixelSize = self.bdf.getPixelSize()
+            emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
+            self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
+            self.font.descent = int(round(descentPx * emUnitsPerPixel))
+        if self.removeLineGap:
+            self.font.hhea_linegap    = 0
+            self.font.os2_typolinegap = 0
+            self.font.vhea_linegap    = 0
         self.save()
 
+    # make sure all glyphs are the same width.
+    # otherwise font may not be detected as monospace.
+    def fixForMonospaceDetection(self):
+        widthCounts = {}
+        glyphCount = 0
+        for glyph in self.font.glyphs():
+            glyphCount += 1
+            if glyph.width not in widthCounts:
+                widthCounts[glyph.width] = 0
+            widthCounts[glyph.width] += 1
+        keys = list(widthCounts.keys())
+        if len(keys) == 1:
+            # already will be detected as monospace
+            return
+        keys.sort(key = lambda width: widthCounts[width], reverse = True)
+        width = keys[0]
+        for glyph in self.font.glyphs():
+            glyph.width = width
+
+    def save(self):
+        for dest in self.destfilenames:
+            if re.search(r'\.sfd$', dest):
+                self.font.save(dest)
+            else:
+                self.font.generate(dest)
+
+    def setArgs(self, args):
+        self.filename              = args.filename
+        self.destfilenames         = args.destfilenames
+        self.dotWidth              = args.dot_width
+        self.dotHeight             = args.dot_height
+        self.aspectRatio           = args.aspect_ratio
+        self.circularDots          = args.circular_dots
+        self.bottom                = args.bottom
+        self.top                   = args.top
+        self.monospace             = args.monospace
+        self.bdfAscentDescent      = args.bdf_ascent_descent
+        self.removeLineGap         = args.remove_line_gap
+
+        # self.newAscent             = args.new_ascent
+        # self.newDescent            = args.new_descent
+        # self.newPixelSize          = args.new_pixel_size
+        # self.italicAngle           = args.italic_angle
+        # self.fontName              = args.font_name
+        # self.familyName            = args.family_name
+        # self.copyright             = args.copyright
+        # self.comment               = args.comment
+        # self.fullName              = args.full_name
+        # self.version               = args.version
+        # self.weight                = args.weight
+        # self.panose2               = args.panose2
+        # self.os2Weight             = args.os2_weight
+        # self.lineGap               = args.line_gap
+        # self.fixAscentDescent      = args.fix_ascent_descent
+        # self.fixWeight             = args.fix_weight
+        # self.fixStyleMap           = args.fix_style_map
+        # self.fixSlant              = args.fix_slant
+        # self.fixMacStyle           = args.fix_mac_style
+
+    def fixFilenames(self):
+        if self.filename == os.path.basename(self.filename):
+            # Work around an issue where importBitmaps segfaults if you only
+            # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
+            # fine whereas 'foo.pcf' does not.
+            self.filename = os.path.join('.', self.filename)
+        if self.destfilenames == None or len(self.destfilenames) == 0:
+            (rootdestfilename, junk) = os.path.splitext(self.filename)
+            self.destfilenames = [rootdestfilename + '.ttf']
+
+###############################################################################
     def bitmapfont2ttfOld(self):
         self.loadBDF()
         self.font = fontforge.font()
@@ -100,59 +185,6 @@ class BitmapFont2TTF:
             if self.os2Weight != None:
                 self.font.os2_weight = self.os2Weight
         self.save()
-
-    def setArgs(self, args):
-        self.filename              = args.filename
-        self.destfilenames         = args.destfilenames
-        self.monospaceConfidence   = 75
-        self.dotWidth              = args.dot_width
-        self.dotHeight             = args.dot_height
-        self.newAscent             = args.new_ascent
-        self.newDescent            = args.new_descent
-
-        self.newPixelSize          = args.new_pixel_size
-        self.italicAngle           = args.italic_angle
-        self.fontName              = args.font_name
-        self.familyName            = args.family_name
-        self.copyright             = args.copyright
-        self.comment               = args.comment
-        self.fullName              = args.full_name
-        self.version               = args.version
-        self.weight                = args.weight
-        self.aspectRatio           = args.aspect_ratio
-        self.circularDots          = args.circular_dots
-        self.bottom                = args.bottom
-        self.top                   = args.top
-        self.noGuess               = args.no_guess
-        self.monospace             = args.monospace
-        self.panose2               = args.panose2
-        self.os2Weight             = args.os2_weight
-        self.guessType2            = args.guess_type_2
-        self.lineGap               = args.line_gap
-        self.fixAscentDescent      = args.fix_ascent_descent
-        self.fixWeight             = args.fix_weight
-        self.fixStyleMap           = args.fix_style_map
-        self.fixSlant              = args.fix_slant
-        self.fixMacStyle           = args.fix_mac_style
-
-        if self.noGuess:
-            self.guessType2 = False
-        self.guessType1 = not self.guessType2 and not self.noGuess
-
-    def fixFilenames(self):
-        if self.filename == os.path.basename(self.filename):
-            # Work around an issue where importBitmaps segfaults if you only
-            # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
-            # fine whereas 'foo.pcf' does not.
-            self.filename = os.path.join('.', self.filename)
-        if self.destfilenames == None or len(self.destfilenames) == 0:
-            (rootdestfilename, junk) = os.path.splitext(self.filename)
-            self.destfilenames = [rootdestfilename + '.ttf']
-
-    def loadBDF(self):
-        if not re.search(r'\.bdf$', self.filename):
-            raise Exception("only bdfs are supported")
-        self.bdf = MyBDF(self.filename)
 
     # LEGACY
     def setNewMetrics(self):
@@ -332,40 +364,6 @@ class BitmapFont2TTF:
             glyph.addExtrema()
             glyph.simplify()
 
-    # LEGACY
-    # If all glyph widths aren't the same, many Windows terminals and
-    # other applications where you want monospace fonts won't show it
-    # in menus.
-    def fixMonospace(self):
-        widthCounts = {}
-        glyphsByWidth = {}
-        totalGlyphCount = 0
-        for glyph in self.font.glyphs():
-            totalGlyphCount += 1
-            width = glyph.width
-            count = widthCounts.get(width)
-            widthCounts[width] = count = 1 if count is None else count + 1
-            glyphsByWidth[width] = [] if glyphsByWidth.get(width) is None else glyphsByWidth[width]
-            glyphsByWidth[width].append(glyph)
-        keys = list(widthCounts.keys())
-        if len(keys) == 1:
-            return True
-        keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        mostCommonWidth = keys[0]
-        mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
-        if mostCommonWidthPercentage < float(self.monospaceConfidence):
-            return
-        for glyph in self.font.glyphs():
-            debug = glyph.encoding == 0xab
-            glyph.width = mostCommonWidth
-
-    # fix line gap metric values based on value specified via
-    # --line-gap.
-    def doFixLineGap(self):
-        self.font.hhea_linegap    = self.lineGap
-        self.font.os2_typolinegap = self.lineGap
-        self.font.vhea_linegap    = self.lineGap
-
     # Set various ascent and descent metrics based on
     # main ascent and descent metrics.
     # Call this after setting self.font.ascent and
@@ -385,49 +383,6 @@ class BitmapFont2TTF:
         self.font.os2_typodescent = -self.font.descent
         self.font.os2_winascent   = self.font.ascent
         self.font.os2_windescent  = self.font.descent
-
-    def save(self):
-        for dest in self.destfilenames:
-            if re.search(r'\.sfd$', dest):
-                self.font.save(dest)
-            else:
-                self.font.generate(dest)
-
-    # guess type 2
-    #
-    # Set ascent and descent metrics from ones provided in BDF data.
-    def computeAscentDescentFromBDF(self):
-        ascentPx = self.bdf.ascentPx()
-        descentPx = self.bdf.descentPx()
-        pixelSize = self.bdf.getPixelSize()
-        emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
-        self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
-        self.font.descent = int(round(descentPx * emUnitsPerPixel))
-
-    # guess type 2
-    #
-    # If all glyph widths aren't the same, many Windows terminals and
-    # other applications where you want monospace fonts won't show it
-    # in menus.
-    #
-    # This runs if --monospace is specified or SPACING in the BDF
-    # data is either "M" or "C".
-    def doFixForMonospace(self):
-        widthCounts = {}
-        glyphCount = 0
-        for glyph in self.font.glyphs():
-            glyphCount += 1
-            if glyph.width not in widthCounts:
-                widthCounts[glyph.width] = 0
-            widthCounts[glyph.width] += 1
-        keys = list(widthCounts.keys())
-        if len(keys) == 1:
-            # already will be detected as monospace
-            return
-        keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        width = keys[0]
-        for glyph in self.font.glyphs():
-            glyph.width = width
 
     # Standardize on Book/400 and Bold/700.
     def doFixWeight(self):
