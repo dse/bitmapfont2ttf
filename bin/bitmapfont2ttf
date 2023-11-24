@@ -12,19 +12,19 @@ from bitmapfont2ttf import BitmapFont2TTF
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 
-parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
-parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
-parser.add_argument("--family-name",  help = "assign family name, e.g., 'Comic Sans'")
-parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSans-BoldItalic'")
-parser.add_argument("--full-name",    help = "assign full name, e.g., 'Comic Sans Bold Italic'")
-parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
+# parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
+# parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
+# parser.add_argument("--family-name",  help = "assign family name, e.g., 'Comic Sans'")
+# parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSans-BoldItalic'")
+# parser.add_argument("--full-name",    help = "assign full name, e.g., 'Comic Sans Bold Italic'")
+# parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
 
-parser.add_argument("--weight",       help = "assign font weight, e.g., 'Regular', 'Bold'")
-parser.add_argument("--italic-angle", type = float, default = 0.0, help = "assign font italic angle, e.g., -22.5")
+# parser.add_argument("--weight",       help = "assign font weight, e.g., 'Regular', 'Bold'")
+# parser.add_argument("--italic-angle", type = float, default = 0.0, help = "assign font italic angle, e.g., -22.5")
 
-parser.add_argument("--new-pixel-size", type = int, help = "change font's pixel size")
-parser.add_argument("--new-ascent",     type = int, help = "change font's pixel ascent")
-parser.add_argument("--new-descent",    type = int, help = "change font's pixel descent")
+# parser.add_argument("--new-pixel-size", type = int, help = "change font's pixel size")
+# parser.add_argument("--new-ascent",     type = int, help = "change font's pixel ascent")
+# parser.add_argument("--new-descent",    type = int, help = "change font's pixel descent")
 
 # for emulation of LCD dot matrix fonts or CRT lookin' fonts
 parser.add_argument("--dot-width",     type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
@@ -34,24 +34,24 @@ parser.add_argument("--dot-height",    type = float, default = 1.0, help = 'heig
 parser.add_argument("--aspect-ratio",  type = float, default = 1.0)
 parser.add_argument("--circular-dots", action = 'store_true')
 
-parser.add_argument("--monospace",    action = 'store_true')
-
 # also for emulation of CRT lookin' fonts
 parser.add_argument("--bottom", type = float, default = 0.0)
 parser.add_argument("--top", type = float, default = 1.0)
 
-parser.add_argument("--panose2", type = int)
-parser.add_argument("--os2-weight", type = int)
+parser.add_argument("--monospace",    action = 'store_true')
 
-parser.add_argument("--no-guess", action = 'store_true')
-parser.add_argument("--guess-type-2", action = 'store_true')
+# parser.add_argument("--panose2", type = int)
+# parser.add_argument("--os2-weight", type = int)
 
-parser.add_argument("--line-gap", type = int)
-parser.add_argument("--fix-ascent-descent", action = "store_true")
-parser.add_argument("--fix-weight", action = "store_true")
-parser.add_argument("--fix-style-map", action = "store_true")
-parser.add_argument("--fix-slant", action = "store_true")
-parser.add_argument("--fix-mac-style", action = "store_true")
+# parser.add_argument("--no-guess", action = 'store_true')
+# parser.add_argument("--guess-type-2", action = 'store_true')
+
+# parser.add_argument("--line-gap", type = int)
+# parser.add_argument("--fix-ascent-descent", action = "store_true")
+# parser.add_argument("--fix-weight", action = "store_true")
+# parser.add_argument("--fix-style-map", action = "store_true")
+# parser.add_argument("--fix-slant", action = "store_true")
+# parser.add_argument("--fix-mac-style", action = "store_true")
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
