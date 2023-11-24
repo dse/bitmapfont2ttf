@@ -35,7 +35,6 @@ parser.add_argument("--aspect-ratio",  type = float, default = 1.0)
 parser.add_argument("--circular-dots", action = 'store_true')
 
 parser.add_argument("--monospace",    action = 'store_true')
-parser.add_argument("--no-save",      action = 'store_true')
 
 # also for emulation of CRT lookin' fonts
 parser.add_argument("--bottom", type = float, default = 0.0)

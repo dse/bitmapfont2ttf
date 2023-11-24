@@ -92,8 +92,7 @@ class BitmapFont2TTF:
                 print(self.font.os2_panose)
             if self.os2Weight != None:
                 self.font.os2_weight = self.os2Weight
-        if not self.noSave:
-            self.save()
+        self.save()
 
     def setArgs(self, args):
         self.filename              = args.filename
@@ -121,7 +120,6 @@ class BitmapFont2TTF:
         self.monospace             = args.monospace
         self.panose2               = args.panose2
         self.os2Weight             = args.os2_weight
-        self.noSave                = args.no_save
         self.guessType2            = args.guess_type_2
         self.lineGap               = args.line_gap
         self.fixAscentDescent      = args.fix_ascent_descent
