@@ -75,7 +75,7 @@ class BitmapFont2TTF:
 
     def save(self):
         for dest in self.destfilenames:
-            if re.search(r'\.sfd$', dest):
+            if (os.path.splitext(self.filename))[1].lower() == '.sfd':
                 self.font.save(dest)
             else:
                 self.font.generate(dest)
