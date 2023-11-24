@@ -14,9 +14,16 @@ MACSTYLE_CONDENSED = 1 << 5
 MACSTYLE_EXPANDED  = 1 << 6
 
 # https://docs.microsoft.com/ja-jp/typography/opentype/spec/os2#fss
-STYLEMAP_ITALIC  = 0x01
-STYLEMAP_BOLD    = 0x20
-STYLEMAP_REGULAR = 0x40
+STYLEMAP_ITALIC           = 1 << 0
+STYLEMAP_UNDERSCORE       = 1 << 1
+STYLEMAP_NEGATIVE         = 1 << 2
+STYLEMAP_OUTLINED         = 1 << 3
+STYLEMAP_STRIKEOUT        = 1 << 4
+STYLEMAP_BOLD             = 1 << 5
+STYLEMAP_REGULAR          = 1 << 6
+STYLEMAP_USE_TYPO_METRICS = 1 << 7
+STYLEMAP_WWS              = 1 << 8
+STYLEMAP_OBLIQUE          = 1 << 9
 
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
@@ -118,55 +125,7 @@ class BitmapFont2TTF:
         self.font.ascent  = ascent
         self.font.descent = descent
 
-    # LEGACY
-    def setItalic(self):
-        self.isItalic = (
-            (self.italicAngle != None and self.italicAngle != 0) or
-            re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
-            re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
-            (self.fontName   != None and re.search(r'\b(italic|oblique)\b', self.fontName,   flags = re.IGNORECASE)) or
-            (self.familyName != None and re.search(r'\b(italic|oblique)\b', self.familyName, flags = re.IGNORECASE))
-        )
-        if self.isItalic:
-            if self.italicAngle != None:
-                self.font.italicangle = self.italicAngle
-            else:
-                self.font.italicangle = 15 # arbitrary
-        else:
-            self.font.italicangle = 0
-
-    # LEGACY
-    def setWeight(self):
-        if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
-            self.isBold = False
-            self.font.weight = 'Book'
-            self.font.os2_weight = 400
-        elif self.font.weight == 'Bold':
-            self.isBold = True
-            self.font.weight = 'Bold'
-            self.font.os2_weight = 700
-
-    # LEGACY
-    def setStyleMapBits(self):
-        bits = 0
-        if self.isItalic:
-            bits |= STYLEMAP_ITALIC
-        if self.isBold:
-            bits |= STYLEMAP_BOLD
-        if not self.isItalic and not self.isBold:
-            bits |= STYLEMAP_REGULAR
-        self.font.os2_stylemap = bits
-
-    # LEGACY
-    def setMacStyleBits(self):
-        bits = 0
-        if self.isItalic:
-            bits |= MACSTYLE_ITALIC
-        if self.isBold:
-            bits |= MACSTYLE_BOLD
-        self.font.macstyle = bits
-
-    # LEGACY
+    # typically these are guessed.
     def setFontMetas(self):
         if self.copyright != None:
             self.font.copyright = self.copyright
@@ -313,7 +272,7 @@ class BitmapFont2TTF:
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
     # in menus.
-    def fixMonospace(self, checkOnly=False):
+    def fixMonospace(self):
         widthCounts = {}
         glyphsByWidth = {}
         totalGlyphCount = 0
@@ -328,20 +287,6 @@ class BitmapFont2TTF:
         if len(keys) == 1:
             return True
         keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        if checkOnly:
-            sys.stderr.write("-------------------------------------------------------------------------------\n")
-            sys.stderr.write("WARNING: font will probably not be detected as monospace!\n")
-            for width in keys[:5]:
-                count = widthCounts[width]
-                percentage = 100.0 * count / totalGlyphCount
-                sys.stderr.write("%6d glyphs (%5.1f%%) have width %6.1f\n" % (count, percentage, width))
-                if count < 20:
-                    glyphs = glyphsByWidth[width]
-                    for glyph in glyphs:
-                        hexEncoding = ('U+%04X' % glyph.encoding) if glyph.encoding >= 0 else glyph.encoding
-                        sys.stderr.write("        %-8s %s\n" % (hexEncoding, glyph.glyphname))
-            sys.stderr.write("-------------------------------------------------------------------------------\n")
-            return
         mostCommonWidth = keys[0]
         mostCommonWidthPercentage = 100.0 * widthCounts[mostCommonWidth] / totalGlyphCount
         if mostCommonWidthPercentage < float(self.monospaceConfidence):
@@ -358,7 +303,9 @@ class BitmapFont2TTF:
         self.font.vhea_linegap    = self.lineGap
 
     # Set various ascent and descent metrics based on
-    # main ascent and descent metrics
+    # main ascent and descent metrics.
+    # Call this after setting self.font.ascent and
+    # self.font.descent.
     def doFixAscentDescent(self):
         self.font.hhea_ascent_add     = 0
         self.font.hhea_descent_add    = 0
@@ -375,41 +322,12 @@ class BitmapFont2TTF:
         self.font.os2_winascent   = self.font.ascent
         self.font.os2_windescent  = self.font.descent
 
-    # LEGACY
-    def setFinalMetrics(self):
-        ascent  = self.font.ascent
-        descent = self.font.descent
-        self.font.hhea_ascent_add     = 0
-        self.font.hhea_descent_add    = 0
-        self.font.os2_typoascent_add  = 0
-        self.font.os2_typodescent_add = 0
-        self.font.os2_winascent_add   = 0
-        self.font.os2_windescent_add  = 0
-        self.font.ascent          = ascent
-        self.font.descent         = descent
-        self.font.hhea_ascent     = ascent
-        self.font.hhea_descent    = -descent
-        self.font.hhea_linegap    = 0
-        self.font.os2_typoascent  = ascent
-        self.font.os2_typodescent = -descent
-        self.font.os2_typolinegap = 0
-        self.font.os2_winascent   = ascent
-        self.font.os2_windescent  = descent
-        self.font.vhea_linegap    = 0
-        if self.resX != None:
-            self.font.xRes = self.resX
-        if self.resY != None:
-            self.font.yRes = self.resY
-
     def save(self):
         for dest in self.destfilenames:
             if re.search(r'\.sfd$', dest):
                 self.font.save(dest)
             else:
                 self.font.generate(dest)
-
-    def checkMonospace(self):
-        self.fixMonospace(checkOnly=True)
 
     def bitmapfont2ttf(self):
         self.loadBDF()
@@ -430,10 +348,12 @@ class BitmapFont2TTF:
         if self.guessType1:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
-            self.setItalic()
-            self.setWeight()
-            self.setStyleMapBits()
-            self.setMacStyleBits()
+            self.setIsItalicAttribute()
+            self.setIsBoldAttribute()
+            self.updateItalicAngle()
+            self.doFixWeight()
+            self.updateStyleMapFlags()
+            self.updateMacStyleFlags()
             self.setFontMetas()
         if self.noTrace or self.autotrace:
             pass
@@ -447,9 +367,11 @@ class BitmapFont2TTF:
         if self.guessType1:
             if self.monospace:
                 self.fixMonospace()
-            self.setFinalMetrics()
+            self.doFixLineGap()
+            self.doFixAscentDescent()
         if self.guessType2:
-            self.setIsItalicAndIsBoldAttributes()
+            self.setIsItalicAttribute()
+            self.setIsBoldAttribute()
             if self.lineGap != None:
                 self.doFixLineGap()
             if self.fixAscentDescent:
@@ -462,6 +384,7 @@ class BitmapFont2TTF:
                 self.updateMacStyleFlags()
             if self.fixSlant:
                 self.updateItalicAngle()
+            self.setFontMetas()
         if self.guessType1 or self.guessType2:
             if self.panose2 != None:
                 # weight
@@ -521,8 +444,9 @@ class BitmapFont2TTF:
             self.font.os2_weight = 700
 
     # Add isItalic and isBold attributes based on various
-    # font attributes.
-    def setIsItalicAndIsBoldAttributes(self):
+    # font attributes, convenience booleans used for setting
+    # other flags.
+    def setIsItalicAttribute(self):
         self.isItalic = (
             (self.italicAngle != None and self.italicAngle != 0) or
             re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
@@ -530,11 +454,12 @@ class BitmapFont2TTF:
             (self.fontName   != None and re.search(r'\b(italic|oblique)\b', self.fontName,   flags = re.IGNORECASE)) or
             (self.familyName != None and re.search(r'\b(italic|oblique)\b', self.familyName, flags = re.IGNORECASE))
         )
+    def setIsBoldAttribute(self):
         self.isBold = self.font.weight == 'Bold'
 
     # Update the stylemap flags.
     def updateStyleMapFlags(self):
-        bits = self.font.os2_stylemap
+        bits = 0
         if self.isItalic:
             bits |= STYLEMAP_ITALIC
         if self.isBold:
@@ -542,6 +467,15 @@ class BitmapFont2TTF:
         if not self.isItalic and not self.isBold:
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
+
+    # Update the macstyle flags.
+    def updateMacStyleFlags(self):
+        bits = 0
+        if self.isItalic:
+            bits |= MACSTYLE_ITALIC
+        if self.isBold:
+            bits |= MACSTYLE_BOLD
+        self.font.macstyle = bits
 
     # Update the italic angle.
     def updateItalicAngle(self):
@@ -552,12 +486,3 @@ class BitmapFont2TTF:
                 self.font.italicangle = 15 # arbitrary
         else:
             self.font.italicangle = 0
-
-    # Update the macstyle flags.
-    def updateMacStyleFlags(self):
-        bits = self.font.macstyle
-        if self.isItalic:
-            bits |= MACSTYLE_ITALIC
-        if self.isBold:
-            bits |= MACSTYLE_BOLD
-        self.font.macstyle = bits
