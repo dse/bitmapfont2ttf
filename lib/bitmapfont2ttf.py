@@ -99,6 +99,7 @@ class BitmapFont2TTF:
         self.font.descent = newDescent
 
     # LEGACY
+    # set ascent and descent from BDF data
     def setInitialAscentDescent(self):
         descentPx = self.bdf.descentPx()
         ascentPx  = self.bdf.ascentPx()
@@ -346,11 +347,15 @@ class BitmapFont2TTF:
             debug = glyph.encoding == 0xab
             glyph.width = mostCommonWidth
 
+    # fix line gap metric values based on value specified via
+    # --line-gap.
     def doFixLineGap(self):
         self.font.hhea_linegap    = self.lineGap
         self.font.os2_typolinegap = self.lineGap
         self.font.vhea_linegap    = self.lineGap
 
+    # Set various ascent and descent metrics based on
+    # main ascent and descent metrics
     def doFixAscentDescent(self):
         self.font.hhea_ascent_add     = 0
         self.font.hhea_descent_add    = 0
@@ -358,8 +363,8 @@ class BitmapFont2TTF:
         self.font.os2_typodescent_add = 0
         self.font.os2_winascent_add   = 0
         self.font.os2_windescent_add  = 0
-        self.font.ascent          = self.font.ascent
-        self.font.descent         = self.font.descent
+        # self.font.ascent          = self.font.ascent
+        # self.font.descent         = self.font.descent
         self.font.hhea_ascent     = self.font.ascent
         self.font.hhea_descent    = -self.font.descent
         self.font.os2_typoascent  = self.font.ascent
@@ -466,6 +471,8 @@ class BitmapFont2TTF:
             self.save()
 
     # guess type 2
+    #
+    # Set ascent and descent metrics from ones provided in BDF data.
     def computeAscentDescentFromBDF(self):
         ascentPx = self.bdf.ascentPx()
         descentPx = self.bdf.descentPx()
@@ -475,9 +482,13 @@ class BitmapFont2TTF:
         self.font.descent = int(round(descentPx * emUnitsPerPixel))
 
     # guess type 2
+    #
     # If all glyph widths aren't the same, many Windows terminals and
     # other applications where you want monospace fonts won't show it
     # in menus.
+    #
+    # This runs if --monospace is specified or SPACING in the BDF
+    # data is either "M" or "C".
     def doFixForMonospace(self):
         widthCounts = {}
         glyphCount = 0
@@ -495,6 +506,7 @@ class BitmapFont2TTF:
         for glyph in self.font.glyphs():
             glyph.width = width
 
+    # Standardize on Book/400 and Bold/700.
     def doFixWeight(self):
         if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
             self.font.weight = 'Book'
@@ -503,6 +515,8 @@ class BitmapFont2TTF:
             self.font.weight = 'Bold'
             self.font.os2_weight = 700
 
+    # Add isItalic and isBold attributes based on various
+    # font attributes.
     def setFlagInfo(self):
         self.isItalic = (
             (self.italicAngle != None and self.italicAngle != 0) or
@@ -513,6 +527,7 @@ class BitmapFont2TTF:
         )
         self.isBold = self.font.weight == 'Bold'
 
+    # Update the stylemap flags.
     def doFixStyleMap(self):
         bits = self.font.os2_stylemap
         if self.isItalic:
@@ -523,6 +538,7 @@ class BitmapFont2TTF:
             bits |= STYLEMAP_REGULAR
         self.font.os2_stylemap = bits
 
+    # Update the italic angle.
     def doFixSlant(self):
         if self.isItalic:
             if self.italicAngle != None:
@@ -532,6 +548,7 @@ class BitmapFont2TTF:
         else:
             self.font.italicangle = 0
 
+    # Update the macstyle flags.
     def doFixMacStyle(self):
         bits = self.font.macstyle
         if self.isItalic:
