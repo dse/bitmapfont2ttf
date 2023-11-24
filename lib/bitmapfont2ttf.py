@@ -45,9 +45,6 @@ class BitmapFont2TTF:
             if self.fixAscentDescent:
                 self.doFixAscentDescent()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
-        if self.autotrace:
-            for glyph in self.font.glyphs():
-                glyph.autoTrace()
         if self.guessType1:
             self.font.os2_vendor = 'PfEd'
             self.font.encoding = 'iso10646-1'
@@ -58,10 +55,7 @@ class BitmapFont2TTF:
             self.updateStyleMapFlags()
             self.updateMacStyleFlags()
             self.setFontMetas()
-        if self.noTrace or self.autotrace:
-            pass
-        else:
-            self.trace()
+        self.trace()
         if self.guessType2:
             if (self.monospace or ("SPACING" in self.bdf.properties and
                                    (self.bdf.properties["SPACING"] == "M" or
@@ -124,8 +118,6 @@ class BitmapFont2TTF:
         self.bottom                = args.bottom
         self.top                   = args.top
         self.noGuess               = args.no_guess
-        self.autotrace             = args.autotrace
-        self.noTrace               = args.no_trace
         self.monospace             = args.monospace
         self.panose2               = args.panose2
         self.os2Weight             = args.os2_weight
