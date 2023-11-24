@@ -5,8 +5,13 @@ import os
 import re
 import sys
 
-MACSTYLE_BOLD    = 0x01
-MACSTYLE_ITALIC  = 0x02
+MACSTYLE_BOLD      = 1 << 0
+MACSTYLE_ITALIC    = 1 << 1
+MACSTYLE_UNDERLINE = 1 << 2
+MACSTYLE_OUTLINE   = 1 << 3
+MACSTYLE_SHADOW    = 1 << 4
+MACSTYLE_CONDENSED = 1 << 5
+MACSTYLE_EXPANDED  = 1 << 6
 
 # https://docs.microsoft.com/ja-jp/typography/opentype/spec/os2#fss
 STYLEMAP_ITALIC  = 0x01
