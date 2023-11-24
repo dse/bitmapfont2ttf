@@ -35,6 +35,13 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         self.loadBDF()
         self.font = fontforge.font()
+        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
+        self.trace()
+        self.save()
+
+    def bitmapfont2ttfOld(self):
+        self.loadBDF()
+        self.font = fontforge.font()
         if self.guessType1:
             self.setNewMetrics()
             self.setInitialAscentDescent()
