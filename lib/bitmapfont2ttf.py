@@ -35,23 +35,69 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
+        print("loading BDF")
         self.bdf = MyBDF(self.filename)
         self.font = fontforge.font()
+        print("importing BDF metrics")
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
+        print("tracing")
         self.trace()
-        if self.monospace:
-            self.fixForMonospaceDetection()
         if self.bdfAscentDescent:
+            print("fixing ascent/descent from BDF")
             ascentPx = self.bdf.ascentPx()
             descentPx = self.bdf.descentPx()
             pixelSize = self.bdf.getPixelSize()
             emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
             self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
             self.font.descent = int(round(descentPx * emUnitsPerPixel))
+        if self.removeAscentAdd:
+            self.font.hhea_ascent_add     = 0
+            self.font.hhea_descent_add    = 0
+            self.font.os2_typoascent_add  = 0
+            self.font.os2_typodescent_add = 0
+            self.font.os2_winascent_add   = 0
+            self.font.os2_windescent_add  = 0
+        if self.allAscentDescent:
+            self.font.hhea_ascent     = self.font.ascent
+            self.font.hhea_descent    = -self.font.descent
+            self.font.os2_typoascent  = self.font.ascent
+            self.font.os2_typodescent = -self.font.descent
+            self.font.os2_winascent   = self.font.ascent
+            self.font.os2_windescent  = self.font.descent
         if self.removeLineGap:
+            print("removing line gap")
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
+        if self.monospace:
+            print("fixing for monospace detection")
+            self.fixForMonospaceDetection()
+        if self.modifyPanose:
+            panose = list(self.font.os2_panose)
+            if self.setPanose0 is not None: panose[0] = self.setPanose0
+            if self.setPanose1 is not None: panose[1] = self.setPanose1
+            if self.setPanose2 is not None: panose[2] = self.setPanose2
+            if self.setPanose3 is not None: panose[3] = self.setPanose3
+            if self.setPanose4 is not None: panose[4] = self.setPanose4
+            if self.setPanose5 is not None: panose[5] = self.setPanose5
+            if self.setPanose6 is not None: panose[6] = self.setPanose6
+            if self.setPanose7 is not None: panose[7] = self.setPanose7
+            if self.setPanose8 is not None: panose[8] = self.setPanose8
+            if self.setPanose9 is not None: panose[9] = self.setPanose9
+            self.font.os2_panose = tuple(panose)
+        if self.setWeightName != None:
+            # BDF weight names are "Ultra Light", "Extra Light", "Light",
+            # and "Semi Light".  Weight Names would be "Medium" for the
+            # normal weight, or "Extra-Light" for all the others.
+            #
+            # Removing the spaces from the BDF weight names does not solve
+            # this.
+            #
+            # This fixes this.
+            print("setting weight string to %s" % self.setWeightName)
+            print("  font weight string was %s" % self.font.weight)
+            self.font.weight = self.setWeightName
+            print("   font weight string is %s" % self.font.weight)
         self.save()
 
     # make sure all glyphs are the same width.
@@ -92,6 +138,29 @@ class BitmapFont2TTF:
         self.monospace             = args.monospace
         self.bdfAscentDescent      = args.bdf_ascent_descent
         self.removeLineGap         = args.remove_line_gap
+        self.removeAscentAdd       = args.remove_ascent_add
+        self.allAscentDescent      = args.all_ascent_descent
+        self.setPanose0            = args.panose_0
+        self.setPanose1            = args.panose_1
+        self.setPanose2            = args.panose_2
+        self.setPanose3            = args.panose_3
+        self.setPanose4            = args.panose_4
+        self.setPanose5            = args.panose_5
+        self.setPanose6            = args.panose_6
+        self.setPanose7            = args.panose_7
+        self.setPanose8            = args.panose_8
+        self.setPanose9            = args.panose_9
+        self.modifyPanose          = (args.panose_0 is not None or
+                                      args.panose_1 is not None or
+                                      args.panose_2 is not None or
+                                      args.panose_3 is not None or
+                                      args.panose_4 is not None or
+                                      args.panose_5 is not None or
+                                      args.panose_6 is not None or
+                                      args.panose_7 is not None or
+                                      args.panose_8 is not None or
+                                      args.panose_9 is not None)
+        self.setWeightName         = args.weight_name
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
