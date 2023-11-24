@@ -35,15 +35,11 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
-        print("loading BDF")
         self.bdf = MyBDF(self.filename)
         self.font = fontforge.font()
-        print("importing BDF metrics")
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
-        print("tracing")
         self.trace()
         if self.bdfAscentDescent:
-            print("fixing ascent/descent from BDF")
             ascentPx = self.bdf.ascentPx()
             descentPx = self.bdf.descentPx()
             pixelSize = self.bdf.getPixelSize()
@@ -65,12 +61,10 @@ class BitmapFont2TTF:
             self.font.os2_winascent   = self.font.ascent
             self.font.os2_windescent  = self.font.descent
         if self.removeLineGap:
-            print("removing line gap")
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
         if self.monospace:
-            print("fixing for monospace detection")
             self.fixForMonospaceDetection()
         if self.modifyPanose:
             panose = list(self.font.os2_panose)
@@ -94,10 +88,7 @@ class BitmapFont2TTF:
             # this.
             #
             # This fixes this.
-            print("setting weight string to %s" % self.setWeightName)
-            print("  font weight string was %s" % self.font.weight)
             self.font.weight = self.setWeightName
-            print("   font weight string is %s" % self.font.weight)
         self.save()
 
     # make sure all glyphs are the same width.
@@ -317,191 +308,3 @@ class BitmapFont2TTF:
                     contour.closed = True
                     glyph.layers['Fore'] += contour
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
-
-###############################################################################
-    def bitmapfont2ttfOld(self):
-        self.loadBDF()
-        self.font = fontforge.font()
-        if self.guessType1:
-            self.setNewMetrics()
-            self.setInitialAscentDescent()
-        if self.guessType2:
-            self.computeAscentDescentFromBDF()
-            if self.lineGap != None:
-                self.doFixLineGap()
-            if self.fixAscentDescent:
-                self.doFixAscentDescent()
-        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
-        if self.guessType1:
-            self.font.os2_vendor = 'PfEd'
-            self.font.encoding = 'iso10646-1'
-            self.setIsItalicAttribute()
-            self.setIsBoldAttribute()
-            self.updateItalicAngle()
-            self.doFixWeight()
-            self.updateStyleMapFlags()
-            self.updateMacStyleFlags()
-            self.setFontMetas()
-        self.trace()
-        if self.guessType2:
-            if (self.monospace or ("SPACING" in self.bdf.properties and
-                                   (self.bdf.properties["SPACING"] == "M" or
-                                    self.bdf.properties["SPACING"] == "C"))):
-                self.doFixForMonospace()
-        if self.guessType1:
-            if self.monospace:
-                self.fixMonospace()
-            self.doFixLineGap()
-            self.doFixAscentDescent()
-        if self.guessType2:
-            self.setIsItalicAttribute()
-            self.setIsBoldAttribute()
-            if self.lineGap != None:
-                self.doFixLineGap()
-            if self.fixAscentDescent:
-                self.doFixAscentDescent()
-            if self.fixWeight:
-                self.doFixWeight()
-            if self.fixStyleMap:
-                self.updateStyleMapFlags()
-            if self.fixMacStyle:
-                self.updateMacStyleFlags()
-            if self.fixSlant:
-                self.updateItalicAngle()
-            self.setFontMetas()
-        if self.guessType1 or self.guessType2:
-            if self.panose2 != None:
-                # weight
-                print(self.font.os2_panose)
-                panose = list(self.font.os2_panose)
-                panose[2] = self.panose2
-                self.font.os2_panose = tuple(panose)
-                print(self.font.os2_panose)
-            if self.os2Weight != None:
-                self.font.os2_weight = self.os2Weight
-        self.save()
-
-    # LEGACY
-    def setNewMetrics(self):
-        if self.newPixelSize is None and self.newAscent is None and self.newDescent is None:
-            return
-        if self.newPixelSize != None:
-            self.bdf.setPixelSize(self.newPixelSize)
-        if self.newAscent != None:
-            self.bdf.properties['ascent'] = newAscent
-        if self.newDescent != None:
-            self.bdf.properties['descent'] = newDescent
-        emFloat = self.font.em * 1.0
-        pixelSizeFloat = self.bdf.getPixelSize() * 1.0
-        ascentEm  = emFloat / pixelSizeFloat * self.bdf.ascentPx()
-        descentEm = emFloat / pixelSizeFloat * self.bdf.descentPx()
-        fix       = emFloat - ascentEm + descentEm
-        newAscent  = int(round(ascentEm + fix / 2.0))
-        newDescent = self.font.em - newAscent
-        self.font.ascent  = newAscent
-        self.font.descent = newDescent
-
-    # LEGACY
-    # set ascent and descent from BDF data
-    def setInitialAscentDescent(self):
-        descentPx = self.bdf.descentPx()
-        ascentPx  = self.bdf.ascentPx()
-        total     = descentPx + ascentPx
-        descentEm = 1.0 * descentPx / total
-        ascentEm  = 1.0 * ascentPx  / total
-        origFontAscent  = self.font.ascent
-        origFontDescent = self.font.descent
-        ascent  = int(round(ascentEm * self.font.em))
-        descent = self.font.em - ascent # in case ascent + descent != 1000 due to rounding
-        self.font.ascent  = ascent
-        self.font.descent = descent
-
-    # typically these are guessed.
-    def setFontMetas(self):
-        if self.copyright != None:
-            self.font.copyright = self.copyright
-        if self.comment != None:
-            self.font.comment = self.comment
-        if self.fontName != None:
-            self.font.fontname = self.fontName
-        if self.familyName != None:
-            self.font.familyname = self.familyName
-        if self.fullName != None:
-            self.font.fullname = self.fullName
-        if self.version != None:
-            self.font.version = self.version
-        if self.weight != None:
-            self.font.weight = self.weight
-
-    # Set various ascent and descent metrics based on
-    # main ascent and descent metrics.
-    # Call this after setting self.font.ascent and
-    # self.font.descent.
-    def doFixAscentDescent(self):
-        self.font.hhea_ascent_add     = 0
-        self.font.hhea_descent_add    = 0
-        self.font.os2_typoascent_add  = 0
-        self.font.os2_typodescent_add = 0
-        self.font.os2_winascent_add   = 0
-        self.font.os2_windescent_add  = 0
-        # self.font.ascent          = self.font.ascent
-        # self.font.descent         = self.font.descent
-        self.font.hhea_ascent     = self.font.ascent
-        self.font.hhea_descent    = -self.font.descent
-        self.font.os2_typoascent  = self.font.ascent
-        self.font.os2_typodescent = -self.font.descent
-        self.font.os2_winascent   = self.font.ascent
-        self.font.os2_windescent  = self.font.descent
-
-    # Standardize on Book/400 and Bold/700.
-    def doFixWeight(self):
-        if self.font.weight == 'Regular' or self.font.weight == 'Medium' or self.font.weight == 'Book':
-            self.font.weight = 'Book'
-            self.font.os2_weight = 400
-        elif self.font.weight == 'Bold':
-            self.font.weight = 'Bold'
-            self.font.os2_weight = 700
-
-    # Add isItalic and isBold attributes based on various
-    # font attributes, convenience booleans used for setting
-    # other flags.
-    def setIsItalicAttribute(self):
-        self.isItalic = (
-            (self.italicAngle != None and self.italicAngle != 0) or
-            re.search(r'\b(italic|oblique)\b', self.font.fontname, flags = re.IGNORECASE) or
-            re.search(r'\b(italic|oblique)\b', self.font.fullname, flags = re.IGNORECASE) or
-            (self.fontName   != None and re.search(r'\b(italic|oblique)\b', self.fontName,   flags = re.IGNORECASE)) or
-            (self.familyName != None and re.search(r'\b(italic|oblique)\b', self.familyName, flags = re.IGNORECASE))
-        )
-    def setIsBoldAttribute(self):
-        self.isBold = self.font.weight == 'Bold'
-
-    # Update the stylemap flags.
-    def updateStyleMapFlags(self):
-        bits = 0
-        if self.isItalic:
-            bits |= STYLEMAP_ITALIC
-        if self.isBold:
-            bits |= STYLEMAP_BOLD
-        if not self.isItalic and not self.isBold:
-            bits |= STYLEMAP_REGULAR
-        self.font.os2_stylemap = bits
-
-    # Update the macstyle flags.
-    def updateMacStyleFlags(self):
-        bits = 0
-        if self.isItalic:
-            bits |= MACSTYLE_ITALIC
-        if self.isBold:
-            bits |= MACSTYLE_BOLD
-        self.font.macstyle = bits
-
-    # Update the italic angle.
-    def updateItalicAngle(self):
-        if self.isItalic:
-            if self.italicAngle != None:
-                self.font.italicangle = self.italicAngle
-            else:
-                self.font.italicangle = 15 # arbitrary
-        else:
-            self.font.italicangle = 0
