@@ -40,8 +40,6 @@ class BitmapFont2TTF:
         self.dotHeight             = args.dot_height
         self.newAscent             = args.new_ascent
         self.newDescent            = args.new_descent
-        self.resX                  = args.res_x # default 96
-        self.resY                  = args.res_y # default 96
 
         self.newPixelSize          = args.new_pixel_size
         self.italicAngle           = args.italic_angle
