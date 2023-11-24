@@ -5,26 +5,6 @@ import os
 import re
 import sys
 
-MACSTYLE_BOLD      = 1 << 0
-MACSTYLE_ITALIC    = 1 << 1
-MACSTYLE_UNDERLINE = 1 << 2
-MACSTYLE_OUTLINE   = 1 << 3
-MACSTYLE_SHADOW    = 1 << 4
-MACSTYLE_CONDENSED = 1 << 5
-MACSTYLE_EXPANDED  = 1 << 6
-
-# https://docs.microsoft.com/ja-jp/typography/opentype/spec/os2#fss
-STYLEMAP_ITALIC           = 1 << 0
-STYLEMAP_UNDERSCORE       = 1 << 1
-STYLEMAP_NEGATIVE         = 1 << 2
-STYLEMAP_OUTLINED         = 1 << 3
-STYLEMAP_STRIKEOUT        = 1 << 4
-STYLEMAP_BOLD             = 1 << 5
-STYLEMAP_REGULAR          = 1 << 6
-STYLEMAP_USE_TYPO_METRICS = 1 << 7
-STYLEMAP_WWS              = 1 << 8
-STYLEMAP_OBLIQUE          = 1 << 9
-
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
 class BitmapFont2TTF:
