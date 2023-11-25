@@ -72,30 +72,38 @@ class BitmapFont2TTF:
             self.font.os2_weight = self.setOS2Weight
         self.save()
 
+        count2 = 0
+        for glyph in self.font.glyphs():
+            count2 += 1
+        print("there are %d glyphs" % count2)
+
     # make sure all glyphs are the same width.
     # otherwise font may not be detected as monospace.
     def fixForMonospaceDetection(self):
-        widthCounts = {}
-        glyphCount = 0
+        count = 0
+        counts = {}
         for glyph in self.font.glyphs():
-            glyphCount += 1
-            if glyph.width not in widthCounts:
-                widthCounts[glyph.width] = 0
-            widthCounts[glyph.width] += 1
-        keys = list(widthCounts.keys())
-        if len(keys) == 1:
-            # already will be detected as monospace
+            count += 1
+            if glyph.width not in counts:
+                counts[glyph.width] = 0
+            counts[glyph.width] += 1
+        widths = list(counts.keys())
+        if len(widths) == 1:
+            print("    all %d glyphs are %d/%d wide; is monospace" % (count, widths[0], self.font.em))
             return
-        keys.sort(key = lambda width: widthCounts[width], reverse = True)
-        width = keys[0]
+        width = widths[0]
         for glyph in self.font.glyphs():
+            if glyph.width != width:
+                print("    U+%04X: chaning width from %d to %d" % (glyph.encoding, glyph.width, width))
             glyph.width = width
 
     def save(self):
         for dest in self.destfilenames:
-            if (os.path.splitext(self.filename))[1].lower() == '.sfd':
+            if (os.path.splitext(dest))[1].lower() == '.sfd':
+                print("saving %s" % dest)
                 self.font.save(dest)
             else:
+                print("generating %s" % dest)
                 self.font.generate(dest)
 
     def setArgs(self, args):
