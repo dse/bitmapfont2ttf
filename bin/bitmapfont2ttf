@@ -44,7 +44,8 @@ parser.add_argument("--remove-line-gap", action = "store_true")
 parser.add_argument("--remove-ascent-add", action = "store_true")
 parser.add_argument("--all-ascent-descent", action = "store_true")
 
-parser.add_argument("--weight-name")
+parser.add_argument("--ps-font-name")
+parser.add_argument("-w", "--weight-name")
 parser.add_argument("--os2-weight", type = int)
 
 parser.add_argument("--panose-0", type = int)
