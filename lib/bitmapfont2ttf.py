@@ -65,10 +65,11 @@ class BitmapFont2TTF:
             # normal weight, or "Extra-Light" for all the others.
             #
             # Removing the spaces from the BDF weight names does not solve
-            # this.
-            #
-            # This fixes this.
+            # this.  Setting self.font.weight doesn't fix it either.
+            # --os2-weight fixes this.
             self.font.weight = self.setWeightName
+        if self.setOS2Weight != None:
+            self.font.os2_weight = self.setOS2Weight
         self.save()
 
     # make sure all glyphs are the same width.
@@ -132,6 +133,7 @@ class BitmapFont2TTF:
                                       args.panose_8 is not None or
                                       args.panose_9 is not None)
         self.setWeightName         = args.weight_name
+        self.setOS2Weight          = args.os2_weight
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
