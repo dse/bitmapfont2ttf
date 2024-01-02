@@ -72,6 +72,7 @@ class BitmapFont2TTF:
             self.font.weight = self.setWeightName
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
+        # self.f800()
         self.save()
 
         count2 = 0
@@ -301,3 +302,20 @@ class BitmapFont2TTF:
                     contour.closed = True
                     glyph.layers['Fore'] += contour
         glyph.width = int(round(bdfChar.dwidthX() * pixX))
+
+    # def f800(self):
+    #     """add private use characters for testing varying simulated "scan line" heights."""
+    #     print("f800()")
+    #     for codepoint in range(0xf800,0xf900):
+    #         milliems = 1 + codepoint - 0xf800
+    #         if codepoint not in self.font:
+    #             continue
+    #         glyph = self.font[codepoint]
+    #         for y in [250, 375, 500, 625, 750, 875]:
+    #             contour = fontforge.contour()
+    #             contour.moveTo(0, y)
+    #             contour.lineTo(glyph.width, y)
+    #             contour.lineTo(glyph.width, y - milliems)
+    #             contour.lineTo(0, y - milliems)
+    #             contour.closed = True
+    #             glyph.layers['Fore'] += contour
