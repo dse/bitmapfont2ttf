@@ -73,6 +73,12 @@ parser.add_argument("--panose-9", type = int)
 # parser.add_argument("--fix-slant", action = "store_true")
 # parser.add_argument("--fix-mac-style", action = "store_true")
 
+group = parser.add_mutually_exclusive_group()
+group.add_argument("--italic-angle", type = float, help = "in degrees, typically negative")
+group.add_argument("--italicize-angle", type = float, help = "in degrees, typically negative")
+group.add_argument("--italicize-slant", type = float, help = "in pixels, typically negative")
+parser.add_argument("--italicize-center", type = int, default = 0, help = "in pixels above baseline")
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
 

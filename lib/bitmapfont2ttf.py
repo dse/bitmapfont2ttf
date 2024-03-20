@@ -4,6 +4,7 @@ import fontforge
 import os
 import re
 import sys
+import math
 
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
@@ -72,6 +73,10 @@ class BitmapFont2TTF:
             self.font.weight = self.setWeightName
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
+        if self.italicAngle != None:
+            self.font.italicangle = self.italicAngle
+        elif self.italicizeAngle != None:
+            self.font.italicangle = self.italicizeAngle
         # self.f800()
         self.save()
 
@@ -147,10 +152,14 @@ class BitmapFont2TTF:
         self.setPSFontName         = args.ps_font_name
         self.setOS2Weight          = args.os2_weight
 
+        self.italicizeAngle           = args.italicize_angle
+        self.italicizeCenterY         = args.italicize_center
+        self.italicizeSlant           = args.italicize_slant
+        self.italicAngle              = args.italic_angle
+
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
         # self.newPixelSize          = args.new_pixel_size
-        # self.italicAngle           = args.italic_angle
         # self.fontName              = args.font_name
         # self.familyName            = args.family_name
         # self.copyright             = args.copyright
@@ -219,6 +228,20 @@ class BitmapFont2TTF:
         pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
         deltaX = pixX * (1.0 - self.dotWidth) / 2
         deltaY = pixY * (1.0 - self.dotHeight) / 2
+
+        italicizeSlant = 0.0
+        italicizeAngle = 0.0
+        if self.italicizeAngle is not None:
+            italicizeAngle = self.italicizeAngle
+            italicizeSlant = math.tan(self.italicizeAngle * math.pi / 180) * pixY / pixX
+            self.italicizeSlant = italicizeSlant
+        elif self.italicizeSlant is not None:
+            italicizeSlant = self.italicizeSlant
+            italicizeAngle = math.atan(self.italicizeSlant * pixX / pixY) * 180 / math.pi
+            self.italicizeAngle = italicizeAngle
+            print("italicizeAngle = %f" % self.italicizeAngle)
+        italicizeCenterY = self.italicizeCenterY if self.italicizeCenterY is not None else 0
+
         for line in bdfChar.bitmapData:
             y = y - 1
             if self.circularDots:
@@ -228,7 +251,7 @@ class BitmapFont2TTF:
                         xh = round(pixX * self.dotWidth * 0.5)
                         yh = round(pixY * self.dotHeight * 0.5)
                         r = max(xh, yh)
-                        xc = round(pixX * (x + 0.5))
+                        xc = round(pixX * (x + 0.5 - italicizeSlant * (y - italicizeCenterY)))
                         yc = round(pixY * (y + 0.5))
                         x1 = xc - r
                         x2 = xc + r
@@ -245,12 +268,13 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-            elif self.dotWidth != 1:
+            elif self.dotWidth < 1:
                 x = xOffset
                 for pixel in line:
                     if pixel == '1':
-                        x1 = pixX * x       + deltaX
-                        x2 = pixX * (x + 1) - deltaX
+                        xx = x - italicizeSlant * (y - italicizeCenterY)
+                        x1 = pixX * xx       + deltaX
+                        x2 = pixX * (xx + 1) - deltaX
                         y1 = pixY * y       + deltaY
                         y2 = pixY * (y + 1) - deltaY
                         contour = fontforge.contour()
@@ -285,8 +309,8 @@ class BitmapFont2TTF:
                         pixelBlock = None
                     x = x + 1
                 for pixelBlock in pixelBlocks:
-                    xa = pixelBlock[0]
-                    xb = pixelBlock[1]
+                    xa = pixelBlock[0] - italicizeSlant * (y - italicizeCenterY)
+                    xb = pixelBlock[1] - italicizeSlant * (y - italicizeCenterY)
                     x1 = pixX * xa       + deltaX
                     x2 = pixX * (xb + 1) - deltaX
                     y1 = pixY * y        + deltaY
