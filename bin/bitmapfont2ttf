@@ -27,37 +27,37 @@ parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap f
 # parser.add_argument("--new-descent",    type = int, help = "change font's pixel descent")
 
 # for emulation of LCD dot matrix fonts or CRT lookin' fonts
-parser.add_argument("--dot-width",     type = float, default = 1.0, help = 'width  of each dot as multiple of pixel width,  e.g., 0.9')
-parser.add_argument("--dot-height",    type = float, default = 1.0, help = 'height "  "    "   "  "        "  "     height, e.g., 0.9')
+parser.add_argument("--dot-width",     type = float, default = 1.0, help = 'width of each dot as multiple of pixel width, e.g., 0.9')
+parser.add_argument("--dot-height",    type = float, default = 1.0, help = 'height of each dot as multiple of pixel width, e.g., 0.9')
 
 # for emulation of printer dot matrix fonts
-parser.add_argument("--aspect-ratio",  type = float, default = 1.0)
+parser.add_argument("--aspect-ratio",  type = float, default = 1.0, help = "ratio of px.wd. to px.ht. (>1 = wide; <1 = narrow)")
 parser.add_argument("--circular-dots", action = 'store_true')
 
 # also for emulation of CRT lookin' fonts
-parser.add_argument("--bottom", type = float, default = 0.0)
-parser.add_argument("--top", type = float, default = 1.0)
+parser.add_argument("--bottom", type = float, default = 0.0, help = "proportion of pixel height above baseline; default = 0.0")
+parser.add_argument("--top", type = float, default = 1.0, help = "proportion of pixel height above baseline; default = 1.0")
 
-parser.add_argument("--monospace",    action = 'store_true')
+parser.add_argument("--monospace", action = 'store_true')
 parser.add_argument("--bdf-ascent-descent", action = "store_true")
-parser.add_argument("--remove-line-gap", action = "store_true")
+parser.add_argument("--remove-line-gap", action = "store_true", help = "remove line gap from font metrics")
 parser.add_argument("--remove-ascent-add", action = "store_true")
 parser.add_argument("--all-ascent-descent", action = "store_true")
 
-parser.add_argument("--ps-font-name")
-parser.add_argument("-w", "--weight-name")
-parser.add_argument("--os2-weight", type = int)
+parser.add_argument("--ps-font-name", help = "e.g., ComicSans-BoldItalic, ComicSans")
+parser.add_argument("-w", "--weight-name", help = "e.g., 'Semi Light', 'Bold'")
+parser.add_argument("--os2-weight", type = int, help = "100 .. 900")
 
-parser.add_argument("--panose-0", type = int)
-parser.add_argument("--panose-1", type = int)
-parser.add_argument("--panose-2", type = int)
-parser.add_argument("--panose-3", type = int)
-parser.add_argument("--panose-4", type = int)
-parser.add_argument("--panose-5", type = int)
-parser.add_argument("--panose-6", type = int)
-parser.add_argument("--panose-7", type = int)
-parser.add_argument("--panose-8", type = int)
-parser.add_argument("--panose-9", type = int)
+parser.add_argument("--panose-0", type = int, help = "family kind, for latin text")
+parser.add_argument("--panose-1", type = int, help = "serif style")
+parser.add_argument("--panose-2", type = int, help = "weight")
+parser.add_argument("--panose-3", type = int, help = "proportion")
+parser.add_argument("--panose-4", type = int, help = "contrast")
+parser.add_argument("--panose-5", type = int, help = "stroke variation")
+parser.add_argument("--panose-6", type = int, help = "arm style")
+parser.add_argument("--panose-7", type = int, help = "letterform")
+parser.add_argument("--panose-8", type = int, help = "midline")
+parser.add_argument("--panose-9", type = int, help = "x-height --- see https://bit.ly/panose")
 
 # parser.add_argument("--fix-ascent-descent", action = "store_true")
 
