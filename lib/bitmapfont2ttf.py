@@ -60,23 +60,31 @@ class BitmapFont2TTF:
             if self.setPanose8 is not None: panose[8] = self.setPanose8
             if self.setPanose9 is not None: panose[9] = self.setPanose9
             self.font.os2_panose = tuple(panose)
-        if self.setPSFontName != None:
-            self.font.fontname = self.setPSFontName
-        if self.setWeightName != None:
-            # BDF weight names are "Ultra Light", "Extra Light", "Light",
-            # and "Semi Light".  Weight Names would be "Medium" for the
-            # normal weight, or "Extra-Light" for all the others.
-            #
-            # Removing the spaces from the BDF weight names does not solve
-            # this.  Setting self.font.weight doesn't fix it either.
-            # --os2-weight fixes this.
-            self.font.weight = self.setWeightName
+
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
         if self.italicAngle != None:
             self.font.italicangle = self.italicAngle
         elif self.italicizeAngle != None:
             self.font.italicangle = self.italicizeAngle
+
+        if self.familyName != None:
+            self.font.familyname = self.familyName
+        if self.fontName != None:
+            self.font.fontname = self.fontName
+        if self.fullName != None:
+            self.font.fullname = self.fullName
+
+        # BDF weight names are "Ultra Light", "Extra Light", "Light",
+        # and "Semi Light".  Weight Names would be "Medium" for the
+        # normal weight, or "Extra-Light" for all the others.
+        #
+        # Removing the spaces from the BDF weight names does not solve
+        # this.  Setting self.font.weight doesn't fix it either.
+        # --os2-weight fixes this.
+        if self.weightName != None:
+            self.font.weight = self.weightName
+
         # self.f800()
         self.save()
 
@@ -148,14 +156,17 @@ class BitmapFont2TTF:
                                       args.panose_7 is not None or
                                       args.panose_8 is not None or
                                       args.panose_9 is not None)
-        self.setWeightName         = args.weight_name
-        self.setPSFontName         = args.ps_font_name
         self.setOS2Weight          = args.os2_weight
 
         self.italicizeAngle           = args.italicize_angle
         self.italicizeCenterY         = args.italicize_center
         self.italicizeSlant           = args.italicize_slant
         self.italicAngle              = args.italic_angle
+
+        self.fullName                 = args.full_name # fullname
+        self.fontName                 = args.font_name # fontname
+        self.familyName               = args.family_name # familyname
+        self.weightName               = args.weight_name # weight (PostScript weight string)
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
