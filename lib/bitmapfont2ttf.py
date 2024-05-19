@@ -62,6 +62,10 @@ class BitmapFont2TTF:
             self.font.os2_panose = tuple(panose)
         if self.setPSFontName != None:
             self.font.fontname = self.setPSFontName
+        if self.setFullName != None:
+            self.font.fullname = self.setFullName
+        if self.setFamilyName != None:
+            self.font.familyname = self.setFamilyName
         if self.setWeightName != None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
@@ -150,6 +154,8 @@ class BitmapFont2TTF:
                                       args.panose_9 is not None)
         self.setWeightName         = args.weight_name
         self.setPSFontName         = args.ps_font_name
+        self.setFullName           = args.full_name
+        self.setFamilyName         = args.family_name
         self.setOS2Weight          = args.os2_weight
 
         self.italicizeAngle           = args.italicize_angle
@@ -161,10 +167,8 @@ class BitmapFont2TTF:
         # self.newDescent            = args.new_descent
         # self.newPixelSize          = args.new_pixel_size
         # self.fontName              = args.font_name
-        # self.familyName            = args.family_name
         # self.copyright             = args.copyright
         # self.comment               = args.comment
-        # self.fullName              = args.full_name
         # self.version               = args.version
         # self.weight                = args.weight
         # self.panose2               = args.panose2
