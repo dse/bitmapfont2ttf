@@ -38,6 +38,7 @@ parser.add_argument("--top", type = float, default = 1.0, help = "proportion of 
 
 parser.add_argument("--monospace", action = 'store_true')
 parser.add_argument("--bdf-ascent-descent", action = "store_true")
+parser.add_argument("--bdf-ascent-descent-2", action = "store_true")
 parser.add_argument("--remove-line-gap", action = "store_true", help = "remove line gap from font metrics")
 parser.add_argument("--remove-ascent-add", action = "store_true")
 parser.add_argument("--all-ascent-descent", action = "store_true")
@@ -61,13 +62,10 @@ parser.add_argument("--panose-8", type = int, help = "midline")
 parser.add_argument("--panose-9", type = int, help = "x-height --- see https://bit.ly/panose")
 
 # parser.add_argument("--fix-ascent-descent", action = "store_true")
-
 # parser.add_argument("--panose2", type = int)
 # parser.add_argument("--os2-weight", type = int)
-
 # parser.add_argument("--no-guess", action = 'store_true')
 # parser.add_argument("--guess-type-2", action = 'store_true')
-
 # parser.add_argument("--line-gap", type = int)
 # parser.add_argument("--fix-weight", action = "store_true")
 # parser.add_argument("--fix-style-map", action = "store_true")
@@ -79,6 +77,13 @@ group.add_argument("--italic-angle", type = float, help = "in degrees, typically
 group.add_argument("--italicize-angle", type = float, help = "in degrees, typically negative")
 group.add_argument("--italicize-slant", type = float, help = "in pixels, typically negative")
 parser.add_argument("--italicize-center", type = int, default = 0, help = "in pixels above baseline")
+
+parser.add_argument("--add-pixel-size", type = int, default = 0)
+
+# For pixel sizes 6, 10, 14, etc., there is no point size you can
+# specify in Windows, manually or from the dropdown, that will show an
+# un-blurry font.
+parser.add_argument("--windows", action = "store_true", help = "adjust so px % 4 != 2")
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
