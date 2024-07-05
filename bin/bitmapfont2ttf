@@ -12,7 +12,7 @@ from bitmapfont2ttf import BitmapFont2TTF
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 
-# parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
+parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
 # parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
 # parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSans-BoldItalic'")
 # parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
@@ -84,6 +84,11 @@ parser.add_argument("--add-pixel-size", type = int, default = 0)
 # specify in Windows, manually or from the dropdown, that will show an
 # un-blurry font.
 parser.add_argument("--windows", action = "store_true", help = "adjust so px % 4 != 2")
+
+parser.add_argument("--no-sfnt-names", action = "store_true", help = "omit SFNT names")
+parser.add_argument("--subfamily", help = "e.g., 'Bold Italic'")
+parser.add_argument("--unique-id")
+
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
