@@ -6,6 +6,8 @@ import re
 import sys
 import math
 
+# https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
+# https://spencermortensen.com/articles/bezier-circle/
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
 class BitmapFont2TTF:
@@ -17,6 +19,14 @@ class BitmapFont2TTF:
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
         self.bdf = MyBDF(self.filename)
+        if self.args.bdf_ascent_descent_2:
+            if self.args.windows:
+                if self.bdf.properties["pixelSize"] % 4 == 2:
+                    self.bdf.properties["pixelSize"] += 1
+                    self.bdf.properties["descent"]   += 1
+            else:
+                self.bdf.properties["pixelSize"] += self.args.add_pixel_size
+                self.bdf.properties["descent"]   += self.args.add_pixel_size
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
@@ -60,30 +70,53 @@ class BitmapFont2TTF:
             if self.setPanose8 is not None: panose[8] = self.setPanose8
             if self.setPanose9 is not None: panose[9] = self.setPanose9
             self.font.os2_panose = tuple(panose)
-
+        if self.setPSFontName != None:
+            self.font.fontname = self.setPSFontName
+        if self.setFullName != None:
+            self.font.fullname = self.setFullName
+        if self.setFamilyName != None:
+            self.font.familyname = self.setFamilyName
+        if self.setWeightName != None:
+            # BDF weight names are "Ultra Light", "Extra Light", "Light",
+            # and "Semi Light".  Weight Names would be "Medium" for the
+            # normal weight, or "Extra-Light" for all the others.
+            #
+            # Removing the spaces from the BDF weight names does not solve
+            # this.  Setting self.font.weight doesn't fix it either.
+            # --os2-weight fixes this.
+            self.font.weight = self.setWeightName
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
         if self.italicAngle != None:
             self.font.italicangle = self.italicAngle
         elif self.italicizeAngle != None:
             self.font.italicangle = self.italicizeAngle
+        if self.copyright != None:
+            self.font.copyright = self.copyright
 
-        if self.familyName != None:
-            self.font.familyname = self.familyName
-        if self.fontName != None:
-            self.font.fontname = self.fontName
-        if self.fullName != None:
-            self.font.fullname = self.fullName
+        if not self.noSfntNames:
+            self.font.sfntRevision = 0x00010000
+            self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
+            self.font.appendSFNTName("English (US)", "Family", self.font.familyname) # [1]
+            if self.subfamily != None:
+                self.font.appendSFNTName("English (US)", "SubFamily", self.subfamily) # [2] FIXME: else autogenerate
+            if self.uniqueId != None:
+                self.font.appendSFNTName("English (US)", "UniqueID", self.uniqueId) # [3]
+            else:
+                self.font.appendSFNTName("English (US)", "UniqueID", self.font.familyname + " 2024") # FIXME [3]
+            self.font.appendSFNTName("English (US)", "Fullname", self.font.fullname) # [4]
+            self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
+            self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
+            print("sfnt_names: %s" % repr(self.font.sfnt_names))
 
-        # BDF weight names are "Ultra Light", "Extra Light", "Light",
-        # and "Semi Light".  Weight Names would be "Medium" for the
-        # normal weight, or "Extra-Light" for all the others.
-        #
-        # Removing the spaces from the BDF weight names does not solve
-        # this.  Setting self.font.weight doesn't fix it either.
-        # --os2-weight fixes this.
-        if self.weightName != None:
-            self.font.weight = self.weightName
+        self.font.os2_fstype = 0x0040
+
+        # os2_family_class?
+        # os2_family_class?
+        # os2_vendor?
+        # set any bits in the stylemap?
+        # set no bits?
+        # fstype?
 
         # self.f800()
         self.save()
@@ -123,6 +156,8 @@ class BitmapFont2TTF:
                 self.font.generate(dest)
 
     def setArgs(self, args):
+        self.args = args
+
         self.filename              = args.filename
         self.destfilenames         = args.destfilenames
         self.dotWidth              = args.dot_width
@@ -156,6 +191,10 @@ class BitmapFont2TTF:
                                       args.panose_7 is not None or
                                       args.panose_8 is not None or
                                       args.panose_9 is not None)
+        self.setWeightName         = args.weight_name
+        self.setPSFontName         = args.ps_font_name
+        self.setFullName           = args.full_name
+        self.setFamilyName         = args.family_name
         self.setOS2Weight          = args.os2_weight
 
         self.italicizeAngle           = args.italicize_angle
@@ -163,19 +202,16 @@ class BitmapFont2TTF:
         self.italicizeSlant           = args.italicize_slant
         self.italicAngle              = args.italic_angle
 
-        self.fullName                 = args.full_name # fullname
-        self.fontName                 = args.font_name # fontname
-        self.familyName               = args.family_name # familyname
-        self.weightName               = args.weight_name # weight (PostScript weight string)
+        self.copyright               = args.copyright
+        self.noSfntNames             = args.no_sfnt_names
+        self.subfamily               = args.subfamily
+        self.uniqueId                = args.unique_id
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
         # self.newPixelSize          = args.new_pixel_size
         # self.fontName              = args.font_name
-        # self.familyName            = args.family_name
-        # self.copyright             = args.copyright
         # self.comment               = args.comment
-        # self.fullName              = args.full_name
         # self.version               = args.version
         # self.weight                = args.weight
         # self.panose2               = args.panose2

@@ -12,6 +12,7 @@ from bitmapfont2ttf import BitmapFont2TTF
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 
+<<<<<<< HEAD
 parser.add_argument("-m", "--family-name",                 help = "assign family name, e.g., 'Times New Roman'")
 parser.add_argument("-f", "--font-name", "--ps-font-name", help = "assign font name, e.g., 'TimesNewRomanPSMT', 'TimesNewRomanPS-BoldItalicMT'")
 parser.add_argument("-F", "--full-name",                   help = "assign full name, e.g., 'Times New Roman Bold Italic'")
@@ -19,6 +20,11 @@ parser.add_argument("-w", "--weight-name", "--weight",     help = "assign font w
 
 # parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
 # parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
+=======
+parser.add_argument("--copyright",    help = "assign copyright holder and date, e.g., 'Copyright (c) 2020 Darren Embry'")
+# parser.add_argument("--comment",      help = "assign comment string, e.g., '2020-01-01'")
+# parser.add_argument("--font-name",    help = "assign font name, e.g., 'ComicSans-BoldItalic'")
+>>>>>>> 1677b3df26eb738925d9bc655432428ea4fd9eb3
 # parser.add_argument("--version",      help = "assign version, e.g., '001.000'")
 
 # parser.add_argument("--italic-angle", type = float, default = 0.0, help = "assign font italic angle, e.g., -22.5")
@@ -41,10 +47,19 @@ parser.add_argument("--top", type = float, default = 1.0, help = "proportion of 
 
 parser.add_argument("--monospace", action = 'store_true')
 parser.add_argument("--bdf-ascent-descent", action = "store_true")
+parser.add_argument("--bdf-ascent-descent-2", action = "store_true")
 parser.add_argument("--remove-line-gap", action = "store_true", help = "remove line gap from font metrics")
 parser.add_argument("--remove-ascent-add", action = "store_true")
 parser.add_argument("--all-ascent-descent", action = "store_true")
 
+<<<<<<< HEAD
+=======
+parser.add_argument("--ps-font-name", "--font-name", help = "e.g., ComicSans-BoldItalic, ComicSans")
+parser.add_argument("--family-name",  help = "assign family name, e.g., 'Comic Sans'")
+parser.add_argument("--full-name",    help = "assign full name, e.g., 'Comic Sans Bold Italic'")
+
+parser.add_argument("-w", "--weight-name", help = "e.g., 'Semi Light', 'Bold'")
+>>>>>>> 1677b3df26eb738925d9bc655432428ea4fd9eb3
 parser.add_argument("--os2-weight", type = int, help = "100 .. 900")
 
 parser.add_argument("--panose-0", type = int, help = "family kind, for latin text")
@@ -59,13 +74,10 @@ parser.add_argument("--panose-8", type = int, help = "midline")
 parser.add_argument("--panose-9", type = int, help = "x-height --- see https://bit.ly/panose")
 
 # parser.add_argument("--fix-ascent-descent", action = "store_true")
-
 # parser.add_argument("--panose2", type = int)
 # parser.add_argument("--os2-weight", type = int)
-
 # parser.add_argument("--no-guess", action = 'store_true')
 # parser.add_argument("--guess-type-2", action = 'store_true')
-
 # parser.add_argument("--line-gap", type = int)
 # parser.add_argument("--fix-weight", action = "store_true")
 # parser.add_argument("--fix-style-map", action = "store_true")
@@ -77,6 +89,18 @@ group.add_argument("--italic-angle", type = float, help = "in degrees, typically
 group.add_argument("--italicize-angle", type = float, help = "in degrees, typically negative")
 group.add_argument("--italicize-slant", type = float, help = "in pixels, typically negative")
 parser.add_argument("--italicize-center", type = int, default = 0, help = "in pixels above baseline")
+
+parser.add_argument("--add-pixel-size", type = int, default = 0)
+
+# For pixel sizes 6, 10, 14, etc., there is no point size you can
+# specify in Windows, manually or from the dropdown, that will show an
+# un-blurry font.
+parser.add_argument("--windows", action = "store_true", help = "adjust so px % 4 != 2")
+
+parser.add_argument("--no-sfnt-names", action = "store_true", help = "omit SFNT names")
+parser.add_argument("--subfamily", help = "e.g., 'Bold Italic'")
+parser.add_argument("--unique-id")
+
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
