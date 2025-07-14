@@ -70,12 +70,22 @@ class BitmapFont2TTF:
             if self.setPanose8 is not None: panose[8] = self.setPanose8
             if self.setPanose9 is not None: panose[9] = self.setPanose9
             self.font.os2_panose = tuple(panose)
+
         if self.setPSFontName != None:
             self.font.fontname = self.setPSFontName
+        elif self.bdf.psFontName != None:
+            self.font.fontname = self.bdf.psFontName
+
         if self.setFullName != None:
             self.font.fullname = self.setFullName
+        elif self.bdf.properties["fullName"] != None:
+            self.font.fullname = self.bdf.properties["fullName"]
+
         if self.setFamilyName != None:
             self.font.familyname = self.setFamilyName
+        elif self.bdf.properties["familyName"] != None:
+            self.font.familyname = self.bdf.properties["familyName"]
+
         if self.setWeightName != None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
@@ -85,6 +95,9 @@ class BitmapFont2TTF:
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
             self.font.weight = self.setWeightName
+        elif self.bdf.properties["weightName"] != None:
+            self.font.weight = self.bdf.properties["weightName"]
+
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
         if self.italicAngle != None:
