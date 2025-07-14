@@ -100,10 +100,20 @@ class BitmapFont2TTF:
 
         if self.setOS2Weight != None:
             self.font.os2_weight = self.setOS2Weight
+
         if self.italicAngle != None:
             self.font.italicangle = self.italicAngle
         elif self.italicizeAngle != None:
             self.font.italicangle = self.italicizeAngle
+        elif self.bdf.properties["slant"] != None:
+            slant = self.bdf.properties["slant"].upper()
+            if slant == "R":
+                self.font.italicangle = 0
+            elif slant == "O":
+                self.font.italicangle = -12
+            elif slant == "I":
+                self.font.italicangle = -12
+
         if self.copyright != None:
             self.font.copyright = self.copyright
 
