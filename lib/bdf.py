@@ -4,6 +4,9 @@ from bdfchar import BDFChar
 
 class BDF:
     def __init__(self, filename = None):
+
+        self.psFontName = None  # FONT (font.fontname)
+
         # SIZE
         self.pointSize = None
         self.xRes = None
@@ -47,6 +50,13 @@ class BDF:
         self.properties["ascent"] = None         # FONT_ASCENT
         self.properties["descent"] = None        # FONT_DESCENT
         self.properties["averageWidth10"] = None # AVERAGE_WIDTH
+        self.properties["setWidthName"] = None   # SETWIDTH_NAME
+        self.properties["familyName"] = None     # FAMILY_NAME (font.familyname)
+        self.properties["weightName"] = None     # WEIGHT_NAME (font.weight)
+        self.properties["foundry"] = None        # FOUNDRY
+        self.properties["slant"] = None          # SLANT ("R" or "I" or "O") [font.italicAngle]
+        self.properties["faceName"] = None       # FACE_NAME
+        self.properties["fullName"] = None       # FULL_NAME (font.fullname)
 
         self.bdfProperties = {}
         self.bdfArrayProperties = {}
@@ -88,6 +98,8 @@ class BDF:
                 self.boundingBoxXOffset = int(args[2])
                 self.boundingBoxYOffset = int(args[3])
                 continue
+            if cmd == 'FONT' and len(args) >= 1:
+                self.psFontName = args[0]
             if cmd == 'METRICSSET' and len(args) >= 1:
                 self.metricsSet = int(args[0])
             if cmd == 'SWIDTH':
@@ -136,6 +148,22 @@ class BDF:
                 self.properties["descent"] = float(args[0])
             if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
                 self.properties["averageWidth10"] = float(args[0])
+            if cmd == 'SETWIDTH_NAME' and len(args) >= 1:
+                self.properties["setWidthName"] = args[0]
+            if cmd == 'FAMILY_NAME' and len(args) >= 1:
+                self.properties["familyName"] = args[0]
+            if cmd == 'WEIGHT_NAME' and len(args) >= 1:
+                self.properties["weightName"] = args[0]
+            if cmd == 'SPACING' and len(args) >= 1:
+                self.properties["spacing"] = args[0]
+            if cmd == 'FOUNDRY' and len(args) >= 1:
+                self.properties["foundry"] = args[0]
+            if cmd == 'SLANT' and len(args) >= 1:
+                self.properties["slant"] = args[0]
+            if cmd == 'FACE_NAME' and len(args) >= 1:
+                self.properties["faceName"] = args[0]
+            if cmd == 'FULL_NAME' and len(args) >= 1:
+                self.properties["fullName"] = args[0]
 
             result = bdfParseLine2(line)
             if result:
