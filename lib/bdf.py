@@ -5,7 +5,7 @@ from bdfchar import BDFChar
 class BDF:
     def __init__(self, filename = None):
 
-        self.psFontName = None  # FONT
+        self.psFontName = None  # FONT (font.fontname)
 
         # SIZE
         self.pointSize = None
@@ -51,12 +51,12 @@ class BDF:
         self.properties["descent"] = None        # FONT_DESCENT
         self.properties["averageWidth10"] = None # AVERAGE_WIDTH
         self.properties["setWidthName"] = None   # SETWIDTH_NAME
-        self.properties["familyName"] = None     # FAMILY_NAME
-        self.properties["weightName"] = None     # WEIGHT_NAME
+        self.properties["familyName"] = None     # FAMILY_NAME (font.familyname)
+        self.properties["weightName"] = None     # WEIGHT_NAME (font.weight)
         self.properties["foundry"] = None        # FOUNDRY
-        self.properties["slant"] = None          # SLANT ("R" or "I" or "O")
+        self.properties["slant"] = None          # SLANT ("R" or "I" or "O") [font.italicAngle]
         self.properties["faceName"] = None       # FACE_NAME
-        self.properties["fullName"] = None       # FULL_NAME
+        self.properties["fullName"] = None       # FULL_NAME (font.fullname)
 
         self.bdfProperties = {}
         self.bdfArrayProperties = {}
