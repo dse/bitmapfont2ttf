@@ -273,3 +273,5 @@ class BDFFont:
         return max(*[glyph.get_max_pixel_row() for glyph in self.glyphs])
     def get_min_pixel_row():
         return min(*[glyph.get_min_pixel_row() for glyph in self.glyphs])
+    def get_comments():
+        return [*self.comments] # copy
