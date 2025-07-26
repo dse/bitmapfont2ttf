@@ -247,3 +247,29 @@ class BDFFont:
             self.prop_font_descent = value
         elif keyword == "DEFAULT_CHAR":
             self.prop_default_char = value
+    def get_ascent(self):
+        if self.prop_font_ascent is not None:
+            return self.prop_font_ascent
+        ...
+    def get_descent(self):
+        if self.prop_font_descent is not None:
+            return self.prop_font_descent
+        ...
+    def get_pixel_size(self):
+        if self.prop_pixel_size is not None:
+            return self.prop_pixel_size
+        ...
+    def get_pixel_count(row):
+        count = 0
+        for glyph in self.glyphs:
+            count += glyph.get_pixel_count(row)
+        return count
+    def get_total_pixel_count():
+        count = 0
+        for glyph in self.glyphs:
+            count += glyph.get_total_pixel_count()
+        return count
+    def get_max_pixel_row():
+        return max(*[glyph.get_max_pixel_row() for glyph in self.glyphs])
+    def get_min_pixel_row():
+        return min(*[glyph.get_min_pixel_row() for glyph in self.glyphs])
