@@ -4,7 +4,7 @@ def bdf_quote(value):
     if type(value) == str:
         if value.find('"') >= 0 or re.match(r'\s', value):
             return '"' + value.replace('"', '""') + '"'
-    return value
+    return str(value)
 
 def ellipsis(value):
     if type(value) == str:

@@ -1,3 +1,6 @@
+from bdf_utils import bdf_quote
+import fontforge
+
 class BDFGlyph:
     def __init__(self):
         self.name = None
@@ -19,6 +22,8 @@ class BDFGlyph:
         self.vvector_y = None
         self.bitmap_data = []
         self.bdf_line_order = []
+        self.unknown_name_counter = 0
+        self.printed = {}
     def set_name(self, value):
         self.name = value
     def set_encoding(self, value):
@@ -88,7 +93,7 @@ class BDFGlyph:
         return self.encoding
     def get_alt_encoding(self):
         return self.alt_encoding if self.encoding < 0 else -1
-    def update_lines():
+    def update_lines(self):
         if self.encoding is not None:
             if self.alt_encoding is None or self.alt_encoding < 0:
                 self.encoding_line = "ENCODING %d" % self.encoding
@@ -109,10 +114,128 @@ class BDFGlyph:
         if self.vvector_x is not None:
             self.vvector_line = "VVECTOR %d %d" % (self.vvector_x, self.vvector_y)
     def get_pixel_count(row):
+        raw_row = self.y_to_raw_row(row)
+        if raw_row not in range(0, len(self.bitmap_data)):
+            return 0
+        return self.get_bitmap_row_pixel_count(self.bitmap_data[raw_row])
+    def get_bitmap_row_pixel_count(hex_data):
+        count = 0
+        for char in hex_data:
+            char = char.lower()
+            if char == '0':
+                count += 0
+            elif char in '1248':
+                count += 1
+            elif char in '3569ac':
+                count += 2
+            elif char in 'edb7':
+                count += 3
+            elif char == 'f':
+                count += 4
+            else:
+                raise Exception('invalid character in bitmap data')
+        return count
+    def get_total_pixel_count(self):
+        count = 0
+        for hex_data in self.bitmap_data:
+            count += self.get_bitmap_row_pixel_count(hex_data)
+        return count
+    def get_max_pixel_row(self):
         ...
-    def get_total_pixel_count():
+    def get_min_pixel_row(self):
         ...
-    def get_max_pixel_row():
+    def trace_to_fontforge_glyph(glyph):
         ...
-    def get_min_pixel_row():
-        ...
+    def y_to_raw_row(y):
+        return (self.get_bounding_box_y() -
+                self.get_bounding_box_offset_y() - 1 - y)
+    def raw_row_to_y(raw_row):
+        return (self.get_bounding_box_y() -
+                self.get_bounding_box_offset_y() - 1 - raw_row)
+    def as_string(self):
+        s = ""
+        s += self.startchar_line()
+        s += self.lines_in_order()
+        s += self.encoding_line()
+        s += self.bbx_line()
+        s += self.swidth_line()
+        s += self.dwidth_line()
+        s += self.swidth1_line()
+        s += self.dwidth1_line()
+        s += self.vvector_line()
+        s += self.bitmap_lines() # always at the end
+        s += self.endchar_line() # always at the end
+        return s
+    def startchar_line(self):
+        if self.name is not None:
+            return "STARTCHAR %s\n" % bdf_quote(self.name)
+        if self.encoding >= 0:
+            return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+        self.unknown_name_counter += 1
+        return "STARTCHAR unk%d" % self.unknown_name_counter
+    def encoding_line(self):
+        if self.was_printed("ENCODING"):
+            return ""
+        if self.alt_encoding is None:
+            return "ENCODING %d\n" % self.encoding
+        else:
+            return "ENCODING %d %d\n" % (self.encoding, self.alt_encoding)
+    def bbx_line(self):
+        if self.was_printed("BBX"):
+            return ""
+        if None not in [self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y]:
+            return "BBX %d %d %d %d\n" % (self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y)
+        return ""
+    def swidth_line(self):
+        if self.was_printed("SWIDTH"):
+            return ""
+        if None not in [self.swidth_x, self.swidth_y]:
+            return "SWIDTH %d %d\n" % (self.swidth_x, self.swidth_y)
+        return ""
+    def dwidth_line(self):
+        if self.was_printed("DWIDTH"):
+            return ""
+        if None not in [self.dwidth_x, self.dwidth_y]:
+            return "DWIDTH %d %d\n" % (self.dwidth_x, self.dwidth_y)
+        return ""
+    def swidth1_line(self):
+        if self.was_printed("SWIDTH1"):
+            return ""
+        if None not in [self.swidth1_x, self.swidth1_y]:
+            return "SWIDTH1 %d %d\n" % (self.swidth1_x, self.swidth1_y)
+        return ""
+    def dwidth1_line(self):
+        if self.was_printed("DWIDTH1"):
+            return ""
+        if None not in [self.dwidth1_x, self.dwidth1_y]:
+            return "DWIDTH1 %d %d\n" % (self.dwidth1_x, self.dwidth1_y)
+        return ""
+    def vvector_line(self):
+        if self.was_printed("VVECTOR"):
+            return ""
+        if None not in [self.vvector_x, self.vvector_y]:
+            return "VVECTOR %d %d\n" % (self.vvector_x, self.vvector_y)
+        return ""
+    def bitmap_lines(self):
+        if self.was_printed("BITMAP"):
+            return ""
+        s = ""
+        if len(self.bitmap_data):
+            s += "BITMAP\n"
+            for data in self.bitmap_data:
+                s += data + "\n"
+        return s
+    def endchar_line(self):
+        return "ENDCHAR\n"
+    def was_printed(self, type):
+        if self.printed[type] = True
+            return True
+        self.printed[type] = True
+        return False
+    def append_line_type(self, line_type, fn):
+        self.lines_in_order.append([line_type, fn])
+    def lines_in_order(self):
+        s = ""
+        for [line_type, fn] in self.lines_in_order:
+            s += fn()
+        return s

@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "lib"))
 import bdf_font
 import bdf_glyph
 from parse_bdf_line import parse_bdf_line
-from parse_bdf_utils import ellipsis
+from bdf_utils import ellipsis
 
 # https://adobe-type-tools.github.io/font-tech-notes/pdfs/5005.BDF_Spec.pdf
 # https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/XLFD/xlfd.html
@@ -147,34 +147,47 @@ class BDFParser:
             values = parse_params(params, BDF_ATTRIBUTE_TYPES[keyword])
         if keyword == "STARTFONT":
             self.font.set_bdf_version(*values)
+            self.font.append_line_type("STARTFONT", lambda: self.font.startfont_line())
         elif keyword == "COMMENT":
             self.font.append_comment(" ".join(values))
         elif keyword == "CONTENTVERSION":
             self.font.set_content_version(*values)
+            self.font.append_line_type("CONTENTVERSION", lambda: self.font.contentversion_line())
         elif keyword === "FONT":
             self.font.set_name(*values)
+            self.font.append_line_type("FONT", lambda: self.font.font_line())
         elif keyword == "SIZE":
             self.font.set_size(*values)
+            self.font.append_line_type("SIZE", lambda: self.font.size_line())
         elif keyword == "FONTBOUNDINGBOX":
             self.font.set_bounding_box(*values)
+            self.font.append_line_type("FONTBOUNDINGBOX", lambda: self.font.fontboundingbox_line())
         elif keyword == "METRICSSET":
             self.font.set_metrics_set(*values)
+            self.font.append_line_type("METRICSSET", lambda: self.font.metricsset_line())
         elif keyword == "SWIDTH":
             self.font.set_swidth(*values)
+            self.font.append_line_type("SWIDTH", lambda: self.font.swidth_line())
         elif keyword == "DWIDTH":
             self.font.set_dwidth(*values)
+            self.font.append_line_type("DWIDTH", lambda: self.font.dwidth_line())
         elif keyword == "SWIDTH1":
             self.font.set_swidth1(*values)
+            self.font.append_line_type("SWIDTH1", lambda: self.font.swidth1_line())
         elif keyword == "DWIDTH1":
             self.font.set_dwidth1(*values)
+            self.font.append_line_type("DWIDTH1", lambda: self.font.dwidth1_line())
         elif keyword == "VVECTOR":
             self.font.set_vvector(*values)
+            self.font.append_line_type("VVECTOR", lambda: self.font.dwidth1_line())
         elif keyword == "STARTPROPERTIES":
             self.font.set_nominal_property_count(*values)
             self.parse_stage = BDF_PARSE_STAGE_PROPERTIES
+            self.font.append_line_type("STARTPROPERTIES", lambda: self.font.dwidth1_line())
         elif keyword == "CHARS":
             self.font.set_nominal_glyph_count(*values)
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA_SECTION
+            self.font.append_line_type("CHARS", lambda: self.font.dwidth1_line())
         else:
             raise Exception("invalid keyword at line %d: %s" %
                             (self.line_number, keyword))
@@ -204,20 +217,28 @@ class BDFParser:
             [encoding, alt_encoding] = values
             self.glyph.set_encoding(encoding)
             self.glyph.set_alt_encoding(alt_encoding)
+            self.glyph.append_line_type("ENCODING", lambda: self.glyph.encoding_line())
         elif keyword == "SWIDTH":
             self.glyph.set_swidth(*values)
+            self.glyph.append_line_type("SWIDTH", lambda: self.glyph.swidth_line())
         elif keyword == "DWIDTH":
             self.glyph.set_dwidth(*values)
+            self.glyph.append_line_type("DWIDTH", lambda: self.glyph.dwidth_line())
         elif keyword == "SWIDTH1":
             self.glyph.set_swidth1(*values)
+            self.glyph.append_line_type("SWIDTH1", lambda: self.glyph.swidth1_line())
         elif keyword == "DWIDTH1":
             self.glyph.set_dwidth1(*values)
+            self.glyph.append_line_type("DWIDTH1", lambda: self.glyph.dwidth1_line())
         elif keyword == "VVECTOR":
             self.glyph.set_vvector(*values)
+            self.glyph.append_line_type("VVECTOR", lambda: self.glyph.vvector_line())
         elif keyword == "BBX":
             self.glyph.set_bounding_box(*values)
+            self.glyph.append_line_type("BBX", lambda: self.glyph.bbx_line())
         elif keyword == "BITMAP":
             self.parse_stage = BDF_PARSE_STAGE_BITMAP
+            self.glyph.append_line_type("BITMAP", lambda: self.glyph.bitmap_line())
         else:
             raise Exception("invalid keyword on line %d: %s" %
                             (self.line_number, keyword))

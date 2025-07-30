@@ -1,3 +1,5 @@
+from bdf_utils import bdf_quote
+
 class BDFFont:
     def __init__(self):
         self.bdf_version = None
@@ -23,8 +25,9 @@ class BDFFont:
         self.nominal_glyph_count = None    # saith the "CHARS" line
         self.nominal_property_count = None # saith the "STARTPROPERTIES" line
         self.properties = {}
-        self.glyphs = []
+        self.bdf_glyphs = []
         self.init_properties()
+        self.lines_in_order = []
     def set_bdf_version(self, value):
         self.bdf_version = value
     def append_comment(self, value):
@@ -70,7 +73,7 @@ class BDFFont:
     def set_property(self, name, value):
         self.properties[name] = value
     def append_glyph(self, glyph):
-        self.glyphs.append(glyph)
+        self.bdf_glyphs.append(glyph)
     def init_properties(self):
         self.prop_foundry = None
         self.prop_family_name = None
@@ -261,17 +264,148 @@ class BDFFont:
         ...
     def get_pixel_count(row):
         count = 0
-        for glyph in self.glyphs:
+        for glyph in self.bdf_glyphs:
             count += glyph.get_pixel_count(row)
         return count
-    def get_total_pixel_count():
+    def get_total_pixel_count(self):
         count = 0
-        for glyph in self.glyphs:
+        for glyph in self.bdf_glyphs:
             count += glyph.get_total_pixel_count()
         return count
-    def get_max_pixel_row():
-        return max(*[glyph.get_max_pixel_row() for glyph in self.glyphs])
-    def get_min_pixel_row():
-        return min(*[glyph.get_min_pixel_row() for glyph in self.glyphs])
-    def get_comments():
+    def get_max_pixel_row(self):
+        return max(*[glyph.get_max_pixel_row() for glyph in self.bdf_glyphs])
+    def get_min_pixel_row(self):
+        return min(*[glyph.get_min_pixel_row() for glyph in self.bdf_glyphs])
+    def get_comments(self):
         return [*self.comments] # copy
+    def as_string(self):
+        s = ""
+        s += self.startfont_line()
+        s += self.lines_in_order()
+        s += self.comment_lines() # TODO: in order
+        s += self.contentversion_line()
+        s += self.font_line()
+        s += self.size_line()
+        s += self.fontboundingbox_line()
+        s += self.metricsset_line()
+        s += self.swidth_line()
+        s += self.dwidth_line()
+        s += self.swidth1_line()
+        s += self.dwidth1_line()
+        s += self.vvector_line()
+        s += self.properties_lines() # TODO: in order
+        s += self.glyphs_lines()
+        s += self.endfont_line()
+        return s
+    def startfont_line(self):
+        s = ""
+        if self.bdf_version is not None:
+            return "STARTFONT %f\n" % self.bdf_version
+        return "STARTFONT %f\n" % 2.2
+    def comment_lines(self):
+        if self.was_printed("COMMENT"):
+            return ""
+        s = ""
+        for c in self.get_comments():
+            s += "CONTENT %s\n" % bdf_quote(c)
+        return s
+    def contentversion_line(self):
+        if self.was_printed("CONTENTVERSION"):
+            return ""
+        if self.content_version is not None:
+            return "CONTENVERSION %s\n" % self.content_version
+        return ""
+    def font_line(self):
+        if self.was_printed("FONT"):
+            return ""
+        if self.font_name is not None:
+            return "FONT %s\n" % self.font_name
+        return ""
+    def size_line(self):
+        if self.was_printed("SIZE"):
+            return ""
+        if None not in [self.point_size, self.res_x, self.res_y]:
+            return "SIZE %d %d %d\n" % (self.point_size, self.res_x, self.res_y)
+        return ""
+    def fontboundingbox_line(self):
+        if self.was_printed("FONTBOUNDINGBOX"):
+            return ""
+        if None not in [self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y]:
+            return "FONTBOUNDINGBOX %d %d %d %d\n" % (self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y)
+        return ""
+    def metricsset_line(self):
+        if self.was_printed("METRICSSET"):
+            return ""
+        if self.metrics_set is not None:
+            return "METRICSSET %d\n" % self.metrics_set
+        return ""
+    def swidth_line(self):
+        if self.was_printed("SWIDTH"):
+            return ""
+        if None not in [self.swidth_x, self.swidth_y]:
+            return "SWIDTH %d %d\n" % (self.swidth_x, self.swidth_y)
+        return ""
+    def dwidth_line(self):
+        if self.was_printed("DWIDTH"):
+            return ""
+        if None not in [self.dwidth_x, self.dwidth_y]:
+            return "DWIDTH %d %d\n" % (self.dwidth_x, self.dwidth_y)
+        return ""
+    def swidth1_line(self):
+        if self.was_printed("SWIDTH1"):
+            return ""
+        if None not in [self.swidth1_x, self.swidth1_y]:
+            return "SWIDTH1 %d %d\n" % (self.swidth1_x, self.swidth1_y)
+        return ""
+    def dwidth1_line(self):
+        if self.was_printed("DWIDTH1"):
+            return ""
+        if None not in [self.dwidth1_x, self.dwidth1_y]:
+            return "DWIDTH1 %d %d\n" % (self.dwidth1_x, self.dwidth1_y)
+        return ""
+    def vvector_line(self):
+        if self.was_printed("VVECTOR"):
+            return ""
+        if None not in [self.vvector_x, self.vvector_y]:
+            return "VVECTOR %d %d\n" % (self.vvector_x, self.vvector_y)
+        return ""
+    def properties_lines(self):
+        if self.was_printed("STARTPROPERTIES"):
+            return ""
+        s = ""
+        if len(self.properties):
+            s += "STARTPROPERTIES %d\n" % len(self.properties)
+            for (key, value) in self.properties:
+                print("%s %s\n" % (key, bdf_quote(value)))
+            s += "ENDPROPERTIES\n"
+        return s
+    def glyphs_lines(self):
+        if self.was_printed("CHARS"):
+            return ""
+        s = ""
+        if len(self.bdf_glyphs):
+            s += "CHARS %d\n" % len(self.bdf_glyphs)
+            for bdf_glyph in self.bdf_glyphs:
+                s += bdf_glyph.as_string()
+        return s
+    def endfont_line(self):
+        return "ENDFONT\n"
+    def was_printed(self, line_type):
+        if self.printed[line_type] = True
+            return True
+        self.printed[line_type] = True
+        return False
+    def append_line_type(self, line_type, fn):
+        self.lines_in_order.append([line_type, fn])
+    def lines_in_order(self):
+        s = ""
+        for [line_type, fn] in self.lines_in_order:
+            s += fn()
+        return s
+    def append_line_type(self, line_type, fn):
+        self.lines_in_order.append([line_type, fn])
+    def lines_in_order(self):
+        s = ""
+        for [line_type, fn] in self.lines_in_order:
+            s += fn()
+        return s
