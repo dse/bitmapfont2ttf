@@ -1,3 +1,7 @@
+import os, sys
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(__file__))
+
 class BDFToFont:
     def convert_to_sfd(bdf_font):
         font = fontforge.font()

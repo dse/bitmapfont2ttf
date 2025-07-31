@@ -1,4 +1,6 @@
-import re
+import os, sys, re
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(__file__))
 
 def parse_bdf_line(line):
     words = []

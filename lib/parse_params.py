@@ -1,3 +1,7 @@
+import os, sys
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(__file__))
+
 def parse_params(params, param_types, is_rest_params=False):
     values = []
     rest_params = None

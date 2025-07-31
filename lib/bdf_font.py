@@ -1,3 +1,7 @@
+import os, sys
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(__file__))
+
 from bdf_utils import bdf_quote
 
 class BDFFont:
