@@ -75,6 +75,7 @@ class BDFFont:
     def set_nominal_property_count(self, value):
         self.nominal_property_count = value
     def set_property(self, name, value):
+        console.log('[A] ' + name)
         self.properties[name] = value
     def append_glyph(self, glyph):
         self.bdf_glyphs.append(glyph)
@@ -138,121 +139,121 @@ class BDFFont:
     def set_property(self, name, value):
         name = name.upper()
         self.properties[name] = value
-        if keyword == "FOUNDRY":
+        if name == "FOUNDRY":
             self.prop_foundry = value
-        elif keyword == "FAMILY_NAME":
+        elif name == "FAMILY_NAME":
             self.prop_family_name = value
-        elif keyword == "WEIGHT_NAME":
+        elif name == "WEIGHT_NAME":
             self.prop_weight_name = value
-        elif keyword == "SLANT":
+        elif name == "SLANT":
             self.prop_slant = value
             if value not in ["R", "I", "O", "RI", "RO", "OT"]:
                 raise Exception("invalid SLANT property value")
-        elif keyword == "SETWIDTH_NAME":
+        elif name == "SETWIDTH_NAME":
             self.prop_setwidth_name = value
-        elif keyword == "ADD_STYLE_NAME":
+        elif name == "ADD_STYLE_NAME":
             self.prop_add_style_name = value
-        elif keyword == "PIXEL_SIZE":
+        elif name == "PIXEL_SIZE":
             self.prop_pixel_size = value
-        elif keyword == "POINT_SIZE":
+        elif name == "POINT_SIZE":
             self.prop_point_size = value
-        elif keyword == "RESOLUTION_X":
+        elif name == "RESOLUTION_X":
             self.prop_resolution_x = value
-        elif keyword == "RESOLUTION_Y":
+        elif name == "RESOLUTION_Y":
             self.prop_resolution_y = value
-        elif keyword == "SPACING":
+        elif name == "SPACING":
             self.prop_spacing = value
             if self.prop_spacing not in ["P", "M", "C"]:
                 raise Exception("invalid SPACING property value")
-        elif keyword == "AVERAGE_WIDTH":
+        elif name == "AVERAGE_WIDTH":
             self.prop_average_width = value
-        elif keyword == "CHARSET_REGISTRY":
+        elif name == "CHARSET_REGISTRY":
             self.prop_charset_registry = value
-        elif keyword == "CHARSET_ENCODING":
+        elif name == "CHARSET_ENCODING":
             self.prop_charset_encoding = value
-        elif keyword == "MIN_SPACE":
+        elif name == "MIN_SPACE":
             self.prop_min_space = value
-        elif keyword == "NORM_SPACE":
+        elif name == "NORM_SPACE":
             self.prop_norm_space = value
-        elif keyword == "MAX_SPACE":
+        elif name == "MAX_SPACE":
             self.prop_max_space = value
-        elif keyword == "END_SPACE":
+        elif name == "END_SPACE":
             self.prop_end_space = value
-        elif keyword == "AVG_CAPITAL_WIDTH":
+        elif name == "AVG_CAPITAL_WIDTH":
             self.prop_avg_capital_width = value
-        elif keyword == "AVG_LOWERCASE_WIDTH":
+        elif name == "AVG_LOWERCASE_WIDTH":
             self.prop_avg_lowercase_width = value
-        elif keyword == "QUAD_WIDTH":
+        elif name == "QUAD_WIDTH":
             self.prop_quad_width = value
-        elif keyword == "FIGURE_WIDTH":
+        elif name == "FIGURE_WIDTH":
             self.prop_figure_width = value
-        elif keyword == "SUPERSCRIPT_X":
+        elif name == "SUPERSCRIPT_X":
             self.prop_superscript_x = value
-        elif keyword == "SUPERSCRIPT_Y":
+        elif name == "SUPERSCRIPT_Y":
             self.prop_superscript_y = value
-        elif keyword == "SUBSCRIPT_X":
+        elif name == "SUBSCRIPT_X":
             self.prop_subscript_x = value
-        elif keyword == "SUBSCRIPT_Y":
+        elif name == "SUBSCRIPT_Y":
             self.prop_subscript_y = value
-        elif keyword == "SUPERSCRIPT_SIZE":
+        elif name == "SUPERSCRIPT_SIZE":
             self.prop_superscript_size = value
-        elif keyword == "SUBSCRIPT_SIZE":
+        elif name == "SUBSCRIPT_SIZE":
             self.prop_subscript_size = value
-        elif keyword == "SMALL_CAP_SIZE":
+        elif name == "SMALL_CAP_SIZE":
             self.prop_small_cap_size = value
-        elif keyword == "UNDERLINE_POSITION":
+        elif name == "UNDERLINE_POSITION":
             self.prop_underline_position = value
-        elif keyword == "UNDERLINE_THICKNESS":
+        elif name == "UNDERLINE_THICKNESS":
             self.prop_underline_thickness = value
-        elif keyword == "STRIKEOUT_ASCENT":
+        elif name == "STRIKEOUT_ASCENT":
             self.prop_strikeout_ascent = value
-        elif keyword == "STRIKEOUT_DESCENT":
+        elif name == "STRIKEOUT_DESCENT":
             self.prop_strikeout_descent = value
-        elif keyword == "ITALIC_ANGLE":
+        elif name == "ITALIC_ANGLE":
             self.prop_italic_angle = value
-        elif keyword == "CAP_HEIGHT":
+        elif name == "CAP_HEIGHT":
             self.prop_cap_height = value
-        elif keyword == "X_HEIGHT":
+        elif name == "X_HEIGHT":
             self.prop_x_height = value
-        elif keyword == "RELATIVE_SETWIDTH":
+        elif name == "RELATIVE_SETWIDTH":
             self.prop_relative_setwidth = value
-        elif keyword == "RELATIVE_WEIGHT":
+        elif name == "RELATIVE_WEIGHT":
             self.prop_relative_weight = value
-        elif keyword == "RESOLUTION":
+        elif name == "RESOLUTION":
             self.prop_resolution = value
-        elif keyword == "RESOLUTION_X":
+        elif name == "RESOLUTION_X":
             self.prop_resolution_x = value
-        elif keyword == "RESOLUTION_Y":
+        elif name == "RESOLUTION_Y":
             self.prop_resolution_y = value
-        elif keyword == "FONT":
+        elif name == "FONT":
             self.prop_font = value
-        elif keyword == "FACE_NAME":
+        elif name == "FACE_NAME":
             self.prop_face_name = value
-        elif keyword == "FULL_NAME":
+        elif name == "FULL_NAME":
             self.prop_full_name = value
-        elif keyword == "COPYRIGHT":
+        elif name == "COPYRIGHT":
             self.prop_copyright = value
-        elif keyword == "NOTICE":
+        elif name == "NOTICE":
             self.prop_notice = value
-        elif keyword == "DESTINATION":
+        elif name == "DESTINATION":
             self.prop_destination = value
-        elif keyword == "FONT_TYPE":
+        elif name == "FONT_TYPE":
             self.prop_font_type = value
-        elif keyword == "FONT_VERSION":
+        elif name == "FONT_VERSION":
             self.prop_font_version = value
-        elif keyword == "RASTERIZER_NAME":
+        elif name == "RASTERIZER_NAME":
             self.prop_rasterizer_name = value
-        elif keyword == "RASTERIZER_VERSION":
+        elif name == "RASTERIZER_VERSION":
             self.prop_rasterizer_version = value
-        elif keyword == "RAW_ASCENT":
+        elif name == "RAW_ASCENT":
             self.prop_raw_ascent = value
-        elif keyword == "RAW_DESCENT":
+        elif name == "RAW_DESCENT":
             self.prop_raw_descent = value
-        elif keyword == "FONT_ASCENT":
+        elif name == "FONT_ASCENT":
             self.prop_font_ascent = value
-        elif keyword == "FONT_DESCENT":
+        elif name == "FONT_DESCENT":
             self.prop_font_descent = value
-        elif keyword == "DEFAULT_CHAR":
+        elif name == "DEFAULT_CHAR":
             self.prop_default_char = value
     def get_ascent(self):
         if self.prop_font_ascent is not None:
@@ -395,7 +396,7 @@ class BDFFont:
     def endfont_line(self):
         return "ENDFONT\n"
     def was_printed(self, line_type):
-        if self.printed[line_type] = True
+        if self.printed[line_type]:
             return True
         self.printed[line_type] = True
         return False

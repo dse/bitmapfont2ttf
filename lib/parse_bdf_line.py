@@ -14,8 +14,8 @@ def parse_bdf_line(line):
         word = ""
         while True:
             if match := re.match('[^"\s]+', line):
-                line = line[match:end():]
-                word += match
+                line = line[match.end():]
+                word += match[0]
                 pos += match.end()
             elif match := re.match('"((?:[^"]+|"")*)"', line):
                 line = line[match.end():]

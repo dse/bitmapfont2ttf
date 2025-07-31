@@ -2,10 +2,11 @@ import os, sys, re
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(__file__))
 
-import bdf_font
-import bdf_glyph
+from bdf_font import BDFFont
+from bdf_glyph import BDFGlyph
 from parse_bdf_line import parse_bdf_line
 from bdf_utils import ellipsis
+from parse_params import parse_params
 
 # https://adobe-type-tools.github.io/font-tech-notes/pdfs/5005.BDF_Spec.pdf
 # https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/XLFD/xlfd.html
@@ -19,7 +20,7 @@ BDF_PARSE_STAGE_END_OF_FONT = 5
 
 BDF_ATTRIBUTE_TYPES = {
     "STARTFONT":           [float],
-    "COMMENT":             [str],
+    # "COMMENT":             [...],
     "CONTENTVERSION":      [int],
     "FONT":                [str],
     "SIZE":                [int, int, int],
@@ -56,7 +57,7 @@ BDF_PROPERTY_TYPES = {
     "POINT_SIZE":          [int],
     "RESOLUTION_X":        [int],
     "RESOLUTION_Y":        [int],
-    "SPACING":             [int],
+    "SPACING":             [str],
     "AVERAGE_WIDTH":       [int],
     "CHARSET_REGISTRY":    [str],
     "CHARSET_ENCODING":    [str],
@@ -117,6 +118,7 @@ class BDFParser:
             return
         [keyword, *params] = split_line
         keyword = keyword.upper()
+        print(keyword)
         if self.parse_stage == BDF_PARSE_STAGE_FONT:
             self.parse_line_stage_font(keyword, params)
         elif self.parse_stage == BDF_PARSE_STAGE_PROPERTIES:
@@ -131,7 +133,7 @@ class BDFParser:
             return
         # invalid parse stage; not handling at this time
 
-    def parse_line_stage_bitmap(keyword, params): # params ignored
+    def parse_line_stage_bitmap(self, keyword, params): # params ignored
         if keyword == "ENDCHAR":
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA_SECTION
         elif match := re.fullmatch('[0-9A-Fa-f]+', keyword):
@@ -139,11 +141,13 @@ class BDFParser:
         else:
             raise Exception("invalid bitmap data")
 
-    def parse_line_stage_font(keyword, params):
+    def parse_line_stage_font(self, keyword, params):
         values = None
         value = None
         if keyword in BDF_ATTRIBUTE_TYPES:
             values = parse_params(params, BDF_ATTRIBUTE_TYPES[keyword])
+        else:
+            values = parse_params(params, [...])
         if keyword == "STARTFONT":
             self.font.set_bdf_version(*values)
             self.font.append_line_type("STARTFONT", lambda: self.font.startfont_line())
@@ -152,8 +156,8 @@ class BDFParser:
         elif keyword == "CONTENTVERSION":
             self.font.set_content_version(*values)
             self.font.append_line_type("CONTENTVERSION", lambda: self.font.contentversion_line())
-        elif keyword === "FONT":
-            self.font.set_name(*values)
+        elif keyword == "FONT":
+            self.font.set_font_name(*values)
             self.font.append_line_type("FONT", lambda: self.font.font_line())
         elif keyword == "SIZE":
             self.font.set_size(*values)
@@ -191,7 +195,7 @@ class BDFParser:
             raise Exception("invalid keyword at line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_glyph_data_section(keyword, params):
+    def parse_line_stage_glyph_data_section(self, keyword, params):
         if keyword == "STARTCHAR":
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA
             self.parse_line_stage_glyph_data(keyword, params)
@@ -202,7 +206,7 @@ class BDFParser:
             raise Exception("invalid keyword at line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_glyph_data(keyword, params):
+    def parse_line_stage_glyph_data(self, keyword, params):
         values = None
         if keyword in BDF_GLYPH_ATTRIBUTE_TYPES:
             values = parse_params(params, BDF_GLYPH_ATTRIBUTE_TYPES[keyword])
@@ -213,7 +217,11 @@ class BDFParser:
             self.font.append_glyph(self.glyph)
             self.glyph.set_name(*values)
         elif keyword == "ENCODING":
-            [encoding, alt_encoding] = values
+            if len(values) == 2:
+                [encoding, alt_encoding] = values
+            else:
+                [encoding] = values
+                alt_encoding = None
             self.glyph.set_encoding(encoding)
             self.glyph.set_alt_encoding(alt_encoding)
             self.glyph.append_line_type("ENCODING", lambda: self.glyph.encoding_line())
@@ -242,14 +250,16 @@ class BDFParser:
             raise Exception("invalid keyword on line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_properties(keyword, params):
+    def parse_line_stage_properties(self, keyword, params):
         if keyword in BDF_PROPERTY_TYPES:
             values = parse_params(params, BDF_PROPERTY_TYPES[keyword])
         else:
             values = params
+            print(values)
         if keyword == "ENDPROPERTIES":
             self.parse_stage = BDF_PARSE_STAGE_FONT
             return
+        print(keyword, *values)
         self.font.set_property(keyword, *values)
 
 def parse_param(param, param_type):

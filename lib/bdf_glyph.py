@@ -231,7 +231,7 @@ class BDFGlyph:
     def endchar_line(self):
         return "ENDCHAR\n"
     def was_printed(self, type):
-        if self.printed[type] = True
+        if self.printed[type]:
             return True
         self.printed[type] = True
         return False
