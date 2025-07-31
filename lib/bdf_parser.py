@@ -118,7 +118,7 @@ class BDFParser:
             return
         [keyword, *params] = split_line
         keyword = keyword.upper()
-        print(keyword)
+        # print(keyword)
         if self.parse_stage == BDF_PARSE_STAGE_FONT:
             self.parse_line_stage_font(keyword, params)
         elif self.parse_stage == BDF_PARSE_STAGE_PROPERTIES:
@@ -137,7 +137,7 @@ class BDFParser:
         if keyword == "ENDCHAR":
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA_SECTION
         elif match := re.fullmatch('[0-9A-Fa-f]+', keyword):
-            self.glyph.append_data(keyword)
+            self.glyph.append_bitmap_data(keyword)
         else:
             raise Exception("invalid bitmap data")
 
@@ -255,11 +255,11 @@ class BDFParser:
             values = parse_params(params, BDF_PROPERTY_TYPES[keyword])
         else:
             values = params
-            print(values)
+            # print(values)
         if keyword == "ENDPROPERTIES":
             self.parse_stage = BDF_PARSE_STAGE_FONT
             return
-        print(keyword, *values)
+        # print(keyword, *values)
         self.font.set_property(keyword, *values)
 
 def parse_param(param, param_type):

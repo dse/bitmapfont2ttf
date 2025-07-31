@@ -286,7 +286,7 @@ class BDFFont:
     def as_string(self):
         s = ""
         s += self.startfont_line()
-        s += self.lines_in_order()
+        s += self.get_lines_in_order()
         s += self.comment_lines() # TODO: in order
         s += self.contentversion_line()
         s += self.font_line()
@@ -381,7 +381,7 @@ class BDFFont:
         if len(self.properties):
             s += "STARTPROPERTIES %d\n" % len(self.properties)
             for (key, value) in self.properties:
-                print("%s %s\n" % (key, bdf_quote(value)))
+                s += ("%s %s\n" % (key, bdf_quote(value)))
             s += "ENDPROPERTIES\n"
         return s
     def glyphs_lines(self):
@@ -402,15 +402,10 @@ class BDFFont:
         return False
     def append_line_type(self, line_type, fn):
         self.lines_in_order.append([line_type, fn])
-    def lines_in_order(self):
+    def get_lines_in_order(self):
         s = ""
         for [line_type, fn] in self.lines_in_order:
             s += fn()
         return s
     def append_line_type(self, line_type, fn):
         self.lines_in_order.append([line_type, fn])
-    def lines_in_order(self):
-        s = ""
-        for [line_type, fn] in self.lines_in_order:
-            s += fn()
-        return s

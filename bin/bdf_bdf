@@ -17,14 +17,14 @@ def main():
 
 def process_file(filename):
     if filename == "-":
-        print("Opening stdin")
+        # print("Opening stdin")
         fh = sys.stdin
     else:
-        print("Opening %s" % filename)
+        # print("Opening %s" % filename)
         fh = open(filename, "r")
     parser = BDFParser()
     for line in fh:
-        print("Parsing: %s" % line)
+        # print("Parsing: %s" % line)
         parser.parse_line(line)
 
 main()

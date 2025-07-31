@@ -24,17 +24,17 @@ class BDFGlyph:
         self.vvector_x = None
         self.vvector_y = None
         self.bitmap_data = []
-        self.bdf_line_order = []
+        self.lines_in_order = []
         self.unknown_name_counter = 0
         self.printed = {}
     def set_name(self, value):
         self.name = value
     def set_encoding(self, value):
         self.encoding = value
-        self.update_encoding_line()
+        # self.update_encoding_line()
     def set_alt_encoding(self, value):
         self.alt_encoding = value
-        self.update_encoding_line()
+        # self.update_encoding_line()
     def set_bounding_box(self, bb_x, bb_y, bb_ofs_x, bb_ofs_y):
         self.bb_x = bb_x
         self.bb_y = bb_y
@@ -158,7 +158,7 @@ class BDFGlyph:
     def as_string(self):
         s = ""
         s += self.startchar_line()
-        s += self.lines_in_order()
+        s += self.get_lines_in_order()
         s += self.encoding_line()
         s += self.bbx_line()
         s += self.swidth_line()
@@ -237,7 +237,7 @@ class BDFGlyph:
         return False
     def append_line_type(self, line_type, fn):
         self.lines_in_order.append([line_type, fn])
-    def lines_in_order(self):
+    def get_lines_in_order(self):
         s = ""
         for [line_type, fn] in self.lines_in_order:
             s += fn()
