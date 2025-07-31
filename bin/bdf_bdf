@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+import os, sys, optparse
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib"))
+
+from bdf_parser import BDFParser
+
+def main():
+    parser = optparse.OptionParser()
+    opts, args = parser.parse_args()
+
+    if not len(args):
+        process_file("-")
+    else:
+        for arg in args:
+            process_file(arg)
+
+def process_file(filename):
+    if filename == "-":
+        print("Opening stdin")
+        fh = sys.stdin
+    else:
+        print("Opening %s" % filename)
+        fh = open(filename, "r")
+    parser = BDFParser()
+    for line in fh:
+        print("Parsing: %s" % line)
+        parser.parse_line(line)
+
+main()
