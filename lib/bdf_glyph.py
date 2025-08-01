@@ -25,8 +25,8 @@ class BDFGlyph:
         self.vvector_y = None
         self.bitmap_data = []
         self.lines_in_order = []
+        self.line_type_printed = {}
         self.unknown_name_counter = 0
-        self.printed = {}
     def set_name(self, value):
         self.name = value
     def set_encoding(self, value):
@@ -157,69 +157,69 @@ class BDFGlyph:
                 self.get_bounding_box_offset_y() - 1 - raw_row)
     def as_string(self):
         s = ""
-        s += self.startchar_line()
+        s += self.get_startchar_line()
         s += self.get_lines_in_order()
-        s += self.encoding_line()
-        s += self.bbx_line()
-        s += self.swidth_line()
-        s += self.dwidth_line()
-        s += self.swidth1_line()
-        s += self.dwidth1_line()
-        s += self.vvector_line()
-        s += self.bitmap_lines() # always at the end
-        s += self.endchar_line() # always at the end
+        s += self.get_encoding_line()
+        s += self.get_bbx_line()
+        s += self.get_swidth_line()
+        s += self.get_dwidth_line()
+        s += self.get_swidth1_line()
+        s += self.get_dwidth1_line()
+        s += self.get_vvector_line()
+        s += self.get_bitmap_lines() # always at the end
+        s += self.get_endchar_line() # always at the end
         return s
-    def startchar_line(self):
+    def get_startchar_line(self):
         if self.name is not None:
             return "STARTCHAR %s\n" % bdf_quote(self.name)
         if self.encoding >= 0:
             return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
         self.unknown_name_counter += 1
         return "STARTCHAR unk%d" % self.unknown_name_counter
-    def encoding_line(self):
+    def get_encoding_line(self):
         if self.was_printed("ENCODING"):
             return ""
         if self.alt_encoding is None:
             return "ENCODING %d\n" % self.encoding
         else:
             return "ENCODING %d %d\n" % (self.encoding, self.alt_encoding)
-    def bbx_line(self):
+    def get_bbx_line(self):
         if self.was_printed("BBX"):
             return ""
         if None not in [self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y]:
             return "BBX %d %d %d %d\n" % (self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y)
         return ""
-    def swidth_line(self):
+    def get_swidth_line(self):
         if self.was_printed("SWIDTH"):
             return ""
         if None not in [self.swidth_x, self.swidth_y]:
             return "SWIDTH %d %d\n" % (self.swidth_x, self.swidth_y)
         return ""
-    def dwidth_line(self):
+    def get_dwidth_line(self):
         if self.was_printed("DWIDTH"):
             return ""
         if None not in [self.dwidth_x, self.dwidth_y]:
             return "DWIDTH %d %d\n" % (self.dwidth_x, self.dwidth_y)
         return ""
-    def swidth1_line(self):
+    def get_swidth1_line(self):
         if self.was_printed("SWIDTH1"):
             return ""
         if None not in [self.swidth1_x, self.swidth1_y]:
             return "SWIDTH1 %d %d\n" % (self.swidth1_x, self.swidth1_y)
         return ""
-    def dwidth1_line(self):
+    def get_dwidth1_line(self):
         if self.was_printed("DWIDTH1"):
             return ""
         if None not in [self.dwidth1_x, self.dwidth1_y]:
             return "DWIDTH1 %d %d\n" % (self.dwidth1_x, self.dwidth1_y)
         return ""
-    def vvector_line(self):
+    def get_vvector_line(self):
         if self.was_printed("VVECTOR"):
             return ""
         if None not in [self.vvector_x, self.vvector_y]:
             return "VVECTOR %d %d\n" % (self.vvector_x, self.vvector_y)
         return ""
-    def bitmap_lines(self):
+    def get_bitmap_lines(self):
         if self.was_printed("BITMAP"):
             return ""
         s = ""
@@ -228,12 +228,15 @@ class BDFGlyph:
             for data in self.bitmap_data:
                 s += data + "\n"
         return s
-    def endchar_line(self):
+    def get_endchar_line(self):
         return "ENDCHAR\n"
-    def was_printed(self, type):
-        if self.printed[type]:
+    def was_printed(self, line_type):
+        if line_type not in self.line_type_printed:
+            self.line_type_printed[line_type] = True
+            return False
+        if self.line_type_printed[line_type]:
             return True
-        self.printed[type] = True
+        self.line_type_printed[line_type] = True
         return False
     def append_line_type(self, line_type, fn):
         self.lines_in_order.append([line_type, fn])

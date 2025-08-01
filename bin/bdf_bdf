@@ -26,5 +26,6 @@ def process_file(filename):
     for line in fh:
         # print("Parsing: %s" % line)
         parser.parse_line(line)
+    print(parser.font.as_string())
 
 main()
