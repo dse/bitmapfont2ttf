@@ -114,32 +114,32 @@ class BDFParser:
 
     def parse_line(self, text):
         self.line_number += 1
-        line_data = { "line_number": line_number, "orig_text": text }
+        line = { "line_number": line_number, "orig_text": text }
         text = re.sub('(?:\r\n?|\n\r?)$', '', text) # à la chomp
-        line_data["text"] = text
+        line["text"] = text
         words, orig_words = parse_bdf_line(text)
         if len(words) == 0:
             return
         [keyword, *params] = words
         keyword = keyword.upper()
-        line_data.update({ "words": words, "orig_words": orig_words,
-                           "keyword": keyword, "params": params })
+        line.update({ "words": words, "orig_words": orig_words,
+                      "keyword": keyword, "params": params })
         if self.parse_stage == BDF_PARSE_STAGE_FONT:
-            self.parse_line_stage_font(keyword, params, line_data)
+            self.parse_line_stage_font(keyword, params, line)
         elif self.parse_stage == BDF_PARSE_STAGE_PROPERTIES:
-            self.parse_line_stage_properties(keyword, params, line_data)
+            self.parse_line_stage_properties(keyword, params, line)
         elif self.parse_stage == BDF_PARSE_STAGE_GLYPH_DATA_SECTION:
-            self.parse_line_stage_glyph_data_section(keyword, params, line_data)
+            self.parse_line_stage_glyph_data_section(keyword, params, line)
         elif self.parse_stage == BDF_PARSE_STAGE_GLYPH_DATA:
-            self.parse_line_stage_glyph_data(keyword, params, line_data)
+            self.parse_line_stage_glyph_data(keyword, params, line)
         elif self.parse_stage == BDF_PARSE_STAGE_BITMAP:
-            self.parse_line_stage_bitmap(keyword, params, line_data)
+            self.parse_line_stage_bitmap(keyword, params, line)
         elif self.parse_stage == BDF_PARSE_STAGE_END_OF_FONT:
             return
         else:
             raise Exception("invalid parse stage: %s" % repr(self.parse_stage))
 
-    def parse_line_stage_bitmap(self, keyword, params, line_data): # params ignored
+    def parse_line_stage_bitmap(self, keyword, params, line): # params ignored
         if keyword == "ENDCHAR":
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA_SECTION
         elif match := re.fullmatch('[0-9A-Fa-f]+', keyword):
@@ -147,13 +147,14 @@ class BDFParser:
         else:
             raise Exception("invalid bitmap data")
 
-    def parse_line_stage_font(self, keyword, params, line_data):
+    def parse_line_stage_font(self, keyword, params, line):
         values = None
         value = None
         if keyword in BDF_ATTRIBUTE_TYPES:
             values = parse_params(params, BDF_ATTRIBUTE_TYPES[keyword])
         else:
             values = parse_params(params, [...])
+        line["values"] = values
         if keyword == "STARTFONT":
             self.font.set_bdf_version(*values)
         elif keyword == "COMMENT":
@@ -188,10 +189,10 @@ class BDFParser:
             raise Exception("invalid keyword at line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_glyph_data_section(self, keyword, params, line_data):
+    def parse_line_stage_glyph_data_section(self, keyword, params, line):
         if keyword == "STARTCHAR":
             self.parse_stage = BDF_PARSE_STAGE_GLYPH_DATA
-            self.parse_line_stage_glyph_data(keyword, params, line_data)
+            self.parse_line_stage_glyph_data(keyword, params, line)
         elif keyword == "ENDFONT":
             self.parse_stage = BDF_PARSE_STAGE_END_OF_FONT
             return
@@ -199,7 +200,7 @@ class BDFParser:
             raise Exception("invalid keyword at line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_glyph_data(self, keyword, params, line_data):
+    def parse_line_stage_glyph_data(self, keyword, params, line):
         values = None
         if keyword in BDF_GLYPH_ATTRIBUTE_TYPES:
             values = parse_params(params, BDF_GLYPH_ATTRIBUTE_TYPES[keyword])
@@ -235,7 +236,7 @@ class BDFParser:
             raise Exception("invalid keyword on line %d: %s" %
                             (self.line_number, keyword))
 
-    def parse_line_stage_properties(self, keyword, params, line_data):
+    def parse_line_stage_properties(self, keyword, params, line):
         if keyword in BDF_PROPERTY_TYPES:
             values = parse_params(params, BDF_PROPERTY_TYPES[keyword])
         else:
