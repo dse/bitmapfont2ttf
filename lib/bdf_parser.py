@@ -236,11 +236,9 @@ class BDFParser:
             values = parse_params(params, BDF_PROPERTY_TYPES[keyword])
         else:
             values = params
-            # print(values)
         if keyword == "ENDPROPERTIES":
             self.parse_stage = BDF_PARSE_STAGE_FONT
             return
-        # print(keyword, *values)
         self.font.set_property(keyword, *values)
 
 def parse_param(param, param_type):
