@@ -110,15 +110,16 @@ class BDFParser:
     def __init__(self):
         self.parse_stage = BDF_PARSE_STAGE_FONT
         self.font = BDFFont()
+        self.line_number = 0
 
     def parse_line(self, line):
+        self.line_number += 1
         line = re.sub('(?:\r\n?|\n\r?)$', '', line) # à la chomp
         words, orig_words = parse_bdf_line(line)
         if len(words) == 0:
             return
         [keyword, *params] = words
         keyword = keyword.upper()
-        # print(keyword)
         if self.parse_stage == BDF_PARSE_STAGE_FONT:
             self.parse_line_stage_font(keyword, params)
         elif self.parse_stage == BDF_PARSE_STAGE_PROPERTIES:
@@ -131,7 +132,8 @@ class BDFParser:
             self.parse_line_stage_bitmap(keyword, params)
         elif self.parse_stage == BDF_PARSE_STAGE_END_OF_FONT:
             return
-        # invalid parse stage; not handling at this time
+        else:
+            raise Exception("invalid parse stage: %s" % repr(self.parse_stage))
 
     def parse_line_stage_bitmap(self, keyword, params): # params ignored
         if keyword == "ENDCHAR":
