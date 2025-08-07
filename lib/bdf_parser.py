@@ -113,10 +113,10 @@ class BDFParser:
 
     def parse_line(self, line):
         line = re.sub('(?:\r\n?|\n\r?)$', '', line) # à la chomp
-        split_line = parse_bdf_line(line)
-        if len(split_line) == 0:
+        words, orig_words = parse_bdf_line(line)
+        if len(words) == 0:
             return
-        [keyword, *params] = split_line
+        [keyword, *params] = words
         keyword = keyword.upper()
         # print(keyword)
         if self.parse_stage == BDF_PARSE_STAGE_FONT:
