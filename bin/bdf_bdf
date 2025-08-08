@@ -17,15 +17,27 @@ def main():
 
 def process_file(filename):
     if filename == "-":
-        # print("Opening stdin")
         fh = sys.stdin
     else:
-        # print("Opening %s" % filename)
         fh = open(filename, "r")
     parser = BDFParser()
+    parser.filename = filename
     for line in fh:
-        # print("Parsing: %s" % line)
         parser.parse_line(line)
-    print(parser.font.as_string())
+
+    font = parser.font
+    font.set_x_res(96)
+    font.set_y_res(72)
+    font.append_comment("foo")
+    font.append_comment("foo\"foo")
+    font.append_comment("foo foo")
+    font.set_startfont(2.2)
+    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFSTR", "5 5")
+    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFINT", 5)
+    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFFLOAT", 5.5)
+    font.set_prop("FULL_NAME", "Comic Sans MS")
+    font.set_prop("DEFAULT_CHAR", 160)
+
+    print(str(font), end="")
 
 main()

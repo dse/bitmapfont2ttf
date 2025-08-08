@@ -1,23 +1,28 @@
-import os, sys
+import os, sys, re
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(__file__))
 
-from bdf_utils import bdf_quote
-
 class BDFFont:
     def __init__(self):
-        self.bdf_version = None
+        self.line_number = 0
+        self.lines = []
+        self.glyphs = []
+        self.prop_lines = []
+
         self.comments = []
-        self.content_version = None
-        self.font_name = None
+        self.raw_props = {}
+
+        self.startfont = None
+        self.contentversion = None
+        self.font = None
         self.point_size = None
-        self.res_x = None
-        self.res_y = None
-        self.bb_x = None
-        self.bb_y = None
-        self.bb_ofs_x = None
-        self.bb_ofs_y = None
-        self.metrics_set = None
+        self.x_res = None
+        self.y_res = None
+        self.bbx_x = None
+        self.bbx_y = None
+        self.bbx_ofs_x = None
+        self.bbx_ofs_y = None
+        self.metricsset = None
         self.swidth_x = None
         self.swidth_y = None
         self.dwidth_x = None
@@ -28,58 +33,9 @@ class BDFFont:
         self.dwidth1_y = None
         self.vvector_x = None
         self.vvector_y = None
-        self.nominal_glyph_count = None    # saith the "CHARS" line
-        self.nominal_property_count = None # saith the "STARTPROPERTIES" line
-        self.properties = {}
-        self.bdf_glyphs = []
-        self.init_properties()
-    def set_bdf_version(self, value):
-        self.bdf_version = value
-    def append_comment(self, value):
-        self.comments.append(value)
-    def set_content_version(self, value):
-        self.content_version = value
-    def set_font_name(self, value):
-        self.font_name = value
-    def set_size(self, point_size, res_x, res_y):
-        [self.point_size, self.res_x, self.res_y] = [point_size, res_x, res_y]
-    def set_point_size(self, value):
-        self.point_size = value
-    def set_res_x(self, value):
-        self.res_x = value
-    def set_res_y(self, value):
-        self.res_y = value
-    def set_bounding_box(self, bb_x, bb_y, bb_ofs_x, bb_ofs_y):
-        self.bb_x = bb_x
-        self.bb_y = bb_y
-        self.bb_ofs_x = bb_ofs_x
-        self.bb_ofs_y = bb_ofs_y
-    def set_metrics_set(self, value):
-        self.metrics_set = value
-    def set_swidth(self, x, y):
-        self.swidth_x = x
-        self.swidth_y = y
-    def set_dwidth(self, x, y):
-        self.dwidth_x = x
-        self.dwidth_y = y
-    def set_swidth1(self, x, y):
-        self.swidth1_x = x
-        self.swidth1_y = y
-    def set_dwidth1(self, x, y):
-        self.dwidth1_x = x
-        self.dwidth1_y = y
-    def set_vvector(self, x, y):
-        self.vvector_x = x
-        self.vvector_y = y
-    def set_nominal_glyph_count(self, value):
-        self.nominal_glyph_count = value
-    def set_nominal_property_count(self, value):
-        self.nominal_property_count = value
-    def set_property(self, name, value):
-        self.properties[name] = value
-    def append_glyph(self, glyph):
-        self.bdf_glyphs.append(glyph)
-    def init_properties(self):
+        self.startproperties_count = None
+        self.chars_count = None
+
         self.prop_foundry = None
         self.prop_family_name = None
         self.prop_weight_name = None
@@ -118,12 +74,11 @@ class BDFFont:
         self.prop_x_height = None
         self.prop_relative_setwidth = None
         self.prop_relative_weight = None
-        self.prop_resolution = None # deprecated
-        self.prop_resolution_x = None
-        self.prop_resolution_y = None
+        self.prop_weight = None
+        self.prop_resolution = None
         self.prop_font = None
         self.prop_face_name = None
-        self.prop_full_name = None # deprecated
+        self.prop_full_name = None
         self.prop_copyright = None
         self.prop_notice = None
         self.prop_destination = None
@@ -133,239 +88,214 @@ class BDFFont:
         self.prop_rasterizer_version = None
         self.prop_raw_ascent = None
         self.prop_raw_descent = None
-        self.prop_font_ascent = None
-        self.prop_font_descent = None
-        self.prop_default_char = None
-    def set_property(self, name, value):
-        name = name.upper()
-        self.properties[name] = value
-        if name == "FOUNDRY":
-            self.prop_foundry = value
-        elif name == "FAMILY_NAME":
-            self.prop_family_name = value
-        elif name == "WEIGHT_NAME":
-            self.prop_weight_name = value
-        elif name == "SLANT":
-            self.prop_slant = value
-            if value not in ["R", "I", "O", "RI", "RO", "OT"]:
-                raise Exception("invalid SLANT property value")
-        elif name == "SETWIDTH_NAME":
-            self.prop_setwidth_name = value
-        elif name == "ADD_STYLE_NAME":
-            self.prop_add_style_name = value
-        elif name == "PIXEL_SIZE":
-            self.prop_pixel_size = value
-        elif name == "POINT_SIZE":
-            self.prop_point_size = value
-        elif name == "RESOLUTION_X":
-            self.prop_resolution_x = value
-        elif name == "RESOLUTION_Y":
-            self.prop_resolution_y = value
-        elif name == "SPACING":
-            self.prop_spacing = value
-            if self.prop_spacing not in ["P", "M", "C"]:
-                raise Exception("invalid SPACING property value")
-        elif name == "AVERAGE_WIDTH":
-            self.prop_average_width = value
-        elif name == "CHARSET_REGISTRY":
-            self.prop_charset_registry = value
-        elif name == "CHARSET_ENCODING":
-            self.prop_charset_encoding = value
-        elif name == "MIN_SPACE":
-            self.prop_min_space = value
-        elif name == "NORM_SPACE":
-            self.prop_norm_space = value
-        elif name == "MAX_SPACE":
-            self.prop_max_space = value
-        elif name == "END_SPACE":
-            self.prop_end_space = value
-        elif name == "AVG_CAPITAL_WIDTH":
-            self.prop_avg_capital_width = value
-        elif name == "AVG_LOWERCASE_WIDTH":
-            self.prop_avg_lowercase_width = value
-        elif name == "QUAD_WIDTH":
-            self.prop_quad_width = value
-        elif name == "FIGURE_WIDTH":
-            self.prop_figure_width = value
-        elif name == "SUPERSCRIPT_X":
-            self.prop_superscript_x = value
-        elif name == "SUPERSCRIPT_Y":
-            self.prop_superscript_y = value
-        elif name == "SUBSCRIPT_X":
-            self.prop_subscript_x = value
-        elif name == "SUBSCRIPT_Y":
-            self.prop_subscript_y = value
-        elif name == "SUPERSCRIPT_SIZE":
-            self.prop_superscript_size = value
-        elif name == "SUBSCRIPT_SIZE":
-            self.prop_subscript_size = value
-        elif name == "SMALL_CAP_SIZE":
-            self.prop_small_cap_size = value
-        elif name == "UNDERLINE_POSITION":
-            self.prop_underline_position = value
-        elif name == "UNDERLINE_THICKNESS":
-            self.prop_underline_thickness = value
-        elif name == "STRIKEOUT_ASCENT":
-            self.prop_strikeout_ascent = value
-        elif name == "STRIKEOUT_DESCENT":
-            self.prop_strikeout_descent = value
-        elif name == "ITALIC_ANGLE":
-            self.prop_italic_angle = value
-        elif name == "CAP_HEIGHT":
-            self.prop_cap_height = value
-        elif name == "X_HEIGHT":
-            self.prop_x_height = value
-        elif name == "RELATIVE_SETWIDTH":
-            self.prop_relative_setwidth = value
-        elif name == "RELATIVE_WEIGHT":
-            self.prop_relative_weight = value
-        elif name == "RESOLUTION":
-            self.prop_resolution = value
-        elif name == "RESOLUTION_X":
-            self.prop_resolution_x = value
-        elif name == "RESOLUTION_Y":
-            self.prop_resolution_y = value
-        elif name == "FONT":
-            self.prop_font = value
-        elif name == "FACE_NAME":
-            self.prop_face_name = value
-        elif name == "FULL_NAME":
-            self.prop_full_name = value
-        elif name == "COPYRIGHT":
-            self.prop_copyright = value
-        elif name == "NOTICE":
-            self.prop_notice = value
-        elif name == "DESTINATION":
-            self.prop_destination = value
-        elif name == "FONT_TYPE":
-            self.prop_font_type = value
-        elif name == "FONT_VERSION":
-            self.prop_font_version = value
-        elif name == "RASTERIZER_NAME":
-            self.prop_rasterizer_name = value
-        elif name == "RASTERIZER_VERSION":
-            self.prop_rasterizer_version = value
-        elif name == "RAW_ASCENT":
-            self.prop_raw_ascent = value
-        elif name == "RAW_DESCENT":
-            self.prop_raw_descent = value
-        elif name == "FONT_ASCENT":
-            self.prop_font_ascent = value
-        elif name == "FONT_DESCENT":
-            self.prop_font_descent = value
-        elif name == "DEFAULT_CHAR":
-            self.prop_default_char = value
-    def get_ascent(self):
-        if self.prop_font_ascent is not None:
-            return self.prop_font_ascent
-        ...
-    def get_descent(self):
-        if self.prop_font_descent is not None:
-            return self.prop_font_descent
-        ...
-    def get_pixel_size(self):
-        if self.prop_pixel_size is not None:
-            return self.prop_pixel_size
-        ...
-    def get_pixel_count(row):
-        count = 0
-        for glyph in self.bdf_glyphs:
-            count += glyph.get_pixel_count(row)
-        return count
-    def get_total_pixel_count(self):
-        count = 0
-        for glyph in self.bdf_glyphs:
-            count += glyph.get_total_pixel_count()
-        return count
-    def get_max_pixel_row(self):
-        return max(*[glyph.get_max_pixel_row() for glyph in self.bdf_glyphs])
-    def get_min_pixel_row(self):
-        return min(*[glyph.get_min_pixel_row() for glyph in self.bdf_glyphs])
-    def get_comments(self):
-        return [*self.comments] # copy
-    def as_string(self):
+
+    def __str__(self):
         s = ""
-        s += self.get_startfont_line()
-        s += self.get_comment_lines() # TODO: in order
-        s += self.get_contentversion_line()
-        s += self.get_font_line()
-        s += self.get_size_line()
-        s += self.get_fontboundingbox_line()
-        s += self.get_metricsset_line()
-        s += self.get_swidth_line()
-        s += self.get_dwidth_line()
-        s += self.get_swidth1_line()
-        s += self.get_dwidth1_line()
-        s += self.get_vvector_line()
-        s += self.get_properties_lines() # TODO: in order
-        s += self.get_glyphs_lines()
-        s += self.get_endfont_line()
+        for line in self.lines:
+            s += line["text"] + "\n"
+            if "keyword" not in line:
+                continue
+            if line["keyword"] == "STARTPROPERTIES":
+                for line in self.prop_lines:
+                    s += line["text"] + "\n"
+            if line["keyword"] == "CHARS":
+                for glyph in self.glyphs:
+                    s += str(glyph)
         return s
-    def get_startfont_line(self):
-        s = ""
-        if self.bdf_version is not None:
-            return "STARTFONT %f\n" % self.bdf_version
-        return "STARTFONT %f\n" % 2.2
-    def get_comment_lines(self):
-        s = ""
-        for c in self.get_comments():
-            s += "COMMENT %s\n" % bdf_quote(c)
-        return s
-    def get_contentversion_line(self):
-        if self.content_version is not None:
-            return "CONTENVERSION %s\n" % self.content_version
-        return ""
-    def get_font_line(self):
-        if self.font_name is not None:
-            return "FONT %s\n" % self.font_name
-        return ""
-    def get_size_line(self):
-        if None not in [self.point_size, self.res_x, self.res_y]:
-            return "SIZE %d %d %d\n" % (self.point_size, self.res_x, self.res_y)
-        return ""
-    def get_fontboundingbox_line(self):
-        if None not in [self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y]:
-            return "FONTBOUNDINGBOX %d %d %d %d\n" % (self.bb_x, self.bb_y, self.bb_ofs_x, self.bb_ofs_y)
-        return ""
-    def get_metricsset_line(self):
-        if self.metrics_set is not None:
-            return "METRICSSET %d\n" % self.metrics_set
-        return ""
-    def get_swidth_line(self):
-        if None not in [self.swidth_x, self.swidth_y]:
-            return "SWIDTH %d %d\n" % (self.swidth_x, self.swidth_y)
-        return ""
-    def get_dwidth_line(self):
-        if None not in [self.dwidth_x, self.dwidth_y]:
-            return "DWIDTH %d %d\n" % (self.dwidth_x, self.dwidth_y)
-        return ""
-    def get_swidth1_line(self):
-        if None not in [self.swidth1_x, self.swidth1_y]:
-            return "SWIDTH1 %d %d\n" % (self.swidth1_x, self.swidth1_y)
-        return ""
-    def get_dwidth1_line(self):
-        if None not in [self.dwidth1_x, self.dwidth1_y]:
-            return "DWIDTH1 %d %d\n" % (self.dwidth1_x, self.dwidth1_y)
-        return ""
-    def get_vvector_line(self):
-        if None not in [self.vvector_x, self.vvector_y]:
-            return "VVECTOR %d %d\n" % (self.vvector_x, self.vvector_y)
-        return ""
-    def get_properties_lines(self):
-        s = ""
-        if len(self.properties):
-            s += "STARTPROPERTIES %d\n" % len(self.properties)
-            for key in self.properties:
-                value = self.properties[key]
-                s += ("%s %s\n" % (key, bdf_quote(value)))
-            s += "ENDPROPERTIES\n"
-        return s
-    def get_glyphs_lines(self):
-        s = ""
-        if len(self.bdf_glyphs):
-            s += "CHARS %d\n" % len(self.bdf_glyphs)
-            for bdf_glyph in self.bdf_glyphs:
-                s += bdf_glyph.as_string()
-        return s
-    def get_endfont_line(self):
-        return "ENDFONT\n"
+
+    def get_lines_matching_keyword(self, keyword, property=False):
+        line_list = self.prop_lines if property else self.lines
+        if type(keyword) == list:
+            return [line for line in line_list if "keyword" in line and line["keyword"] in keyword]
+        return [line for line in line_list if "keyword" in line and line["keyword"] == keyword]
+
+    def get_line_indexes_matching_keyword(self, keyword, property=False):
+        line_list = self.prop_lines if property else self.lines
+        if type(keyword) == list:
+            return [i for i in range(0, len(line_list))
+                    if "keyword" in line_list[i] and line_list[i]["keyword"] in keyword]
+        return [i for i in range(0, len(line_list))
+                if "keyword" in line_list[i] and line_list[i]["keyword"] == keyword]
+
+    def get_first_line_index_matching_keyword(self, keyword, property=False):
+        line_list = self.prop_lines if property else self.lines
+        for i in range(0, len(line_list)):
+            line = line_list[i]
+            if "keyword" not in line:
+                continue
+            if type(keyword) == str and line["keyword"] == keyword:
+                return i
+            if type(keyword) == list and line["keyword"] in keyword:
+                return i
+        return -1
+
+    def remove_lines_matching_keyword(self, keyword, keep_last=False, property=False):
+
+        # line_list = [{A}, {B}, {C}, {D}, {E}, {F}, {G}, {H}, {I}, {J}, {K}, {L}]
+        # indexes = [2, 4, 8, 10]
+        # orig_index_count = 4
+        # i = 3
+        # last_idx = 10
+        # i = 2
+        #   line_list.remove(8)
+        # i is 2:
+        #   indexes[i] = 8
+        #   line_list = [{A}, {B}, {C}, {D}, {E}, {F}, {G}, {H}, {J}, {K}, {L}]
+        # i = 1:
+        #   indexes[i] = 4
+        #   line_list = [{A}, {B}, {C}, {D}, {F}, {G}, {H}, {J}, {K}, {L}]
+        # i = 0:
+        #   indexes[i] = 2
+        #   line_list = [{A}, {B}, {D}, {F}, {G}, {H}, {J}, {K}, {L}]
+
+        line_list = self.prop_lines if property else self.lines
+        indexes = self.get_line_indexes_matching_keyword(keyword, property)
+        if len(indexes) == 0:
+            return
+        orig_index_count = len(indexes)
+        i = len(indexes) - 1
+        if keep_last:
+            last_idx = indexes[-1]
+            i = len(indexes) - 2
+        while i >= 0:
+            line_list[indexes[i]:indexes[i]+1] = []
+            i -= 1
+        if keep_last:
+            return line_list[last_idx - (orig_index_count - len(indexes))]
+
+    def set_startfont(self, value):
+        self.remove_lines_matching_keyword("STARTFONT")
+        self.lines.insert(0, {
+            "keyword": "STARTFONT",
+            "words": [str(value)],
+            "params": [float(value)],
+            "text": "STARTFONT %s" % self.escape(value)
+        })
+
+    def append_comment(self, value):
+        comment_line = {
+            "keyword": "COMMENT",
+            "words": [str(value)],
+            "params": [str(value)],
+            "text": "COMMENT %s" % self.escape(value)
+        }
+        indexes = self.get_line_indexes_matching_keyword("COMMENT")
+        if len(indexes) == 0:
+            self.lines.insert(1, comment_line)
+        else:
+            index = indexes[-1]
+            self.lines.insert(index + 1, comment_line)
+
+    def update_line(self, keyword, value, property=False):
+        line_list = self.prop_lines if property else self.lines
+        keyword = keyword.upper()
+        line = self.remove_lines_matching_keyword(keyword, keep_last=True, property=property)
+        if line:
+            line["params"] = [value]
+            line["orig_words"] = None
+            line["orig_text"] = None
+            line["words"] = None
+            line["text"] = "%s %s" % (keyword, self.escape(value))
+        else:
+            keywords = ["CHARS", "STARTPROPERTIES"]
+            idx = self.get_first_line_index_matching_keyword(keywords, property=property)
+            line = {
+                "keyword": keyword,
+                "params": [value],
+                "text": "%s %s" % (keyword, self.escape(value)),
+            }
+            if idx == -1:
+                if not property:
+                    raise Exception("no %s line found" % " or ".join(keywords))
+                line_list.insert(len(line_list) - 1, line)
+            else:
+                if property:
+                    line_list.insert(idx - 1, line)
+                else:
+                    line_list.insert(idx, line)
+
+    def set_contentversion(self, value):
+        self.contentversion = int(value)
+        self.update_line("CONTENTVERSION", value)
+    def set_font(self, value):
+        self.font = str(value)
+        self.update_line("FONT", value)
+    def set_point_size(self, value):
+        self.point_size = int(value)
+        self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
+    def set_x_res(self, value):
+        self.x_res = int(value)
+        self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
+    def set_y_res(self, value):
+        self.y_res = int(value)
+        self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
+    def set_bbx_x(self, value):
+        self.bbx_x = value
+        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
+    def set_bbx_y(self, value):
+        self.bbx_y = value
+        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
+    def set_bbx_ofs_x(self, value):
+        self.bbx_ofs_x = value
+        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
+    def set_bbx_ofs_y(self, value):
+        self.bbx_ofs_y = value
+        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
+    def set_metricsset(self, value):
+        self.metricsset = value
+        self.update_line("METRICSSET", value)
+
+    def set_swidth_x(self, value):
+        self.swidth_x = value
+        self.update_line("SWIDTH", [self.swidth_x, self.swidth_y])
+    def set_swidth_y(self, value):
+        self.swidth_y = value
+        self.update_line("SWIDTH", [self.swidth_x, self.swidth_y])
+
+    def set_dwidth_x(self, value):
+        self.dwidth_x = value
+        self.update_line("DWIDTH", [self.dwidth_x, self.dwidth_y])
+    def set_dwidth_y(self, value):
+        self.dwidth_y = value
+        self.update_line("DWIDTH", [self.dwidth_x, self.dwidth_y])
+
+    def set_swidth1_x(self, value):
+        self.swidth1_x = value
+        self.update_line("SWIDTH1", [self.swidth1_x, self.swidth1_y])
+    def set_swidth1_y(self, value):
+        self.swidth1_y = value
+        self.update_line("SWIDTH1", [self.swidth1_x, self.swidth1_y])
+
+    def set_dwidth1_x(self, value):
+        self.dwidth1_x = value
+        self.update_line("DWIDTH1", [self.swidth1_x, self.swidth1_y])
+    def set_dwidth1_y(self, value):
+        self.dwidth1_y = value
+        self.update_line("DWIDTH1", [self.swidth1_x, self.swidth1_y])
+
+    def set_vvector_x(self, value):
+        self.vvector_x = value
+        self.update_line("VVECTOR", [self.vvector_x, self.vvector_y])
+    def set_vvector_y(self, value):
+        self.vvector_y = value
+        self.update_line("VVECTOR", [self.vvector_x, self.vvector_y])
+
+    def set_prop(self, keyword, value):
+        self.update_line(keyword, value, property=True)
+
+    def escape(self, value):
+        if type(value) == int:
+            return str(value)
+        if type(value) == float:
+            return str(value)
+        if type(value) == str:
+            if '"' in value or ' ' in value:
+                value = value.replace('"', '""')
+                return '"%s"' % value
+            return value
+        if type(value) == list:
+            items = []
+            for i in range(0, len(value)):
+                items.append(self.escape(value[i]))
+            return " ".join(items)
+        raise Exception("invalid value type: %s" % repr(type(value)))
