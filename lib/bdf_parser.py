@@ -330,7 +330,7 @@ class BDFParser:
         keyword = line["keyword"]
         params = line["params"]
         if re.fullmatch('[0-9A-Fa-f]+', keyword):
-            self.glyph.bitmap_lines.append(line)
+            self.glyph.bitmap_data.append(line)
         elif keyword == "ENDCHAR":
             self.glyph.lines.append(line)
             self.parse_stage = PARSE_STAGE_CHARS
@@ -362,7 +362,7 @@ class BDFParser:
             hex_line += hex_byte
         if self.parse_stage == PARSE_STAGE_CHAR:
             self.glyph.lines.append({ "keyword": "BITMAP", "text": "BITMAP", "params": [] })
-        self.glyph.bitmap_lines.append({ "text": hex_line, "keyword": hex_line, "params": [] })
+        self.glyph.bitmap_data.append({ "text": hex_line, "keyword": hex_line, "params": [] })
         self.parse_stage = PARSE_STAGE_BITMAP
 
     def parse_params(self, keyword, params, param_types, min=None):

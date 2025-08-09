@@ -37,4 +37,7 @@ class BDFGlyph():
             s += line["text"] + "\n"
             if "keyword" not in line:
                 continue
+            if line["keyword"] == "BITMAP":
+                for line2 in self.bitmap_data:
+                    s += line2["text"] + "\n"
         return s

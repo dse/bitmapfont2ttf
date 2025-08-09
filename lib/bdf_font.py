@@ -96,8 +96,8 @@ class BDFFont:
             if "keyword" not in line:
                 continue
             if line["keyword"] == "STARTPROPERTIES":
-                for line in self.prop_lines:
-                    s += line["text"] + "\n"
+                for line2 in self.prop_lines:
+                    s += line2["text"] + "\n"
             if line["keyword"] == "CHARS":
                 for glyph in self.glyphs:
                     s += str(glyph)
