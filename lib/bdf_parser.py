@@ -4,6 +4,8 @@ if __name__ == "__main__":
 
 from bdf_font import BDFFont
 from bdf_glyph import BDFGlyph
+from bdf_utils import clear_previous_lines, split_line, \
+    create_encoding_line
 
 # https://adobe-type-tools.github.io/font-tech-notes/pdfs/5005.BDF_Spec.pdf
 # https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/XLFD/xlfd.html
@@ -16,19 +18,20 @@ PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_JUNK = 5
 
 class BDFParser:
-    def __init__(self):
+    def __init__(self, loose=False):
         self.parse_stage = PARSE_STAGE_FONT
         self.font = BDFFont()
         self.glyph = None
         self.line_number = 0
         self.filename = None
+        self.loose = loose
 
     def parse_line(self, text):
         self.line_number += 1
         orig_text = text
         text = text.strip()
         line = { "filename": self.filename, "line_number": self.line_number, "orig_text": orig_text, "text": text }
-        words, orig_words = self.split_line(text)
+        words, orig_words = split_line(text)
         if len(words) == 0:
             self.font.lines.append(line)
             return
@@ -48,67 +51,87 @@ class BDFParser:
         elif self.parse_stage == PARSE_STAGE_JUNK:
             pass                # do nothing
         else:
-            raise Exception(self.error_prefix() + "invalid parse stage: %s" % (repr(self.parse_stage)))
+            raise Exception(self.error_prefix() +
+                            "invalid parse stage: %s" % (repr(self.parse_stage)))
+
     def parse_line_font(self, line):
         keyword = line["keyword"]
         params = line["params"]
-        self.font.lines.append(line)
+        will_append = True
         if keyword == "STARTFONT":
-            [self.font.startfont] = self.parse_params(keyword, params, [float])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            min = 0 if self.loose else None
+            [self.font.startfont] = self.parse_params(keyword, params, [float], min=min)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "COMMENT":
             self.font.comments.append(" ".join(params))
         elif keyword == "CONTENTVERSION":
             [self.font.contentversion] = self.parse_params(keyword, params, [int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "FONT":
             [self.font.font] = self.parse_params(keyword, params, [str])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "SIZE":
             [self.font.point_size, self.font.x_res, self.font.y_res] = \
                 self.parse_params(keyword, params, [int, int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "FONTBOUNDINGBOX":
             [self.font.bbx_x, self.font.bbx_y, self.font.bbx_ofs_x, self.font.bbx_ofs_y] = \
                 self.parse_params(keyword, params, [int, int, int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "METRICSSET":
             [self.font.metricsset] = self.parse_params(keyword, params, [int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "SWIDTH":
             [self.font.swidth_x, self.font.swidth_y] = self.parse_params(keyword, params, [int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "DWIDTH":
             [self.font.dwidth_x, self.font.dwidth_y] = self.parse_params(keyword, params, [int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "SWIDTH1":
             [self.font.swidth1_x, self.font.swidth1_y] = self.parse_params(keyword, params, [int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "DWIDTH1":
             [self.font.dwidth1_x, self.font.dwidth1_y] = self.parse_params(keyword, params, [int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "VVECTOR":
             [self.font.vvector_x, self.font.vvector_y] = self.parse_params(keyword, params, [int, int])
-            self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
+            self.font.lines = clear_previous_lines(self.font.lines, keyword)
         elif keyword == "STARTPROPERTIES":
-            [self.font.startproperties_count] = self.parse_params(keyword, params, [int], min=0)
+            min = 0 if self.loose else None
+            [self.font.startproperties_count] = self.parse_params(keyword, params, [int], min=min)
             self.parse_stage = PARSE_STAGE_PROP
         elif keyword == "CHARS":
-            [self.font.chars_count] = self.parse_params(keyword, params, [int], min=0)
+            min = 0 if self.loose else None
+            [self.font.chars_count] = self.parse_params(keyword, params, [int], min=min)
             self.parse_stage = PARSE_STAGE_CHARS
+        elif self.loose and keyword == "STARTCHAR":
+            self.font.lines.append({
+                "keyword": "CHARS",
+                "params": [],
+                "text": "CHARS"
+            })
+            self.parse_STARTCHAR_line(line)
+            return # parse_STARTCHAR_line takes care of appending
         else:
-            raise Exception(self.error_prefix() + "%s: invalid keyword" % (self.filename, self.line_number, keyword))
+            raise Exception(self.error_prefix() + "%s: invalid keyword" % (keyword))
+        self.font.lines.append(line)
+
     def parse_line_prop(self, line):
         keyword = line["keyword"]
         params = line["params"]
-        self.font.prop_lines = self.clear_previous_lines(self.font.prop_lines, keyword)
-        self.font.prop_lines.append(line)
+        self.font.prop_lines = clear_previous_lines(self.font.prop_lines, keyword)
         if keyword == "ENDPROPERTIES":
             self.parse_stage = PARSE_STAGE_FONT
-            return
-        if len(params) != 1:
-            raise Exception(self.error_prefix() + "%s: takes 1 param, no more, no fewer" % (self.filename, self.line_number))
-        self.font.raw_props[keyword] = params[0]
+            if not self.loose:
+                prop_count = len(self.font.prop_lines)
+                if prop_count != self.font.startproperties_count:
+                    raise Exception(self.error_prefix() +
+                                    "received %d properties; expected %d" %
+                                    (prop_count, self.font.startproperties_count))
+        else:
+            if len(params) != 1:
+                raise Exception(self.error_prefix() + "%s: takes 1 param, no more, no fewer")
+            self.font.raw_props[keyword] = params[0]
         if keyword == "FOUNDRY":
             [self.font.prop_foundry] = self.parse_params(keyword, params, [str])
         elif keyword == "FAMILY_NAME":
@@ -214,56 +237,99 @@ class BDFParser:
         elif keyword == "RAW_DESCENT":
             [self.font.prop_raw_descent] = self.parse_params(keyword, params, [int])
         elif keyword[0:4] == "RAW_":
-            raise Exception(self.error_prefix() + "%s: not supported" % (self.filename, self.line_number, keyword))
+            raise Exception(self.error_prefix() + "%s: not supported" % keyword)
         elif keyword == "AXIS_NAMES":
-            raise Exception(self.error_prefix() + "AXIS_NAMES: not supported" % (self.filename, self.line_number))
+            raise Exception(self.error_prefix() + "AXIS_NAMES: not supported")
         elif keyword == "AXIS_LIMITS":
-            raise Exception(self.error_prefix() + "AXIS_LIMITS: not supported" % (self.filename, self.line_number))
+            raise Exception(self.error_prefix() + "AXIS_LIMITS: not supported")
         elif keyword == "AXIS_TYPES":
-            raise Exception(self.error_prefix() + "AXIS_TYPES: not supported" % (self.filename, self.line_number))
+            raise Exception(self.error_prefix() + "AXIS_TYPES: not supported")
+        self.font.prop_lines.append(line)
+
     def parse_line_chars(self, line):
         keyword = line["keyword"]
         params = line["params"]
         if keyword == "ENDFONT":
-            self.font.lines.append(line)
             self.parse_stage = PARSE_STAGE_JUNK
         elif keyword == "STARTCHAR":
+            self.parse_STARTCHAR_line(line)
+            return # parse_STARTCHAR_line takes care of appending
+        self.font.lines.append(line)
+
+    def parse_STARTCHAR_line(self, line):
+        keyword = line["keyword"]
+        params = line["params"]
+        if not self.loose:
             if len(params) != 1:
-                raise Exception(self.error_prefix() + "STARTCHAR: takes 1 param, no more, no fewer" % (self.filename, self.line_number))
-            self.glyph = BDFGlyph()
-            self.font.glyphs.append(self.glyph)
-            self.glyph.lines.append(line)
-            self.parse_stage = PARSE_STAGE_CHAR
+                raise Exception(self.error_prefix() + "STARTCHAR: takes 1 param, no more, no fewer")
+        elif len(params) < 1:
+            raise Exception(self.error_prefix() + "STARTCHAR: takes at least 1 param in loose parsing mode")
+        self.glyph = BDFGlyph()
+        self.font.glyphs.append(self.glyph)
+        self.glyph.lines.append(line)
+
+        enc_line = create_encoding_line(params[0])
+        if enc_line is not None:
+            self.glyph.lines.append(enc_line)
+        self.parse_stage = PARSE_STAGE_CHAR
+
     def parse_line_char(self, line):
         keyword = line["keyword"]
         params = line["params"]
-        self.glyph.lines.append(line)
         if keyword == "ENCODING":
             [self.glyph.encoding, self.glyph.alt_encoding] = self.parse_params(keyword, params, [int, int], min=1)
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "SWIDTH":
             [self.glyph.swidth_x, self.glyph.swidth_y] = self.parse_params(keyword, params, [int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "DWIDTH":
             [self.glyph.dwidth_x, self.glyph.dwidth_y] = self.parse_params(keyword, params, [int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "SWIDTH1":
             [self.glyph.swidth1_x, self.glyph.swidth1_y] = self.parse_params(keyword, params, [int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "DWIDTH1":
             [self.glyph.dwidth1_x, self.glyph.dwidth1_y] = self.parse_params(keyword, params, [int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "VVECTOR":
             [self.glyph.vvector_x, self.glyph.vvector_y] = self.parse_params(keyword, params, [int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "BBX":
             [self.glyph.bbx_x, self.glyph.bbx_y, self.glyph.bbx_ofs_x, self.glyph.bbx_ofs_y] = \
                 self.parse_params(keyword, params, [int, int, int, int])
+            self.glyph.lines = clear_previous_lines(self.glyph.lines, keyword)
         elif keyword == "BITMAP":
             self.parse_stage = PARSE_STAGE_BITMAP
+        elif self.loose and keyword == "ENDFONT":
+            self.glyph.lines = self.glyph.lines[0:-1]
+            self.font.lines.append(line)
+            self.parse_stage = PARSE_STAGE_JUNK
+            return
+        elif self.loose and keyword == "STARTCHAR":
+            self.glyph.lines = self.glyph.lines[0:-1]
+            self.parse_STARTCHAR_line(line)
+            return
         else:
-            raise Exception(self.error_prefix() + "%s: invalid keyword" % (self.filename, self.line_number))
+            raise Exception(self.error_prefix() + "%s: invalid keyword" % keyword)
+        self.glyph.lines.append(line)
 
     def parse_line_bitmap(self, line):
         keyword = line["keyword"]
         params = line["params"]
-        self.glyph.lines.append(line)
-        if keyword == "ENDCHAR":
+        if re.fullmatch('[0-9A-Fa-f]+', keyword):
+            self.glyph.lines.append(line)
+        elif keyword == "ENDCHAR":
+            self.glyph.lines.append(line)
             self.parse_stage = PARSE_STAGE_CHARS
+        elif self.loose and keyword == "STARTCHAR":
+            self.glyph.lines.append({ "text": "ENDCHAR", "keyword": "ENDCHAR", "params": [] })
+            self.parse_STARTCHAR_line(line)
+        elif self.loose and keyword == "ENDFONT":
+            self.glyph.lines.append({ "text": "ENDCHAR", "keyword": "ENDCHAR", "params": [] })
+            self.font.lines.append(line)
+            self.parse_stage = PARSE_STAGE_JUNK
+        else:
+            raise Exception(self.error_prefix() + "%s: invalid keyword" % keyword)
 
     def parse_params(self, keyword, params, param_types, min=None):
         values = []
@@ -296,45 +362,6 @@ class BDFParser:
         elif param_type == int:
             return int(param.replace('~', '-'))
         raise Exception(self.error_prefix() + "%s: invalid type for param: %s" % (keyword, repr(param_type), i))
-
-    def split_line(self, text):
-        orig_words = []
-        words = []
-        while True:
-            text = re.sub(r'^\s+', '', text)
-            if text == "":
-                break
-            orig_word = ""
-            word = ""
-            while True:
-                if match := re.match(r'[^" ]+', text):
-                    text = text[len(match[0]):]
-                    orig_word += match[0]
-                    word += match[0]
-                elif match := re.match(r'"((""|[^"])*)', text):
-                    text = text[len(match[0]):]
-                    orig_word += match[0]
-                    word += match[1].replace('""', '"')
-                    if match := re.match(r'"', text):
-                        orig_word += '"'
-                else:
-                    break
-            words.append(word)
-            orig_words.append(orig_word)
-        return words, orig_words
-
-    def clear_previous_lines(self, lines, keyword, last=False):
-        matches = [line for line in lines if "keyword" in line and line["keyword"] == keyword]
-        if len(matches) == 0:
-            return lines
-        if last:
-            kept_last_line = matches[-1]
-            matches = matches[0:-1]
-            lines = lines[0:-1]
-        lines = [line for line in lines if line not in matches]
-        if last:
-            return lines + [kept_last_line]
-        return lines
 
     def error_prefix(self):
         return "%s:%d: " % (self.filename, self.line_number)
