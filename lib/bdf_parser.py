@@ -37,15 +37,15 @@ class BDFParser:
             return
         if match := re.fullmatch(r'^([+^|])(.*?)[+^|]?', text):
             if not self.loose:
-                raise Exception(self.error_prefix() + "pixel data not valid in strict mode parsing")
+                raise self.exception("pixel data not valid in strict mode parsing")
             if self.parse_stage not in [PARSE_STAGE_BITMAP, PARSE_STAGE_CHAR]:
-                raise Exception(self.error_prefix() + "incorrect place for pixel data")
+                raise self.exception("incorrect place for pixel data")
             firstchar = match[1]
             bits = match[2]
             self.parse_pixel_line(firstchar, bits)
-        [keyword, *params] = words
-        keyword = keyword.upper()
-        line.update({ "words": words, "orig_words": orig_words, "keyword": keyword, "params": params })
+            [keyword, *params] = words
+            keyword = keyword.upper()
+            line.update({ "words": words, "orig_words": orig_words, "keyword": keyword, "params": params })
         if self.loose and keyword == "INCLUDE": # at any stage
             for text in open(params[0], "r"):
                 self.parse_line(text)
@@ -62,7 +62,7 @@ class BDFParser:
         elif self.parse_stage == PARSE_STAGE_JUNK:
             pass                # do nothing
         else:
-            raise Exception(self.error_prefix() + "invalid parse stage: %s" % (repr(self.parse_stage)))
+            raise self.exception("invalid parse stage: %s" % (repr(self.parse_stage)))
 
     def parse_line_font(self, line):
         keyword = line["keyword"]
@@ -123,7 +123,7 @@ class BDFParser:
             self.parse_STARTCHAR_line(line)
             return # parse_STARTCHAR_line takes care of appending
         else:
-            raise Exception(self.error_prefix() + "%s: invalid keyword" % (keyword))
+            raise self.exception("%s: invalid keyword" % (keyword))
         self.font.lines.append(line)
 
     def parse_line_prop(self, line):
@@ -135,10 +135,10 @@ class BDFParser:
             if not self.loose:
                 prop_count = len(self.font.prop_lines)
                 if prop_count != self.font.startproperties_count:
-                    raise Exception(self.error_prefix() + "received %d properties; expected %d" % (prop_count, self.font.startproperties_count))
+                    raise self.exception("received %d properties; expected %d" % (prop_count, self.font.startproperties_count))
         else:
             if len(params) != 1:
-                raise Exception(self.error_prefix() + "%s: takes 1 param, no more, no fewer")
+                raise self.exception("%s: takes 1 param, no more, no fewer")
             self.font.raw_props[keyword] = params[0]
         if keyword == "FOUNDRY":
             [self.font.prop_foundry] = self.parse_params(keyword, params, [str])
@@ -245,13 +245,13 @@ class BDFParser:
         elif keyword == "RAW_DESCENT":
             [self.font.prop_raw_descent] = self.parse_params(keyword, params, [int])
         elif keyword[0:4] == "RAW_":
-            raise Exception(self.error_prefix() + "%s: not supported" % keyword)
+            raise self.exception("%s: not supported" % keyword)
         elif keyword == "AXIS_NAMES":
-            raise Exception(self.error_prefix() + "AXIS_NAMES: not supported")
+            raise self.exception("AXIS_NAMES: not supported")
         elif keyword == "AXIS_LIMITS":
-            raise Exception(self.error_prefix() + "AXIS_LIMITS: not supported")
+            raise self.exception("AXIS_LIMITS: not supported")
         elif keyword == "AXIS_TYPES":
-            raise Exception(self.error_prefix() + "AXIS_TYPES: not supported")
+            raise self.exception("AXIS_TYPES: not supported")
         self.font.prop_lines.append(line)
 
     def parse_line_chars(self, line):
@@ -269,9 +269,9 @@ class BDFParser:
         params = line["params"]
         if not self.loose:
             if len(params) != 1:
-                raise Exception(self.error_prefix() + "STARTCHAR: takes 1 param, no more, no fewer")
+                raise self.exception("STARTCHAR: takes 1 param, no more, no fewer")
         elif len(params) < 1:
-            raise Exception(self.error_prefix() + "STARTCHAR: takes at least 1 param in loose parsing mode")
+            raise self.exception("STARTCHAR: takes at least 1 param in loose parsing mode")
         self.glyph = BDFGlyph()
         self.font.glyphs.append(self.glyph)
         self.glyph.lines.append(line)
@@ -279,7 +279,7 @@ class BDFParser:
         enc_line = create_encoding_line(params[0])
         if enc_line is not None:
             self.glyph.lines.append(enc_line)
-        self.parse_stage = PARSE_STAGE_CHAR
+            self.parse_stage = PARSE_STAGE_CHAR
 
     def parse_line_char(self, line):
         keyword = line["keyword"]
@@ -318,7 +318,7 @@ class BDFParser:
             self.parse_STARTCHAR_line(line)
             return
         else:
-            raise Exception(self.error_prefix() + "%s: invalid keyword" % keyword)
+            raise self.exception("%s: invalid keyword" % keyword)
         self.glyph.lines.append(line)
 
     def parse_line_bitmap(self, line):
@@ -337,7 +337,7 @@ class BDFParser:
             self.font.lines.append(line)
             self.parse_stage = PARSE_STAGE_JUNK
         else:
-            raise Exception(self.error_prefix() + "%s: invalid keyword" % keyword)
+            raise self.exception("%s: invalid keyword" % keyword)
 
     def parse_pixel_line(self, firstchar, bits):
         # firstchar is either "^" or "|" or "+"
@@ -357,22 +357,22 @@ class BDFParser:
             hex_line += hex_byte
         if self.parse_stage == PARSE_STAGE_CHAR:
             self.glyph.lines.append({ "keyword": "BITMAP", "text": "BITMAP", "params": [] })
-        self.glyph.bitmap_data.append({ "text": hex_line, "keyword": hex_line, "params": [] })
-        self.parse_stage = PARSE_STAGE_BITMAP
+            self.glyph.bitmap_data.append({ "text": hex_line, "keyword": hex_line, "params": [] })
+            self.parse_stage = PARSE_STAGE_BITMAP
 
     def parse_params(self, keyword, params, param_types, min=None):
         values = []
         if min is None:
             if len(params) < len(param_types):
-                raise Exception(self.error_prefix() + "%s: too few params (expected %d; got %d)" %
-                                (keyword, len(param_types), len(params)))
+                raise self.exception("%s: too few params (expected %d; got %d)" %
+                                     (keyword, len(param_types), len(params)))
         else:
             if len(params) < min:
-                raise Exception(self.error_prefix() + "%s: too few params (expected %d to %d; got %d)" %
-                                (keyword, min, len(param_types), len(params)))
+                raise self.exception("%s: too few params (expected %d to %d; got %d)" %
+                                     (keyword, min, len(param_types), len(params)))
         if len(params) > len(param_types):
-            raise Exception(self.error_prefix() + "%s: too many params (expected %d; got %d)" %
-                            (keyword, len(param_types), len(params)))
+            raise self.exception("%s: too many params (expected %d; got %d)" %
+                                 (keyword, len(param_types), len(params)))
         for i in range(0, len(params)):
             param_type = param_types[i]
             param = params[i]
@@ -390,7 +390,10 @@ class BDFParser:
             return float(param.replace('~', '-'))
         elif param_type == int:
             return int(param.replace('~', '-'))
-        raise Exception(self.error_prefix() + "%s: invalid type for param: %s" % (keyword, repr(param_type), i))
+        raise self.exception("%s: invalid type for param: %s" % (keyword, repr(param_type), i))
 
     def error_prefix(self):
         return "%s:%d: " % (self.filename, self.line_number)
+
+    def exception(self, str)
+        return self.exception(str)
