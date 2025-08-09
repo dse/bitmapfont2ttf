@@ -35,10 +35,23 @@ class BDFParser:
         if len(words) == 0:
             self.font.lines.append(line)
             return
+        if match := re.fullmatch(r'^([+^|])(.*?)[+^|]?', text):
+            if not self.loose:
+                raise Exception(self.error_prefix() +
+                                "pixel data not valid in strict mode parsing")
+            if self.parse_stage not in [PARSE_STAGE_BITMAP, PARSE_STAGE_CHAR]:
+                raise Exception(self.error_prefix() +
+                                "incorrect place for pixel data")
+            firstchar = match[1]
+            bits = match[2]
+            self.parse_pixel_line(firstchar, bits)
         [keyword, *params] = words
         keyword = keyword.upper()
         line.update({ "words": words, "orig_words": orig_words, "keyword": keyword, "params": params })
-        if self.parse_stage == PARSE_STAGE_FONT:
+        if self.loose and keyword == "INCLUDE": # at any stage
+            for text in open(params[0], "r"):
+                self.parse_line(text)
+        elif self.parse_stage == PARSE_STAGE_FONT:
             self.parse_line_font(line)
         elif self.parse_stage == PARSE_STAGE_PROP:
             self.parse_line_prop(line)
@@ -317,7 +330,7 @@ class BDFParser:
         keyword = line["keyword"]
         params = line["params"]
         if re.fullmatch('[0-9A-Fa-f]+', keyword):
-            self.glyph.lines.append(line)
+            self.glyph.bitmap_lines.append(line)
         elif keyword == "ENDCHAR":
             self.glyph.lines.append(line)
             self.parse_stage = PARSE_STAGE_CHARS
@@ -330,6 +343,27 @@ class BDFParser:
             self.parse_stage = PARSE_STAGE_JUNK
         else:
             raise Exception(self.error_prefix() + "%s: invalid keyword" % keyword)
+
+    def parse_pixel_line(self, firstchar, bits):
+        # firstchar is either "^" or "|" or "+"
+        #     "|" means nothing special
+        #     "^" means cap height
+        #     "+" means baseline at the bottom of this line of pixels
+        # even out to 4 bits
+        bits += " " * (8 - len(bits) % 8) % 8
+        bytes = len(bits) / 8
+        nybbles = len(bits) / 4
+        bits = re.replace(r'[^ ]', '1', bits)
+        bits = bits.replace(' ', '0')
+        hex_line = ""
+        for byte in range(0, bytes):
+            byte = int(bits[byte*8,byte*8+8], base=2)
+            hex_byte = ("%02X" % byte)[-2:]
+            hex_line += hex_byte
+        if self.parse_stage == PARSE_STAGE_CHAR:
+            self.glyph.lines.append({ "keyword": "BITMAP", "text": "BITMAP", "params": [] })
+        self.glyph.bitmap_lines.append({ "text": hex_line, "keyword": hex_line, "params": [] })
+        self.parse_stage = PARSE_STAGE_BITMAP
 
     def parse_params(self, keyword, params, param_types, min=None):
         values = []
