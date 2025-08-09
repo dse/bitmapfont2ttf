@@ -37,11 +37,9 @@ class BDFParser:
             return
         if match := re.fullmatch(r'^([+^|])(.*?)[+^|]?', text):
             if not self.loose:
-                raise Exception(self.error_prefix() +
-                                "pixel data not valid in strict mode parsing")
+                raise Exception(self.error_prefix() + "pixel data not valid in strict mode parsing")
             if self.parse_stage not in [PARSE_STAGE_BITMAP, PARSE_STAGE_CHAR]:
-                raise Exception(self.error_prefix() +
-                                "incorrect place for pixel data")
+                raise Exception(self.error_prefix() + "incorrect place for pixel data")
             firstchar = match[1]
             bits = match[2]
             self.parse_pixel_line(firstchar, bits)
@@ -64,8 +62,7 @@ class BDFParser:
         elif self.parse_stage == PARSE_STAGE_JUNK:
             pass                # do nothing
         else:
-            raise Exception(self.error_prefix() +
-                            "invalid parse stage: %s" % (repr(self.parse_stage)))
+            raise Exception(self.error_prefix() + "invalid parse stage: %s" % (repr(self.parse_stage)))
 
     def parse_line_font(self, line):
         keyword = line["keyword"]
@@ -138,9 +135,7 @@ class BDFParser:
             if not self.loose:
                 prop_count = len(self.font.prop_lines)
                 if prop_count != self.font.startproperties_count:
-                    raise Exception(self.error_prefix() +
-                                    "received %d properties; expected %d" %
-                                    (prop_count, self.font.startproperties_count))
+                    raise Exception(self.error_prefix() + "received %d properties; expected %d" % (prop_count, self.font.startproperties_count))
         else:
             if len(params) != 1:
                 raise Exception(self.error_prefix() + "%s: takes 1 param, no more, no fewer")
