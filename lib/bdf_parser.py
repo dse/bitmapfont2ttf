@@ -91,7 +91,6 @@ class BDFParser:
             [self.font.vvector_x, self.font.vvector_y] = self.parse_params(keyword, params, [int, int])
             self.font.lines = self.clear_previous_lines(self.font.lines, keyword, last=True)
         elif keyword == "STARTPROPERTIES":
-            sys.stderr.write("%s\n" % repr(self.font.lines[-1]))
             [self.font.startproperties_count] = self.parse_params(keyword, params, [int], min=0)
             self.parse_stage = PARSE_STAGE_PROP
         elif keyword == "CHARS":
