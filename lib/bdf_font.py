@@ -7,12 +7,13 @@ DEFAULT_SLANT       = "R"
 DEFAULT_SETWIDTH_NAME = "Normal"
 DEFAULT_ADD_STYLE_NAME = None
 
+from bdf_utils import bdf_escape
+from bdf_line_list import BDFLineList
+
 class BDFFont:
     def __init__(self):
         self.line_number = 0
-        self.lines = []
         self.glyphs = []
-        self.prop_lines = []
 
         self.comments = []
         self.raw_props = {}
@@ -109,121 +110,80 @@ class BDFFont:
         self.xlfd_charset_registry = None # iso10646
         self.xlfd_charset_encoding = None # 1
 
+        self.line_list = BDFLineList(is_bdf_main=True)
+        self.prop_line_list = BDFLineList(is_bdf_prop=True)
+
     def __str__(self):
         s = ""
-        for line in self.lines:
-            s += line["text"] + "\n"
-            if "keyword" not in line:
+        for line in self.line_list.lines:
+            if line.no_print:
                 continue
-            if line["keyword"] == "STARTPROPERTIES":
-                for line2 in self.prop_lines:
-                    s += line2["text"] + "\n"
-            if line["keyword"] == "CHARS":
+            s += line.text + "\n"
+            if line.keyword is None:
+                continue
+            if line.keyword == "STARTPROPERTIES":
+                for line2 in self.prop_line_list.lines:
+                    s += line2.text + "\n"
+            if line.keyword == "CHARS":
                 for glyph in self.glyphs:
                     s += str(glyph)
         return s
 
     def get_lines_matching_keyword(self, keyword, property=False):
-        line_list = self.prop_lines if property else self.lines
-        if type(keyword) == list:
-            return [line for line in line_list if "keyword" in line and line["keyword"] in keyword]
-        return [line for line in line_list if "keyword" in line and line["keyword"] == keyword]
+        line_list = self.prop_line_list if property else self.line_list
+        return line_list.get_lines_matching_keyword
 
     def get_line_indexes_matching_keyword(self, keyword, property=False):
-        line_list = self.prop_lines if property else self.lines
-        if type(keyword) == list:
-            return [i for i in range(0, len(line_list))
-                    if "keyword" in line_list[i] and line_list[i]["keyword"] in keyword]
-        return [i for i in range(0, len(line_list))
-                if "keyword" in line_list[i] and line_list[i]["keyword"] == keyword]
+        line_list = self.prop_line_list if property else self.line_list
+        return line_list.get_line_indexes_matching_keyword(self, keyword)
 
     def get_first_line_index_matching_keyword(self, keyword, property=False):
-        line_list = self.prop_lines if property else self.lines
-        for i in range(0, len(line_list)):
-            line = line_list[i]
-            if "keyword" not in line:
-                continue
-            if type(keyword) == str and line["keyword"] == keyword:
-                return i
-            if type(keyword) == list and line["keyword"] in keyword:
-                return i
-        return -1
+        line_list = self.prop_line_list if property else self.line_list
+        return line_list.get_first_line_index_matching_keyword(self, keyword)
 
     def remove_lines_matching_keyword(self, keyword, keep_last=False, property=False):
-
-        # line_list = [{A}, {B}, {C}, {D}, {E}, {F}, {G}, {H}, {I}, {J}, {K}, {L}]
-        # indexes = [2, 4, 8, 10]
-        # orig_index_count = 4
-        # i = 3
-        # last_idx = 10
-        # i = 2
-        #   line_list.remove(8)
-        # i is 2:
-        #   indexes[i] = 8
-        #   line_list = [{A}, {B}, {C}, {D}, {E}, {F}, {G}, {H}, {J}, {K}, {L}]
-        # i = 1:
-        #   indexes[i] = 4
-        #   line_list = [{A}, {B}, {C}, {D}, {F}, {G}, {H}, {J}, {K}, {L}]
-        # i = 0:
-        #   indexes[i] = 2
-        #   line_list = [{A}, {B}, {D}, {F}, {G}, {H}, {J}, {K}, {L}]
-
-        line_list = self.prop_lines if property else self.lines
-        indexes = self.get_line_indexes_matching_keyword(keyword, property)
-        if len(indexes) == 0:
-            return
-        orig_index_count = len(indexes)
-        i = len(indexes) - 1
-        if keep_last:
-            last_idx = indexes[-1]
-            i = len(indexes) - 2
-        while i >= 0:
-            line_list[indexes[i]:indexes[i]+1] = []
-            i -= 1
-        if keep_last:
-            return line_list[last_idx - (orig_index_count - len(indexes))]
+        line_list = self.prop_line_list if property else self.line_list
+        return line_list.remove_lines_matching_keyword(keyword, keep_last=keep_last)
 
     def set_startfont(self, value):
-        self.remove_lines_matching_keyword("STARTFONT")
-        self.lines.insert(0, {
-            "keyword": "STARTFONT",
-            "words": [str(value)],
-            "params": [float(value)],
-            "text": "STARTFONT %s" % self.escape(value)
-        })
+        self.line_list.remove_lines_matching_keyword("STARTFONT")
+        new_line = BDFLine()
+        new_line.keyword = "STARTFONT"
+        new_line.words = [str(value)]
+        new_line.params = [float(value)]
+        new_line.text = "STARTFONT %s" % bdf_escape(value)
+        self.line_list.lines.insert(0, new_line)
 
     def append_comment(self, value):
-        comment_line = {
-            "keyword": "COMMENT",
-            "words": [str(value)],
-            "params": [str(value)],
-            "text": "COMMENT %s" % self.escape(value)
-        }
+        comment_line = BDFLine()
+        comment_line.keyword = "COMMENT"
+        comment_line.words = [str(value)]
+        comment_line.params = [str(value)]
+        comment_line.text = "COMMENT %s" % bdf_escape(value)
         indexes = self.get_line_indexes_matching_keyword("COMMENT")
         if len(indexes) == 0:
-            self.lines.insert(1, comment_line)
+            self.line_list.lines.insert(1, comment_line)
         else:
             index = indexes[-1]
-            self.lines.insert(index + 1, comment_line)
+            self.line_list.lines.insert(index + 1, comment_line)
 
     def update_line(self, keyword, value, property=False):
-        line_list = self.prop_lines if property else self.lines
+        line_list = self.prop_line_list.lines if property else self.line_list.lines
         keyword = keyword.upper()
         line = self.remove_lines_matching_keyword(keyword, keep_last=True, property=property)
         if line:
-            line["params"] = [value]
-            line["orig_words"] = None
-            line["orig_text"] = None
-            line["words"] = None
-            line["text"] = "%s %s" % (keyword, self.escape(value))
+            line.params = [value]
+            line.orig_words = None
+            line.orig_text = None
+            line.words = None
+            line.text = "%s %s" % (keyword, bdf_escape(value))
         else:
             keywords = ["CHARS", "STARTPROPERTIES"]
             idx = self.get_first_line_index_matching_keyword(keywords, property=property)
-            line = {
-                "keyword": keyword,
-                "params": [value],
-                "text": "%s %s" % (keyword, self.escape(value)),
-            }
+            line = BDFLine()
+            line.keyword = keyword
+            line.params = [value]
+            line.text = "%s %s" % (keyword, bdf_escape(value))
             if idx == -1:
                 if not property:
                     raise Exception("no %s line found" % " or ".join(keywords))
@@ -272,86 +232,45 @@ class BDFFont:
             self.xlfd_average_width    = None
             self.xlfd_charset_registry = None
             self.xlfd_charset_encoding = None
-            
-    def set_point_size(self, value):
-        self.point_size = int(value)
+
+    def set_size(self, point_size, x_res, y_res):
+        self.point_size = int(point_size)
+        self.x_res = int(x_res)
+        self.y_res = int(y_res)
         self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
-    def set_x_res(self, value):
-        self.x_res = int(value)
-        self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
-    def set_y_res(self, value):
-        self.y_res = int(value)
-        self.update_line("SIZE", [self.point_size, self.x_res, self.y_res])
-    def set_bbx_x(self, value):
-        self.bbx_x = value
-        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
-    def set_bbx_y(self, value):
-        self.bbx_y = value
-        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
-    def set_bbx_ofs_x(self, value):
-        self.bbx_ofs_x = value
-        self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
-    def set_bbx_ofs_y(self, value):
-        self.bbx_ofs_y = value
+    def set_bbx(self, bbx_x, bbx_y, bbx_ofs_x, bbx_ofs_y):
+        self.bbx_x = bbx_x
+        self.bbx_y = bbx_y
+        self.bbx_ofs_x = bbx_ofs_x
+        self.bbx_ofs_y = bbx_ofs_y
         self.update_line("FONTBOUNDINGBOX", [self.bbx_x, self.bbx_y, self.bbx_ofs_x, self.bbx_ofs_y])
     def set_metricsset(self, value):
         self.metricsset = value
         self.update_line("METRICSSET", value)
 
-    def set_swidth_x(self, value):
-        self.swidth_x = value
+    def set_swidth(self, x, y):
+        self.swidth_x = x
+        self.swidth_y = y
         self.update_line("SWIDTH", [self.swidth_x, self.swidth_y])
-    def set_swidth_y(self, value):
-        self.swidth_y = value
-        self.update_line("SWIDTH", [self.swidth_x, self.swidth_y])
-
-    def set_dwidth_x(self, value):
-        self.dwidth_x = value
+    def set_dwidth(self, x, y):
+        self.dwidth_x = x
+        self.dwidth_y = y
         self.update_line("DWIDTH", [self.dwidth_x, self.dwidth_y])
-    def set_dwidth_y(self, value):
-        self.dwidth_y = value
-        self.update_line("DWIDTH", [self.dwidth_x, self.dwidth_y])
-
-    def set_swidth1_x(self, value):
-        self.swidth1_x = value
+    def set_swidth1(self, x, y):
+        self.swidth1_x = x
+        self.swidth1_y = y
         self.update_line("SWIDTH1", [self.swidth1_x, self.swidth1_y])
-    def set_swidth1_y(self, value):
-        self.swidth1_y = value
-        self.update_line("SWIDTH1", [self.swidth1_x, self.swidth1_y])
-
-    def set_dwidth1_x(self, value):
-        self.dwidth1_x = value
-        self.update_line("DWIDTH1", [self.swidth1_x, self.swidth1_y])
-    def set_dwidth1_y(self, value):
-        self.dwidth1_y = value
-        self.update_line("DWIDTH1", [self.swidth1_x, self.swidth1_y])
-
-    def set_vvector_x(self, value):
-        self.vvector_x = value
-        self.update_line("VVECTOR", [self.vvector_x, self.vvector_y])
-    def set_vvector_y(self, value):
-        self.vvector_y = value
+    def set_dwidth1(self, x, y):
+        self.dwidth1_x = x
+        self.dwidth1_y = y
+        self.update_line("DWIDTH1", [self.dwidth1_x, self.dwidth1_y])
+    def set_vvector(self, x, y):
+        self.vvector_x = x
+        self.vvector_y = y
         self.update_line("VVECTOR", [self.vvector_x, self.vvector_y])
 
     def set_prop(self, keyword, value):
         self.update_line(keyword, value, property=True)
-
-    def escape(self, value):
-        if type(value) == int:
-            return str(value)
-        if type(value) == float:
-            return str(value)
-        if type(value) == str:
-            if '"' in value or ' ' in value:
-                value = value.replace('"', '""')
-                return '"%s"' % value
-            return value
-        if type(value) == list:
-            items = []
-            for i in range(0, len(value)):
-                items.append(self.escape(value[i]))
-            return " ".join(items)
-        raise Exception("invalid value type: %s" % repr(type(value)))
 
     def sanity_check(self):
 
@@ -607,3 +526,7 @@ class BDFFont:
         if self.loose:
             return self.compute_point_size()
         return None
+
+    def finalize(self):
+        for glyph in self.glyphs:
+            glyph.finalize()
