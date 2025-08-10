@@ -28,7 +28,6 @@ class BDFGlyph():
 
     def __str__(self):
         s = ""
-        s += "\n"
         for line in self.line_list.lines:
             s += (line.text if line.text is not None else "") + "\n"
             if line.keyword is None:

@@ -7,37 +7,38 @@ from bdf_parser import BDFParser
 
 def main():
     parser = optparse.OptionParser()
+    parser.add_option('-l', '--loose', action='store_true')
     opts, args = parser.parse_args()
 
     if not len(args):
-        process_file("-")
+        process_file("-", loose=opts.loose)
     else:
         for arg in args:
-            process_file(arg)
+            process_file(arg, loose=opts.loose)
 
-def process_file(filename):
-    if filename == "-":
-        fh = sys.stdin
-    else:
-        fh = open(filename, "r")
-    parser = BDFParser()
-    parser.filename = filename
-    for line in fh:
-        parser.parse_line(line)
-
+def process_file(filename, loose=False):
+    parser = BDFParser(loose=loose)
+    parser.parse_file(filename)
+    parser.finalize()
     font = parser.font
-    font.set_x_res(96)
-    font.set_y_res(72)
-    font.append_comment("foo")
-    font.append_comment("foo\"foo")
-    font.append_comment("foo foo")
-    font.set_startfont(2.2)
-    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFSTR", "5 5")
-    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFINT", 5)
-    font.set_prop("LKFDAJLKFDJFLKAJDFLAFFFLOAT", 5.5)
-    font.set_prop("FULL_NAME", "Comic Sans MS")
-    font.set_prop("DEFAULT_CHAR", 160)
-
     print(str(font), end="")
+
+    # font.set_x_res(96)
+    # font.set_y_res(72)
+    # font.append_comment("foo")
+    # font.append_comment("foo\"foo")
+    # font.append_comment("foo foo")
+    # font.set_startfont(2.2)
+    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFSTR", "5 5")
+    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFINT", 5)
+    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFFLOAT", 5.5)
+    # font.set_prop("FULL_NAME", "Comic Sans MS")
+    # font.set_prop("DEFAULT_CHAR", 160)
+
+    # status = font.sanity_check()
+    # if status:
+    #     print("ALL SANITY CHECKS PASS.")
+    # else:
+    #     print("SOME SANITY CHECKS FAILED.")
 
 main()
