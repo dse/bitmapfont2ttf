@@ -6,21 +6,54 @@ if __name__ == "__main__":
 from bdf_parser import BDFParser
 
 def main():
+    global opts
     parser = optparse.OptionParser()
     parser.add_option('-l', '--loose', action='store_true')
+    parser.add_option('-x', '--resolution-x', '--res-x', '--x-resolution', '--x-res', type=int)
+    parser.add_option('-y', '--resolution-y', '--res-y', '--y-resolution', '--y-res', type=int)
+    parser.add_option('-f', '--font-name', '--ps-font-name', type=str)
+    parser.add_option('-m', '--family-name', type=str)
+    parser.add_option('-w', '--weight-name', type=str)
+    parser.add_option('-W', '--setwidth-name', type=str)
+    parser.add_option('-s', '--style-name', type=str)
+    parser.add_option('-F', '--full-name', type=str)
     opts, args = parser.parse_args()
 
     if not len(args):
-        process_file("-", loose=opts.loose)
+        process_file("-")
     else:
         for arg in args:
-            process_file(arg, loose=opts.loose)
+            process_file(arg)
 
 def process_file(filename, loose=False):
-    parser = BDFParser(loose=loose)
+
+    global opts
+
+    parser = BDFParser(loose=opts.loose)
     parser.parse_file(filename)
     parser.finalize()
     font = parser.font
+
+    if opts.resolution_x is not None:
+        sys.stderr.write("--resolution-x=%d\n" % opts.resolution_x)
+        font.set_x_res(opts.resolution_x)
+    if opts.resolution_y is not None:
+        sys.stderr.write("--resolution-y=%d\n" % opts.resolution_y)
+        font.set_y_res(opts.resolution_y)
+    if opts.font_name is not None:
+        font.set_font(opts.font_name)
+    if opts.family_name is not None:
+        font.set_prop("FAMILY_NAME", opts.family_name)
+    if opts.weight_name is not None:
+        font.set_prop("WEIGHT_NAME", opts.weight_name)
+    if opts.setwidth_name is not None:
+        font.set_prop("SETWIDTH_NAME", opts.setwidth_name)
+    if opts.style_name is not None:
+        font.set_prop("ADD_STYLE_NAME", opts.style_name)
+    if opts.full_name is not None:
+        font.set_prop("FULL_NAME", opts.full_name)
+        font.set_prop("FACE_NAME", opts.full_name)
+
     print(str(font), end="")
 
     # font.set_x_res(96)
