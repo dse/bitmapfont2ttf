@@ -53,25 +53,5 @@ def process_file(filename, loose=False):
     if opts.full_name is not None:
         font.set_prop("FULL_NAME", opts.full_name)
         font.set_prop("FACE_NAME", opts.full_name)
-
     print(str(font), end="")
-
-    # font.set_x_res(96)
-    # font.set_y_res(72)
-    # font.append_comment("foo")
-    # font.append_comment("foo\"foo")
-    # font.append_comment("foo foo")
-    # font.set_startfont(2.2)
-    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFSTR", "5 5")
-    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFINT", 5)
-    # font.set_prop("LKFDAJLKFDJFLKAJDFLAFFFLOAT", 5.5)
-    # font.set_prop("FULL_NAME", "Comic Sans MS")
-    # font.set_prop("DEFAULT_CHAR", 160)
-
-    # status = font.sanity_check()
-    # if status:
-    #     print("ALL SANITY CHECKS PASS.")
-    # else:
-    #     print("SOME SANITY CHECKS FAILED.")
-
 main()
