@@ -71,12 +71,12 @@ class BDFParser:
         if len(words) == 0:
             line.no_print = True
             line.is_blank = True
-            self.font.prop_line_list.lines.append(line)
+            self.font.prop_line_list.append(line)
             return
         if self.loose and re.match(r'^[ \t]*#', text):
             line.no_print = True
             line.is_comment = True
-            self.font.line_list.lines.append(line)
+            self.font.line_list.append(line)
             return
         if match := re.fullmatch(r'^([+^|])(.*?)[+^|]?', text):
             if not self.loose:
@@ -165,12 +165,12 @@ class BDFParser:
             new_line.keyword = "CHARS"
             new_line.params = []
             new_line.text = "CHARS"
-            self.font.line_list.lines.append(new_line)
+            self.font.line_list.append(new_line)
             self.parse_STARTCHAR_line(line)
             return # parse_STARTCHAR_line takes care of appending
         else:
             raise self.exception("%s: invalid keyword" % (keyword))
-        self.font.line_list.lines.append(line)
+        self.font.line_list.append(line)
 
     def parse_line_prop(self, line):
         keyword = line.keyword
@@ -298,7 +298,7 @@ class BDFParser:
             raise self.exception("AXIS_LIMITS: not supported")
         elif keyword == "AXIS_TYPES":
             raise self.exception("AXIS_TYPES: not supported")
-        self.font.prop_line_list.lines.append(line)
+        self.font.prop_line_list.append(line)
 
     def parse_line_chars(self, line):
         keyword = line.keyword
@@ -308,7 +308,7 @@ class BDFParser:
         elif keyword == "STARTCHAR":
             self.parse_STARTCHAR_line(line)
             return # parse_STARTCHAR_line takes care of appending
-        self.font.line_list.lines.append(line)
+        self.font.line_list.append(line)
 
     def parse_STARTCHAR_line(self, line):
         keyword = line.keyword
@@ -320,7 +320,7 @@ class BDFParser:
             raise self.exception("STARTCHAR: takes at least 1 param in loose parsing mode")
         self.glyph = BDFGlyph(font=self.font)
         self.font.glyphs.append(self.glyph)
-        self.glyph.line_list.lines.append(line)
+        self.glyph.line_list.append(line)
 
         data = parse_startchar_param(params[0], loose=self.loose)
         if data is None:
@@ -332,7 +332,7 @@ class BDFParser:
 
         enc_line = create_encoding_line(params[0], loose=self.loose)
         if enc_line is not None:
-            self.glyph.line_list.lines.append(enc_line)
+            self.glyph.line_list.append(enc_line)
             self.parse_stage = PARSE_STAGE_CHAR
 
     def parse_line_char(self, line):
@@ -364,7 +364,7 @@ class BDFParser:
             self.parse_stage = PARSE_STAGE_BITMAP
         elif self.loose and keyword == "ENDFONT":
             self.glyph.line_list.lines = self.glyph.line_list.lines[0:-1]
-            self.font.line_list.lines.append(line)
+            self.font.line_list.append(line)
             self.parse_stage = PARSE_STAGE_JUNK
             return
         elif self.loose and keyword == "STARTCHAR":
@@ -373,24 +373,24 @@ class BDFParser:
             return
         else:
             raise self.exception("%s: invalid keyword" % keyword)
-        self.glyph.line_list.lines.append(line)
+        self.glyph.line_list.append(line)
 
     def parse_line_bitmap(self, line):
         keyword = line.keyword
         params = line.params
         if re.fullmatch('[0-9A-Fa-f]+', keyword):
-            self.glyph.bitmap_data_line_list.lines.append(line)
+            self.glyph.bitmap_data_line_list.append(line)
         elif keyword == "ENDCHAR":
-            self.glyph.line_list.lines.append(line)
+            self.glyph.line_list.append(line)
             self.parse_stage = PARSE_STAGE_CHARS
         elif self.loose and keyword == "STARTCHAR":
             new_line = BDFLine(text="ENDCHAR", keyword="ENDCHAR", params=[])
-            self.glyph.line_list.lines.append(new_line)
+            self.glyph.line_list.append(new_line)
             self.parse_STARTCHAR_line(line)
         elif self.loose and keyword == "ENDFONT":
             new_line = BDFLine(text="ENDCHAR", keyword="ENDCHAR", params=[])
-            self.glyph.line_list.lines.append(new_line)
-            self.font.line_list.lines.append(line)
+            self.glyph.line_list.append(new_line)
+            self.font.line_list.append(line)
             self.parse_stage = PARSE_STAGE_JUNK
         else:
             raise self.exception("%s: invalid keyword" % keyword)
@@ -413,10 +413,10 @@ class BDFParser:
             hex_line += hex_byte
         if self.parse_stage == PARSE_STAGE_CHAR:
             new_line = BDFLine(keyword="BITMAP", text="BITMAP", params=[])
-            self.glyph.line_list.lines.append(new_line)
+            self.glyph.line_list.append(new_line)
             self.parse_stage = PARSE_STAGE_BITMAP
         new_line = BDFLine(text=hex_line, keyword=hex_line, params=[])
-        self.glyph.bitmap_data_line_list.lines.append(new_line)
+        self.glyph.bitmap_data_line_list.append(new_line)
 
     def parse_params(self, keyword, params, param_types, min=None):
         values = []
