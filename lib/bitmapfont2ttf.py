@@ -219,7 +219,7 @@ class BitmapFont2TTF:
                                       args.panose_8 is not None or
                                       args.panose_9 is not None)
         self.setWeightName         = args.weight_name
-        self.setPSFontName         = args.ps_font_name
+        self.setPSFontName         = args.font_name
         self.setFullName           = args.full_name
         self.setFamilyName         = args.family_name
         self.setOS2Weight          = args.os2_weight

@@ -97,16 +97,16 @@ class BDF:
             if len(args) == 0:                                  # blank line
                 continue
             propName = args[0].upper()
+            if propName == 'ENDPROPERTIES':
+                return
             if len(args) == 1:                                  # empty property
                 del self.properties[propName]
                 continue
             propValue = args[1]
-            if cmd == 'ENDPROPERTIES':
-                return
             propType = BDF_PROPERTY_TYPES.get(propName)
             if propType is None:
                 propType = str
-            self.properties[propName] = propType(args[0]);
+            self.properties[propName] = propType(propValue)
 
     def readCharsFp(self, fp):
         for line in fp:
