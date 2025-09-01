@@ -5,32 +5,32 @@ class MyBDF(BDF):
     def newChar(self, name, font):
         return MyBDFChar(name = name, font = font)
 
-    def swidthX(self):
+    def getSwidthX(self):
         if self.scalableWidthX != None:
             return self.scalableWidthX
         if self.devicePixelWidthX != None:
-            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.getPointSize()
+            return self.devicePixelWidthX / 72000.0 * self.getResolutionX() * self.getPointSize()
         raise Exception('cannot determine swidthX')
 
-    def swidthY(self):
+    def getSwidthY(self):
         if self.scalableWidthY != None:
             return self.scalableWidthY
         if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.getPointSize()
+            return self.devicePixelWidthY / 72000.0 * self.getResolutionY() * self.getPointSize()
         raise Exception('cannot determine swidthY')
 
-    def dwidthX(self):
+    def getDwidthX(self):
         if self.devicePixelWidthX != None:
             return self.devicePixelWidthX
         if self.scalableWidthX != None:
-            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.getPointSize()))
+            return int(round(self.scalableWidthX * 72000.0 / self.getResolutionX() / self.getPointSize()))
         raise Exception('cannot determine dwidthX')
 
-    def dwidthY(self):
+    def getDwidthY(self):
         if self.devicePixelWidthY != None:
             return self.devicePixelWidthY
         if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.getPointSize()))
+            return int(round(self.scalableWidthY * 72000.0 / self.getResolutionY() / self.getPointSize()))
         raise Exception('cannot determine dwidthY')
 
     def getPointSize(self):
@@ -42,13 +42,13 @@ class MyBDF(BDF):
         #     return self.pointSize * 1.0
         # px = self.properties['pixelSize']
         # if px != None:
-        #     return 72.0 * px / self.resolutionY()
+        #     return 72.0 * px / self.getResolutionY()
         # raise Exception('cannot determine pointSize')
 
     def setPixelSize(self, px):
         self.properties['pixelSize']   = px
-        self.properties['pointSize10'] = int(round(px * 720.0 / self.resolutionY()))
-        self.pointSize                 = int(round(px * 72.0 / self.resolutionY()))
+        self.properties['pointSize10'] = int(round(px * 720.0 / self.getResolutionY()))
+        self.pointSize                 = int(round(px * 72.0 / self.getResolutionY()))
 
     def getPixelSize(self):
         px = self.properties['pixelSize']
@@ -57,16 +57,16 @@ class MyBDF(BDF):
         raise Exception('font does not specify pixel size')
         # pt10 = self.properties['pointSize10']
         # if pt10 != None:
-        #     return pt10 / 720.0 * self.resolutionY()
+        #     return pt10 / 720.0 * self.getResolutionY()
         # raise Exception('cannot determine pixelSize')
 
-    def resolutionX(self):
+    def getResolutionX(self):
         r = self.properties['resolutionX']
         if r != None:
             return r
         raise Exception('cannot determine resolutionX')
 
-    def resolutionY(self):
+    def getResolutionY(self):
         r = self.properties['resolutionY']
         if r != None:
             return r

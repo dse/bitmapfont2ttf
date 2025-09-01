@@ -395,7 +395,7 @@ class BitmapFont2TTF:
                     contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
-        glyph.width = int(round(bdfChar.dwidthX() * pixX))
+        glyph.width = int(round(bdfChar.getDwidthX() * pixX))
 
     # def f800(self):
     #     """add private use characters for testing varying simulated "scan line" heights."""

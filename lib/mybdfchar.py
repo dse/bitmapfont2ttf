@@ -2,39 +2,39 @@ from bdfchar import BDFChar
 
 class MyBDFChar(BDFChar):
 
-    def swidthX(self):
+    def getSwidthX(self):
         if self.scalableWidthX != None:
             return self.scalableWidthX
         if self.devicePixelWidthX != None:
-            return self.devicePixelWidthX / 72000.0 * self.resolutionX() * self.font.getPointSize()
-        return self.font.swidthX()
+            return self.devicePixelWidthX / 72000.0 * self.getResolutionX() * self.font.getPointSize()
+        return self.font.getSwidthX()
 
-    def swidthY(self):
+    def getSwidthY(self):
         if self.scalableWidthY != None:
             return self.scalableWidthY
         if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.resolutionY() * self.font.getPointSize()
-        return self.font.swidthY()
+            return self.devicePixelWidthY / 72000.0 * self.getResolutionY() * self.font.getPointSize()
+        return self.font.getSwidthY()
 
-    def dwidthX(self):
+    def getDwidthX(self):
         if self.devicePixelWidthX != None:
             return self.devicePixelWidthX
         if self.scalableWidthX != None:
-            return int(round(self.scalableWidthX * 72000.0 / self.resolutionX() / self.font.getPointSize()))
-        return self.font.dwidthX()
+            return int(round(self.scalableWidthX * 72000.0 / self.getResolutionX() / self.font.getPointSize()))
+        return self.font.getDwidthX()
 
-    def dwidthY(self):
+    def getDwidthY(self):
         if self.devicePixelWidthY != None:
             return self.devicePixelWidthY
         if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.resolutionY() / self.font.getPointSize()))
-        return self.font.dwidthY()
+            return int(round(self.scalableWidthY * 72000.0 / self.getResolutionY() / self.font.getPointSize()))
+        return self.font.getDwidthY()
 
-    def resolutionX(self):
-        return self.font.resolutionX()
+    def getResolutionX(self):
+        return self.font.getResolutionX()
 
-    def resolutionY(self):
-        return self.font.resolutionY()
+    def getResolutionY(self):
+        return self.font.getResolutionY()
 
     # row =  0 for pixel row just above baseline
     # row = -1 for pixel row just below baseline
