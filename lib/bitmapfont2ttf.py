@@ -20,13 +20,17 @@ class BitmapFont2TTF:
             raise Exception("only bdf bitmap fonts are supported")
         self.bdf = MyBDF(self.filename)
         if self.args.bdf_ascent_descent_2:
+            if self.properties.get("PIXEL_SIZE") is None:
+                raise Exception("PIXEL_SIZE missing")
+            if self.properties.get("FONT_DESCENT") is None:
+                raise Exception("FONT_DESCENT missing")
             if self.args.windows:
                 if self.bdf.properties["PIXEL_SIZE"] % 4 == 2:
                     self.bdf.properties["PIXEL_SIZE"] += 1
-                    self.bdf.properties["FONT_DESCENT"]   += 1
+                    self.bdf.properties["FONT_DESCENT"] += 1
             else:
                 self.bdf.properties["PIXEL_SIZE"] += self.args.add_pixel_size
-                self.bdf.properties["FONT_DESCENT"]   += self.args.add_pixel_size
+                self.bdf.properties["FONT_DESCENT"] += self.args.add_pixel_size
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
@@ -78,12 +82,12 @@ class BitmapFont2TTF:
 
         if self.setFullName != None:
             self.font.fullname = self.setFullName
-        elif self.bdf.properties["FULL_NAME"] != None:
+        elif self.bdf.properties.get("FULL_NAME") != None:
             self.font.fullname = self.bdf.properties["FULL_NAME"]
 
         if self.setFamilyName != None:
             self.font.familyname = self.setFamilyName
-        elif self.bdf.properties["FAMILY_NAME"] != None:
+        elif self.bdf.properties.get("FAMILY_NAME") != None:
             self.font.familyname = self.bdf.properties["FAMILY_NAME"]
 
         if self.setWeightName != None:
@@ -95,7 +99,7 @@ class BitmapFont2TTF:
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
             self.font.weight = self.setWeightName
-        elif self.bdf.properties["WEIGHT_NAME"] != None:
+        elif self.bdf.properties.get("WEIGHT_NAME") != None:
             self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
         if self.setOS2Weight != None:
@@ -105,7 +109,7 @@ class BitmapFont2TTF:
             self.font.italicangle = self.italicAngle
         elif self.italicizeAngle != None:
             self.font.italicangle = self.italicizeAngle
-        elif self.bdf.properties["SLANT"] != None:
+        elif self.bdf.properties.get("SLANT") != None:
             slant = self.bdf.properties["SLANT"].upper()
             if slant == "R":
                 self.font.italicangle = 0
