@@ -206,6 +206,7 @@ class BDF:
         elif cmd == "CHARS":
             self.parseStage = PARSE_STAGE_CHARS
         elif cmd == "STARTCHAR":
+            self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
         elif cmd == "ENDFONT":
             self.parseStage = PARSE_STAGE_ENDFONT
@@ -239,25 +240,37 @@ class BDF:
         elif cmd == "METRICSSET":
             if args.length < 1:
                 raise Exception("%s: not enough arguments")
+        else:
+            ...
 
     def parseLineAtStageProperties(self, line, cmd, args):
         if cmd == "ENDPROPERTIES":
             self.parseStage = PARSE_STAGE_MAIN
+        else:
+            ...
 
     def parseLineAtStageChars(self, line, cmd, args):
         if cmd == "STARTCHAR":
+            self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
         elif cmd == "ENDFONT":
             self.parseStage = PARSE_STAGE_ENDFONT
+        else:
+            ...
 
     def parseLineAtStageChar(self, line, cmd, args):
         if cmd == "BITMAP":
+            self.startBitmap()
             self.parseStage = PARSE_STAGE_BITMAP
         elif cmd == "ENDCHAR"
+            self.endChar()
             self.parseStage = PARSE_STAGE_CHARS
         elif cmd == "ENDFONT":
+            self.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTCHAR":
+            self.endChar()
+            self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
         elif cmd == "BBX":
             if args.length < 4:
@@ -277,15 +290,35 @@ class BDF:
         elif cmd == "ENCODING":
             if args.length < 1:
                 raise Exception("%s: not enough arguments")
+        else:
+            ...
 
     def parseLineAtStageBitmap(self, line, cmd, args):
         if cmd == "ENDCHAR":
+            self.endBitmap()
+            self.endChar()
             self.parseStage = PARSE_STAGE_CHARS
         elif cmd == "ENDFONT":
+            self.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
+        else:
+            ...
 
     def parseLineAtStageEndFont(self, line, cmd, args):
         pass
+
+    def startChar(self, name):
+        pass
+
+    def endChar(self):
+        pass
+
+    def startBitmap(self):
+        pass
+
+    def endBitmap(self):
+        pass
+
 
     def __str__(self):
         result = "<MyBDF"
