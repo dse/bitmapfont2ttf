@@ -4,59 +4,43 @@ from bdfchar import BDFChar
 
 class BDF:
     def __init__(self, filename = None):
-
-        self.psFontName = None  # FONT (font.fontname)
-
-        # SIZE
+        self.psFontName = None                                  # FONT (font.fontname)
         self.pointSize = None
         self.xRes = None
         self.yRes = None
-
-        # FONTBOUNDINGBOX
         self.hasBoundingBox = False
         self.boundingBoxX = None
         self.boundingBoxY = None
         self.boundingBoxXOffset = None
         self.boundingBoxYOffset = None
-
-        # METRICSSET
         self.metricsSet = None
-
-        # SWIDTH
         self.scalableWidthX = None
         self.scalableWidthY = None
-
-        # DWIDTH
         self.devicePixelWidthX = None
         self.devicePixelWidthY = None
-
-        # SWIDTH1
         self.scalableWidthWritingMode1X = None
         self.scalableWidthWritingMode1Y = None
-
-        # DWIDTH1
         self.devicePixelWidthWritingMode1X = None
         self.devicePixelWidthWritingMode1Y = None
 
-        # STARTPROPERTIES .. ENDPROPERTIES
         self.properties = {}
-        self.properties["pixelSize"] = None      # PIXEL_SIZE
-        self.properties["pointSize10"] = None    # POINT_SIZE
-        self.properties["resolutionX"] = None    # RESOLUTION_X
-        self.properties["resolutionY"] = None    # RESOLUTION_Y
-        self.properties["spacing"] = None        # SPACING ('M' for monospace or 'C' for character-cell fonts)
-        self.properties["capHeight"] = None      # CAP_HEIGHT
-        self.properties["xHeight"] = None        # X_HEIGHT
-        self.properties["ascent"] = None         # FONT_ASCENT
-        self.properties["descent"] = None        # FONT_DESCENT
-        self.properties["averageWidth10"] = None # AVERAGE_WIDTH
-        self.properties["setWidthName"] = None   # SETWIDTH_NAME
-        self.properties["familyName"] = None     # FAMILY_NAME (font.familyname)
-        self.properties["weightName"] = None     # WEIGHT_NAME (font.weight)
-        self.properties["foundry"] = None        # FOUNDRY
-        self.properties["slant"] = None          # SLANT ("R" or "I" or "O") [font.italicAngle]
-        self.properties["faceName"] = None       # FACE_NAME
-        self.properties["fullName"] = None       # FULL_NAME (font.fullname)
+        self.properties["pixelSize"] = None                     # PIXEL_SIZE
+        self.properties["pointSize10"] = None                   # POINT_SIZE
+        self.properties["resolutionX"] = None                   # RESOLUTION_X
+        self.properties["resolutionY"] = None                   # RESOLUTION_Y
+        self.properties["spacing"] = None                       # SPACING ('M' for monospace or 'C' for character-cell fonts)
+        self.properties["capHeight"] = None                     # CAP_HEIGHT
+        self.properties["xHeight"] = None                       # X_HEIGHT
+        self.properties["ascent"] = None                        # FONT_ASCENT
+        self.properties["descent"] = None                       # FONT_DESCENT
+        self.properties["averageWidth10"] = None                # AVERAGE_WIDTH
+        self.properties["setWidthName"] = None                  # SETWIDTH_NAME
+        self.properties["familyName"] = None                    # FAMILY_NAME (font.familyname)
+        self.properties["weightName"] = None                    # WEIGHT_NAME (font.weight)
+        self.properties["foundry"] = None                       # FOUNDRY
+        self.properties["slant"] = None                         # SLANT ("R" or "I" or "O") [font.italicAngle]
+        self.properties["faceName"] = None                      # FACE_NAME
+        self.properties["fullName"] = None                      # FULL_NAME (font.fullname)
 
         self.bdfProperties = {}
         self.bdfArrayProperties = {}
@@ -87,13 +71,13 @@ class BDF:
             if cmd == 'CHARS':
                 self.readCharsFp(fp)
             if cmd == 'SIZE' and len(args) >= 3:
-                self.pointSize = float(args[0]) # point size of the glyphs
-                self.xRes      = float(args[1]) # x resolution of the device for which the font is intended
-                self.yRes      = float(args[2]) # y resolution "  "   "      "   "     "   "    "  "
+                self.pointSize = float(args[0])                 # point size of the glyphs
+                self.xRes      = float(args[1])                 # x resolution of the device for which the font is intended
+                self.yRes      = float(args[2])                 # y resolution "  "   "      "   "     "   "    "  "
                 continue
             if cmd == 'FONTBOUNDINGBOX' and len(args) >= 4:
                 self.hasBoundingBox = True
-                self.boundingBoxX       = int(args[0]) # integer pixel values, offsets relative to origin
+                self.boundingBoxX       = int(args[0])          # integer pixel values, offsets relative to origin
                 self.boundingBoxY       = int(args[1])
                 self.boundingBoxXOffset = int(args[2])
                 self.boundingBoxYOffset = int(args[3])
