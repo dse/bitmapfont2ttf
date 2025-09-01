@@ -30,12 +30,6 @@ class MyBDF(BDF):
         if pt10 != None:
             return pt10 / 10.0
         raise Exception('font does not have a POINT_SIZE property')
-        # if self.pointSize != None:
-        #     return self.pointSize * 1.0
-        # px = self.properties["PIXEL_SIZE"]
-        # if px != None:
-        #     return 72.0 * px / self.getResolutionY()
-        # raise Exception('cannot determine pointSize')
 
     def setPixelSize(self, px):
         self.properties["PIXEL_SIZE"] = px
@@ -47,10 +41,6 @@ class MyBDF(BDF):
         if px != None:
             return px
         raise Exception('font does not specify pixel size')
-        # pt10 = self.properties["POINT_SIZE"]
-        # if pt10 != None:
-        #     return pt10 / 720.0 * self.getResolutionY()
-        # raise Exception('cannot determine pixelSize')
 
     def getResolutionX(self):
         r = self.properties["RESOLUTION_X"]
