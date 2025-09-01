@@ -2,31 +2,19 @@ class BDFChar:
     def __init__(self, name = None, font = None):
         self.name = name
         self.font = font
-
-        # ENCODING
         self.encoding = None
         self.nonStandardEncoding = None
-
-        # BBX
         self.hasBoundingBox = False
         self.boundingBoxX = None
         self.boundingBoxY = None
         self.boundingBoxXOffset = None
         self.boundingBoxYOffset = None
-
-        # SWIDTH
         self.scalableWidthX = None
         self.scalableWidthY = None
-
-        # DWIDTH
         self.devicePixelWidthX = None
         self.devicePixelWidthY = None
-
-        # SWIDTH1
         self.scalableWidthWritingMode1X = None
         self.scalableWidthWritingMode1Y = None
-
-        # DWIDTH1
         self.devicePixelWidthWritingMode1X = None
         self.devicePixelWidthWritingMode1Y = None
 
