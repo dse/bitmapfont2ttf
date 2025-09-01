@@ -68,9 +68,13 @@ class BDF:
             if cmd == 'SWIDTH':
                 self.scalableWidthX = float(args[0])
                 self.scalableWidthY = float(args[1])
+                if self.scalableWidthY != 0.0:
+                    raise Exception("SWIDTH with non-zero Y coordinate not supported")
             if cmd == 'DWIDTH':
                 self.devicePixelWidthX = float(args[0])
                 self.devicePixelWidthY = float(args[1])
+                if self.devicePixelWidthY != 0.0:
+                    raise Exception("DWIDTH with non-zero Y coordinate not supported")
             if cmd == 'SWIDTH1':
                 raise Exception("SWIDTH1 not supported")
             if cmd == 'DWIDTH1':
@@ -156,9 +160,13 @@ class BDF:
             elif cmd == 'SWIDTH':
                 char.scalableWidthX = float(args[0])
                 char.scalableWidthY = float(args[1])
+                if char.scalableWidthY != 0.0:
+                    raise Exception("SWIDTH with non-zero Y coordinate not supported")
             elif cmd == 'DWIDTH':
                 char.devicePixelWidthX = int(args[0])
                 char.devicePixelWidthY = int(args[1])
+                if char.devicePixelWidthY != 0.0:
+                    raise Exception("DWIDTH with non-zero Y coordinate not supported")
             elif cmd == 'SWIDTH1':
                 raise Exception("SWIDTH1 not supported")
             elif cmd == 'DWIDTH1':

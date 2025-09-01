@@ -10,11 +10,7 @@ class MyBDFChar(BDFChar):
         return self.font.getSwidthX()
 
     def getSwidthY(self):
-        if self.scalableWidthY != None:
-            return self.scalableWidthY
-        if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.getResolutionY() * self.font.getPointSize()
-        return self.font.getSwidthY()
+        return 0
 
     def getDwidthX(self):
         if self.devicePixelWidthX != None:
@@ -24,11 +20,7 @@ class MyBDFChar(BDFChar):
         return self.font.getDwidthX()
 
     def getDwidthY(self):
-        if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY
-        if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.getResolutionY() / self.font.getPointSize()))
-        return self.font.getDwidthY()
+        return 0
 
     def getResolutionX(self):
         return self.font.getResolutionX()

@@ -13,11 +13,7 @@ class MyBDF(BDF):
         raise Exception('cannot determine swidthX')
 
     def getSwidthY(self):
-        if self.scalableWidthY != None:
-            return self.scalableWidthY
-        if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY / 72000.0 * self.getResolutionY() * self.getPointSize()
-        raise Exception('cannot determine swidthY')
+        return 0
 
     def getDwidthX(self):
         if self.devicePixelWidthX != None:
@@ -27,11 +23,7 @@ class MyBDF(BDF):
         raise Exception('cannot determine dwidthX')
 
     def getDwidthY(self):
-        if self.devicePixelWidthY != None:
-            return self.devicePixelWidthY
-        if self.scalableWidthY != None:
-            return int(round(self.scalableWidthY * 72000.0 / self.getResolutionY() / self.getPointSize()))
-        raise Exception('cannot determine dwidthY')
+        return 0
 
     def getPointSize(self):
         pt10 = self.properties["POINT_SIZE"]
