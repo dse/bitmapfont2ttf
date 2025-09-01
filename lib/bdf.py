@@ -24,23 +24,23 @@ class BDF:
         self.devicePixelWidthWritingMode1Y = None
 
         self.properties = {}
-        self.properties["pixelSize"] = None                     # PIXEL_SIZE
-        self.properties["pointSize10"] = None                   # POINT_SIZE
-        self.properties["resolutionX"] = None                   # RESOLUTION_X
-        self.properties["resolutionY"] = None                   # RESOLUTION_Y
-        self.properties["spacing"] = None                       # SPACING ('M' for monospace or 'C' for character-cell fonts)
-        self.properties["capHeight"] = None                     # CAP_HEIGHT
-        self.properties["xHeight"] = None                       # X_HEIGHT
-        self.properties["ascent"] = None                        # FONT_ASCENT
-        self.properties["descent"] = None                       # FONT_DESCENT
-        self.properties["averageWidth10"] = None                # AVERAGE_WIDTH
-        self.properties["setWidthName"] = None                  # SETWIDTH_NAME
-        self.properties["familyName"] = None                    # FAMILY_NAME (font.familyname)
-        self.properties["weightName"] = None                    # WEIGHT_NAME (font.weight)
-        self.properties["foundry"] = None                       # FOUNDRY
-        self.properties["slant"] = None                         # SLANT ("R" or "I" or "O") [font.italicAngle]
-        self.properties["faceName"] = None                      # FACE_NAME
-        self.properties["fullName"] = None                      # FULL_NAME (font.fullname)
+        self.properties["PIXEL_SIZE"] = None                     # PIXEL_SIZE
+        self.properties["POINT_SIZE"] = None                   # POINT_SIZE
+        self.properties["RESOLUTION_X"] = None                   # RESOLUTION_X
+        self.properties["RESOLUTION_Y"] = None                   # RESOLUTION_Y
+        self.properties["SPACING"] = None                       # SPACING ('M' for monospace or 'C' for character-cell fonts)
+        self.properties["CAP_HEIGHT"] = None                     # CAP_HEIGHT
+        self.properties["X_HEIGHT"] = None                       # X_HEIGHT
+        self.properties["FONT_ASCENT"] = None                        # FONT_ASCENT
+        self.properties["FONT_DESCENT"] = None                       # FONT_DESCENT
+        self.properties["AVERAGE_WIDTH"] = None                # AVERAGE_WIDTH
+        self.properties["SETWIDTH_NAME"] = None                  # SETWIDTH_NAME
+        self.properties["FAMILY_NAME"] = None                    # FAMILY_NAME (font.familyname)
+        self.properties["WEIGHT_NAME"] = None                    # WEIGHT_NAME (font.weight)
+        self.properties["FOUNDRY"] = None                       # FOUNDRY
+        self.properties["SLANT"] = None                         # SLANT ("R" or "I" or "O") [font.italicAngle]
+        self.properties["FACE_NAME"] = None                      # FACE_NAME
+        self.properties["FULL_NAME"] = None                      # FULL_NAME (font.fullname)
 
         self.bdfProperties = {}
         self.bdfArrayProperties = {}
@@ -113,41 +113,41 @@ class BDF:
             if cmd == 'ENDPROPERTIES':
                 return
             if cmd == 'PIXEL_SIZE' and len(args) >= 1:
-                self.properties["pixelSize"] = float(args[0])
+                self.properties["PIXEL_SIZE"] = float(args[0])
             if cmd == 'POINT_SIZE' and len(args) >= 1:
-                self.properties["pointSize10"] = float(args[0])
+                self.properties["POINT_SIZE"] = float(args[0])
             if cmd == 'RESOLUTION_X' and len(args) >= 1:
-                self.properties["resolutionX"] = float(args[0])
+                self.properties["RESOLUTION_X"] = float(args[0])
             if cmd == 'RESOLUTION_Y' and len(args) >= 1:
-                self.properties["resolutionY"] = float(args[0])
+                self.properties["RESOLUTION_Y"] = float(args[0])
             if cmd == 'SPACING' and len(args) >= 1:
-                self.properties["spacing"] = args[0].upper().replace("\"", "")
+                self.properties["SPACING"] = args[0].upper().replace("\"", "")
             if cmd == 'CAP_HEIGHT' and len(args) >= 1:
-                self.properties["capHeight"] = float(args[0])
+                self.properties["CAP_HEIGHT"] = float(args[0])
             if cmd == 'X_HEIGHT' and len(args) >= 1:
-                self.properties["xHeight"] = float(args[0])
+                self.properties["X_HEIGHT"] = float(args[0])
             if cmd == 'FONT_ASCENT' and len(args) >= 1:
-                self.properties["ascent"] = float(args[0])
+                self.properties["FONT_ASCENT"] = float(args[0])
             if cmd == 'FONT_DESCENT' and len(args) >= 1:
-                self.properties["descent"] = float(args[0])
+                self.properties["FONT_DESCENT"] = float(args[0])
             if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
-                self.properties["averageWidth10"] = float(args[0])
+                self.properties["AVERAGE_WIDTH"] = float(args[0])
             if cmd == 'SETWIDTH_NAME' and len(args) >= 1:
-                self.properties["setWidthName"] = args[0]
+                self.properties["SETWIDTH_NAME"] = args[0]
             if cmd == 'FAMILY_NAME' and len(args) >= 1:
-                self.properties["familyName"] = args[0]
+                self.properties["FAMILY_NAME"] = args[0]
             if cmd == 'WEIGHT_NAME' and len(args) >= 1:
-                self.properties["weightName"] = args[0]
+                self.properties["WEIGHT_NAME"] = args[0]
             if cmd == 'SPACING' and len(args) >= 1:
-                self.properties["spacing"] = args[0]
+                self.properties["SPACING"] = args[0]
             if cmd == 'FOUNDRY' and len(args) >= 1:
-                self.properties["foundry"] = args[0]
+                self.properties["FOUNDRY"] = args[0]
             if cmd == 'SLANT' and len(args) >= 1:
-                self.properties["slant"] = args[0]
+                self.properties["SLANT"] = args[0]
             if cmd == 'FACE_NAME' and len(args) >= 1:
-                self.properties["faceName"] = args[0]
+                self.properties["FACE_NAME"] = args[0]
             if cmd == 'FULL_NAME' and len(args) >= 1:
-                self.properties["fullName"] = args[0]
+                self.properties["FULL_NAME"] = args[0]
 
             result = bdfParseLine2(line)
             if result:

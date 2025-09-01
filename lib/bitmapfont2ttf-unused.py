@@ -29,8 +29,8 @@ class BitmapFont2TTF:
         # else:
         #     self.swidth = None
     def setInitialAscentDescent(self):
-        # self.descentPx = self.pixelSize - self.bdf.properties["ascent"]
-        # self.ascentPx = self.bdf.properties["ascent"]
+        # self.descentPx = self.pixelSize - self.bdf.properties["FONT_ASCENT"]
+        # self.ascentPx = self.bdf.properties["FONT_ASCENT"]
         # # must be specified before bitmap import for baseline alignment
         # em = self.font.em
         # ascent  = int(0.5 + 1.0 * em * self.ascentPx  / self.pixelSize)
@@ -128,10 +128,10 @@ class BitmapFont2TTF:
         if self.bdf.fillBoundingBoxWidth:
             for glyph in self.font.glyphs():
                 oldWidth = glyph.width
-                if self.bdf.properties["resolutionX"] and self.bdf.properties["resolutionY"]:
-                    newWidth = 1.0 * self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX * self.bdf.aspectRatioXtoY()
+                if self.bdf.properties["RESOLUTION_X"] and self.bdf.properties["RESOLUTION_Y"]:
+                    newWidth = 1.0 * self.font.em / self.bdf.properties["PIXEL_SIZE"] * self.bdf.boundingBoxX * self.bdf.aspectRatioXtoY()
                 else:
-                    newWidth = 1.0 * self.font.em / self.bdf.properties["pixelSize"] * self.bdf.boundingBoxX
+                    newWidth = 1.0 * self.font.em / self.bdf.properties["PIXEL_SIZE"] * self.bdf.boundingBoxX
                     raise Exception("neither resolutionX nor resolutionY defined")
                 print("oldWidth = %f; newWidth = %f" % (oldWidth, newWidth))
                 glyph.transform(psMat.translate((newWidth - oldWidth) / 2, 0))
@@ -180,8 +180,8 @@ class BitmapFont2TTF:
     #     bdfChar = self.bdf.charsByEncoding[glyph.encoding]
     #     y = bdfChar.boundingBoxYOffset + bdfChar.boundingBoxY
 
-    #     pixY = 1000.0 / self.bdf.properties["pixelSize"]
-    #     pixX = 1000.0 / self.bdf.properties["pixelSize"] * self.bdf.aspectRatioXtoY()
+    #     pixY = 1000.0 / self.bdf.properties["PIXEL_SIZE"]
+    #     pixX = 1000.0 / self.bdf.properties["PIXEL_SIZE"] * self.bdf.aspectRatioXtoY()
 
     #     for line in bdfChar.bitmapData:
     #         y = y - 1
