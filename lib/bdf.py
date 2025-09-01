@@ -23,29 +23,7 @@ class BDF:
         self.scalableWidthWritingMode1Y = None
         self.devicePixelWidthWritingMode1X = None
         self.devicePixelWidthWritingMode1Y = None
-
         self.properties = {}
-        self.properties["PIXEL_SIZE"] = None                     # PIXEL_SIZE
-        self.properties["POINT_SIZE"] = None                   # POINT_SIZE
-        self.properties["RESOLUTION_X"] = None                   # RESOLUTION_X
-        self.properties["RESOLUTION_Y"] = None                   # RESOLUTION_Y
-        self.properties["SPACING"] = None                       # SPACING ('M' for monospace or 'C' for character-cell fonts)
-        self.properties["CAP_HEIGHT"] = None                     # CAP_HEIGHT
-        self.properties["X_HEIGHT"] = None                       # X_HEIGHT
-        self.properties["FONT_ASCENT"] = None                        # FONT_ASCENT
-        self.properties["FONT_DESCENT"] = None                       # FONT_DESCENT
-        self.properties["AVERAGE_WIDTH"] = None                # AVERAGE_WIDTH
-        self.properties["SETWIDTH_NAME"] = None                  # SETWIDTH_NAME
-        self.properties["FAMILY_NAME"] = None                    # FAMILY_NAME (font.familyname)
-        self.properties["WEIGHT_NAME"] = None                    # WEIGHT_NAME (font.weight)
-        self.properties["FOUNDRY"] = None                       # FOUNDRY
-        self.properties["SLANT"] = None                         # SLANT ("R" or "I" or "O") [font.italicAngle]
-        self.properties["FACE_NAME"] = None                      # FACE_NAME
-        self.properties["FULL_NAME"] = None                      # FULL_NAME (font.fullname)
-
-        self.bdfProperties = {}
-        self.bdfArrayProperties = {}
-
         self.filename = None
         self.chars = []
         self.charsByEncoding = {}
@@ -108,29 +86,19 @@ class BDF:
     def readPropertiesFp(self, fp):
         for line in fp:
             args = bdfParseLine(line)
-            if len(args) < 1:
+            if len(args) == 0:                                  # blank line
                 continue
-            (cmd, args) = (args[0].upper(), args[1:])
+            propName = args[0].upper()
+            if len(args) == 1:                                  # empty property
+                del self.properties[propName]
+                continue
+            propValue = args[1]
             if cmd == 'ENDPROPERTIES':
                 return
-
-            propName = cmd
             propType = BDF_PROPERTY_TYPES.get(propName)
             if propType is None:
                 propType = str
             self.properties[propName] = propType(args[0]);
-
-            result = bdfParseLine2(line)
-            if result:
-                key = result[0]
-                value = result[1]
-                self.addBdfProperty(key, value)
-
-    def addBdfProperty(self, key, value):
-        self.bdfProperties[key] = value
-        if self.bdfArrayProperties.get(key) == None:
-            self.bdfArrayProperties[key] = []
-        self.bdfArrayProperties[key].append(value)
 
     def readCharsFp(self, fp):
         for line in fp:
