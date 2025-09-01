@@ -1,6 +1,7 @@
 import re
 import sys
 from bdfchar import BDFChar
+from bdfpropertytypes import BDF_PROPERTY_TYPES
 
 class BDF:
     def __init__(self, filename = None):
@@ -112,42 +113,12 @@ class BDF:
             (cmd, args) = (args[0].upper(), args[1:])
             if cmd == 'ENDPROPERTIES':
                 return
-            if cmd == 'PIXEL_SIZE' and len(args) >= 1:
-                self.properties["PIXEL_SIZE"] = float(args[0])
-            if cmd == 'POINT_SIZE' and len(args) >= 1:
-                self.properties["POINT_SIZE"] = float(args[0])
-            if cmd == 'RESOLUTION_X' and len(args) >= 1:
-                self.properties["RESOLUTION_X"] = float(args[0])
-            if cmd == 'RESOLUTION_Y' and len(args) >= 1:
-                self.properties["RESOLUTION_Y"] = float(args[0])
-            if cmd == 'SPACING' and len(args) >= 1:
-                self.properties["SPACING"] = args[0].upper().replace("\"", "")
-            if cmd == 'CAP_HEIGHT' and len(args) >= 1:
-                self.properties["CAP_HEIGHT"] = float(args[0])
-            if cmd == 'X_HEIGHT' and len(args) >= 1:
-                self.properties["X_HEIGHT"] = float(args[0])
-            if cmd == 'FONT_ASCENT' and len(args) >= 1:
-                self.properties["FONT_ASCENT"] = float(args[0])
-            if cmd == 'FONT_DESCENT' and len(args) >= 1:
-                self.properties["FONT_DESCENT"] = float(args[0])
-            if cmd == 'AVERAGE_WIDTH' and len(args) >= 1:
-                self.properties["AVERAGE_WIDTH"] = float(args[0])
-            if cmd == 'SETWIDTH_NAME' and len(args) >= 1:
-                self.properties["SETWIDTH_NAME"] = args[0]
-            if cmd == 'FAMILY_NAME' and len(args) >= 1:
-                self.properties["FAMILY_NAME"] = args[0]
-            if cmd == 'WEIGHT_NAME' and len(args) >= 1:
-                self.properties["WEIGHT_NAME"] = args[0]
-            if cmd == 'SPACING' and len(args) >= 1:
-                self.properties["SPACING"] = args[0]
-            if cmd == 'FOUNDRY' and len(args) >= 1:
-                self.properties["FOUNDRY"] = args[0]
-            if cmd == 'SLANT' and len(args) >= 1:
-                self.properties["SLANT"] = args[0]
-            if cmd == 'FACE_NAME' and len(args) >= 1:
-                self.properties["FACE_NAME"] = args[0]
-            if cmd == 'FULL_NAME' and len(args) >= 1:
-                self.properties["FULL_NAME"] = args[0]
+
+            propName = cmd
+            propType = BDF_PROPERTY_TYPES.get(propName)
+            if propType is None:
+                propType = str
+            self.properties[propName] = propType(args[0]);
 
             result = bdfParseLine2(line)
             if result:
@@ -252,23 +223,25 @@ class BDF:
         return result
 
 def bdfParseLine(line):
+    orig_line = line
     words = []
-    line = line.strip()
+    line = line.rstrip()
     while True:
-        match = re.match(r'^\s*"((?:[^"]+|"")*)"($|\s+)', line)
-        if match:
-            word = match.group(1) # $1
-            word = re.sub(r'""', '"', word)
+        line = line.lstrip()
+        if line == "":
+            break
+        if match := re.match(r'\s*"((?:[^"]+|"")*)"($|\s+)', line):
+            word = match[1]
+            word = word.replace('""', '"')
             words.append(word)
-            line = line[len(match.group(0)):] # $'
+            line = line[match.end():]
             continue
-        match = re.match(r'^\s*(\S+)($|\s+)', line)
-        if match:
-            word = match.group(1) # $1
+        if match := re.match(r'^\s*(\S+)($|\s+)', line):
+            word = match[1]
             words.append(word)
-            line = line[len(match.group(0)):] # $'
+            line = line[match.end():]
             continue
-        break
+        raise Exception("BDF line parse error: %s" % repr(orig_line))
     return words
 
 def bdfParseLine2(line):
