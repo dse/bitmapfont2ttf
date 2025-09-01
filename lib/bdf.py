@@ -12,6 +12,8 @@ PARSE_STAGE_ENDFONT = 5
 
 class BDF:
     def __init__(self, filename = None):
+        self.bdfVersion = None
+        self.contentVersion = None
         self.psFontName = None                                  # FONT (font.fontname)
         self.pointSize = None
         self.xRes = None
@@ -77,12 +79,15 @@ class BDF:
         elif cmd == "STARTFONT":
             if len(args) < 1:
                 raise Exception("%s: not enough arguments")
+            self.bdfVersion = float(args[0])
         elif cmd == "CONTENTVERSION":
             if len(args) < 1:
                 raise Exception("%s: not enough arguments")
+            self.contentVersion = int(args[0])
         elif cmd == "FONT":
             if len(args) < 1:
                 raise Exception("%s: not enough arguments")
+            self.psFontName = args[0]
         elif cmd == "SIZE":
             if len(args) < 3:
                 raise Exception("%s: not enough arguments")
