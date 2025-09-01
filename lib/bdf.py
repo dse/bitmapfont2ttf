@@ -6,7 +6,7 @@ from bdfpropertytypes import BDF_PROPERTY_TYPES
 PARSE_STAGE_MAIN = 0
 PARSE_STAGE_PROPERTIES = 1
 PARSE_STAGE_CHARS = 2
-PARSE_STAGE_GLYPH = 3
+PARSE_STAGE_CHAR = 3
 PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_ENDFONT = 5
 
@@ -193,27 +193,96 @@ class BDF:
             self.parseLineAtStageProperties(line, cmd, args)
         elif self.parseStage == PARSE_STAGE_CHARS:
             self.parseLineAtStageChars(line, cmd, args)
-        elif self.parseStage == PARSE_STAGE_GLYPH:
-            self.parseLineAtStageGlyph(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_CHAR:
+            self.parseLineAtStageChar(line, cmd, args)
         elif self.parseStage == PARSE_STAGE_BITMAP:
             self.parseLineAtStageBitmap(line, cmd, args)
         elif self.parseStage == PARSE_STAGE_ENDFONT:
             self.parseLineAtStageEndFont(line, cmd, args)
 
     def parseLineAtStageMain(self, line, cmd, args):
-        pass
+        if cmd == "PROPERTIES":
+            self.parseStage = PARSE_STAGE_PROPERTIES
+        elif cmd == "CHARS":
+            self.parseStage = PARSE_STAGE_CHARS
+        elif cmd == "STARTCHAR":
+            self.parseStage = PARSE_STAGE_CHAR
+        elif cmd == "ENDFONT":
+            self.parseStage = PARSE_STAGE_ENDFONT
+        elif cmd == "STARTFONT":
+            if args.length < 1:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "CONTENTVERSION":
+            if args.length < 1:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "FONT":
+            if args.length < 1:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "SIZE":
+            if args.length < 3:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "FONTBOUNDINGBOX":
+            if args.length < 4:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "SWIDTH":
+            if args.length < 2:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "DWIDTH":
+            if args.length < 2:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "SWIDTH1":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "DWIDTH1":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "VVECTOR":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "METRICSSET":
+            if args.length < 1:
+                raise Exception("%s: not enough arguments")
 
     def parseLineAtStageProperties(self, line, cmd, args):
-        pass
+        if cmd == "ENDPROPERTIES":
+            self.parseStage = PARSE_STAGE_MAIN
 
     def parseLineAtStageChars(self, line, cmd, args):
-        pass
+        if cmd == "STARTCHAR":
+            self.parseStage = PARSE_STAGE_CHAR
+        elif cmd == "ENDFONT":
+            self.parseStage = PARSE_STAGE_ENDFONT
 
-    def parseLineAtStageGlyph(self, line, cmd, args):
-        pass
+    def parseLineAtStageChar(self, line, cmd, args):
+        if cmd == "BITMAP":
+            self.parseStage = PARSE_STAGE_BITMAP
+        elif cmd == "ENDCHAR"
+            self.parseStage = PARSE_STAGE_CHARS
+        elif cmd == "ENDFONT":
+            self.parseStage = PARSE_STAGE_ENDFONT
+        elif cmd == "STARTCHAR":
+            self.parseStage = PARSE_STAGE_CHAR
+        elif cmd == "BBX":
+            if args.length < 4:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "SWIDTH":
+            if args.length < 2:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "DWIDTH":
+            if args.length < 2:
+                raise Exception("%s: not enough arguments")
+        elif cmd == "SWIDTH1":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "DWIDTH1":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "VVECTOR":
+            raise Exception("%s: not supported" % cmd)
+        elif cmd == "ENCODING":
+            if args.length < 1:
+                raise Exception("%s: not enough arguments")
 
     def parseLineAtStageBitmap(self, line, cmd, args):
-        pass
+        if cmd == "ENDCHAR":
+            self.parseStage = PARSE_STAGE_CHARS
+        elif cmd == "ENDFONT":
+            self.parseStage = PARSE_STAGE_ENDFONT
 
     def parseLineAtStageEndFont(self, line, cmd, args):
         pass
