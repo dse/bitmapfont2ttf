@@ -36,6 +36,7 @@ class BDF:
         self.charsByEncoding = {}
         self.charsByNonStandardEncoding = {}
         self.charsByName = {}
+        self.parseStage = PARSE_STAGE_MAIN
 
         if filename != None:
             self.read(filename)
@@ -180,6 +181,42 @@ class BDF:
                 raise Exception("DWIDTH1 not supported")
             elif cmd == 'VVECTOR':
                 raise Exception("VVECTOR not supported")
+
+    def parseLine(self, line):
+        args = bdfParseLine(line)
+        if len(args) == 0:
+            return
+        (cmd, args) = (args[0].upper(), args[1:])
+        if self.parseStage == PARSE_STAGE_MAIN:
+            self.parseLineAtStageMain(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_PROPERTIES:
+            self.parseLineAtStageProperties(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_CHARS:
+            self.parseLineAtStageChars(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_GLYPH:
+            self.parseLineAtStageGlyph(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_BITMAP:
+            self.parseLineAtStageBitmap(line, cmd, args)
+        elif self.parseStage == PARSE_STAGE_ENDFONT:
+            self.parseLineAtStageEndFont(line, cmd, args)
+
+    def parseLineAtStageMain(self, line, cmd, args):
+        pass
+
+    def parseLineAtStageProperties(self, line, cmd, args):
+        pass
+
+    def parseLineAtStageChars(self, line, cmd, args):
+        pass
+
+    def parseLineAtStageGlyph(self, line, cmd, args):
+        pass
+
+    def parseLineAtStageBitmap(self, line, cmd, args):
+        pass
+
+    def parseLineAtStageEndFont(self, line, cmd, args):
+        pass
 
     def __str__(self):
         result = "<MyBDF"
