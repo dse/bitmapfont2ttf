@@ -72,14 +72,11 @@ class BDF:
                 self.devicePixelWidthX = float(args[0])
                 self.devicePixelWidthY = float(args[1])
             if cmd == 'SWIDTH1':
-                self.scalableWidthWritingMode1X = float(args[0])
-                self.scalableWidthWritingMode1Y = float(args[1])
+                raise Exception("SWIDTH1 not supported")
             if cmd == 'DWIDTH1':
-                self.devicePixelWidthWritingMode1X = float(args[0])
-                self.devicePixelWidthWritingMode1Y = float(args[1])
+                raise Exception("DWIDTH1 not supported")
             if cmd == 'VVECTOR':
-                sys.stderr.write("ERROR: bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
-                exit(1)
+                raise Exception("VVECTOR not supported")
             if cmd == 'STARTPROPERTIES':
                 self.readPropertiesFp(fp)
 
@@ -163,14 +160,11 @@ class BDF:
                 char.devicePixelWidthX = int(args[0])
                 char.devicePixelWidthY = int(args[1])
             elif cmd == 'SWIDTH1':
-                char.scalableWidthWritingMode1X = float(args[0])
-                char.scalableWidthWritingMode1Y = float(args[1])
+                raise Exception("SWIDTH1 not supported")
             elif cmd == 'DWIDTH1':
-                char.devicePixelWidthWritingMode1X = int(args[0])
-                char.devicePixelWidthWritingMode1Y = int(args[1])
+                raise Exception("DWIDTH1 not supported")
             elif cmd == 'VVECTOR':
-                sys.stderr.write("ERROR: bitmapfont2ttf: %s: fonts with VVECTOR not supported yet.\n" % self.args.full_name)
-                exit(1)
+                raise Exception("VVECTOR not supported")
 
     def __str__(self):
         result = "<MyBDF"
