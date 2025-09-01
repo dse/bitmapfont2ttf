@@ -1,4 +1,4 @@
-from mybdf import MyBDF
+from bdf import BDF
 
 import fontforge
 import os
@@ -18,7 +18,7 @@ class BitmapFont2TTF:
     def bitmapfont2ttf(self):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
-        self.bdf = MyBDF(self.filename)
+        self.bdf = BDF(self.filename)
         if self.args.bdf_ascent_descent_2:
             if self.properties.get("PIXEL_SIZE") is None:
                 raise Exception("PIXEL_SIZE missing")
