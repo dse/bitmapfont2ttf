@@ -1,6 +1,6 @@
 import re
 import sys
-from bdfchar import BDFChar
+from mybdfchar import MyBDFChar
 from bdfpropertytypes import BDF_PROPERTY_TYPES
 
 PARSE_STAGE_MAIN = 0
@@ -41,146 +41,148 @@ class BDF:
         if filename != None:
             self.read(filename)
 
-    def newChar(self, name, font):
-        return BDFChar(name = name, font = font)
-
     def read(self, filename):
-        with open(filename) as fp:
+        if True:
             self.filename = filename
-            self.readFp(fp)
+            for line in open(filename, "r"):
+                self.parseLine(line)
+        else:
+            with open(filename) as fp:
+                self.filename = filename
+                self.readFp(fp)
 
-    def readFp(self, fp):
-        for line in fp:
-            args = bdfParseLine(line)
-            if len(args) < 1:
-                continue
-            (cmd, args) = (args[0].upper(), args[1:])
-            if cmd == 'CHARS':
-                self.readCharsFp(fp)
-            if cmd == 'SIZE' and len(args) >= 3:
-                self.pointSize = float(args[0])                 # point size of the glyphs
-                self.xRes      = float(args[1])                 # x resolution of the device for which the font is intended
-                self.yRes      = float(args[2])                 # y resolution "  "   "      "   "     "   "    "  "
-                continue
-            if cmd == 'FONTBOUNDINGBOX' and len(args) >= 4:
-                self.hasBoundingBox = True
-                self.boundingBoxX       = int(args[0])          # integer pixel values, offsets relative to origin
-                self.boundingBoxY       = int(args[1])
-                self.boundingBoxXOffset = int(args[2])
-                self.boundingBoxYOffset = int(args[3])
-                continue
-            if cmd == 'FONT' and len(args) >= 1:
-                self.psFontName = args[0]
-            if cmd == 'METRICSSET' and len(args) >= 1:
-                self.metricsSet = int(args[0])
-            if cmd == 'SWIDTH':
-                self.scalableWidthX = float(args[0])
-                self.scalableWidthY = float(args[1])
-                if self.scalableWidthY != 0.0:
-                    raise Exception("SWIDTH with non-zero Y coordinate not supported")
-            if cmd == 'DWIDTH':
-                self.devicePixelWidthX = float(args[0])
-                self.devicePixelWidthY = float(args[1])
-                if self.devicePixelWidthY != 0.0:
-                    raise Exception("DWIDTH with non-zero Y coordinate not supported")
-            if cmd == 'SWIDTH1':
-                raise Exception("SWIDTH1 not supported")
-            if cmd == 'DWIDTH1':
-                raise Exception("DWIDTH1 not supported")
-            if cmd == 'VVECTOR':
-                raise Exception("VVECTOR not supported")
-            if cmd == 'STARTPROPERTIES':
-                self.readPropertiesFp(fp)
+    # def readFp(self, fp):
+    #     for line in fp:
+    #         args = bdfParseLine(line)
+    #         if len(args) < 1:
+    #             continue
+    #         (cmd, args) = (args[0].upper(), args[1:])
+    #         if cmd == 'CHARS':
+    #             self.readCharsFp(fp)
+    #         if cmd == 'SIZE' and len(args) >= 3:
+    #             self.pointSize = float(args[0])                 # point size of the glyphs
+    #             self.xRes      = float(args[1])                 # x resolution of the device for which the font is intended
+    #             self.yRes      = float(args[2])                 # y resolution "  "   "      "   "     "   "    "  "
+    #             continue
+    #         if cmd == 'FONTBOUNDINGBOX' and len(args) >= 4:
+    #             self.hasBoundingBox = True
+    #             self.boundingBoxX       = int(args[0])          # integer pixel values, offsets relative to origin
+    #             self.boundingBoxY       = int(args[1])
+    #             self.boundingBoxXOffset = int(args[2])
+    #             self.boundingBoxYOffset = int(args[3])
+    #             continue
+    #         if cmd == 'FONT' and len(args) >= 1:
+    #             self.psFontName = args[0]
+    #         if cmd == 'METRICSSET' and len(args) >= 1:
+    #             self.metricsSet = int(args[0])
+    #         if cmd == 'SWIDTH':
+    #             self.scalableWidthX = float(args[0])
+    #             self.scalableWidthY = float(args[1])
+    #             if self.scalableWidthY != 0.0:
+    #                 raise Exception("SWIDTH with non-zero Y coordinate not supported")
+    #         if cmd == 'DWIDTH':
+    #             self.devicePixelWidthX = float(args[0])
+    #             self.devicePixelWidthY = float(args[1])
+    #             if self.devicePixelWidthY != 0.0:
+    #                 raise Exception("DWIDTH with non-zero Y coordinate not supported")
+    #         if cmd == 'SWIDTH1':
+    #             raise Exception("SWIDTH1 not supported")
+    #         if cmd == 'DWIDTH1':
+    #             raise Exception("DWIDTH1 not supported")
+    #         if cmd == 'VVECTOR':
+    #             raise Exception("VVECTOR not supported")
+    #         if cmd == 'STARTPROPERTIES':
+    #             self.readPropertiesFp(fp)
 
-    def readPropertiesFp(self, fp):
-        for line in fp:
-            args = bdfParseLine(line)
-            if len(args) == 0:                                  # blank line
-                continue
-            propName = args[0].upper()
-            if propName == 'ENDPROPERTIES':
-                return
-            if len(args) == 1:                                  # empty property
-                del self.properties[propName]
-                continue
-            propValue = args[1]
-            propType = BDF_PROPERTY_TYPES.get(propName)
-            if propType is None:
-                propType = str
-            self.properties[propName] = propType(propValue)
+    # def readPropertiesFp(self, fp):
+    #     for line in fp:
+    #         args = bdfParseLine(line)
+    #         if len(args) == 0:                                  # blank line
+    #             continue
+    #         propName = args[0].upper()
+    #         if propName == 'ENDPROPERTIES':
+    #             return
+    #         if len(args) == 1:                                  # empty property
+    #             del self.properties[propName]
+    #             continue
+    #         propValue = args[1]
+    #         propType = BDF_PROPERTY_TYPES.get(propName)
+    #         if propType is None:
+    #             propType = str
+    #         self.properties[propName] = propType(propValue)
 
-    def readCharsFp(self, fp):
-        for line in fp:
-            args = bdfParseLine(line)
-            if len(args) < 1:
-                continue
-            (cmd, args) = (args[0].upper(), args[1:])
-            if cmd == 'STARTCHAR':
-                char = self.readCharFp(fp, args[0])
-                self.chars.append(char)
-                if char.encoding != None:
-                    self.charsByEncoding[char.encoding] = char
-                if char.nonStandardEncoding != None:
-                    self.charsByEncoding[char.nonStandardEncoding] = char
-                if char.name != None:
-                    self.charsByName[char.name] = char
+    # def readCharsFp(self, fp):
+    #     for line in fp:
+    #         args = bdfParseLine(line)
+    #         if len(args) < 1:
+    #             continue
+    #         (cmd, args) = (args[0].upper(), args[1:])
+    #         if cmd == 'STARTCHAR':
+    #             char = self.readCharFp(fp, args[0])
+    #             self.chars.append(char)
+    #             if char.encoding != None:
+    #                 self.charsByEncoding[char.encoding] = char
+    #             if char.nonStandardEncoding != None:
+    #                 self.charsByEncoding[char.nonStandardEncoding] = char
+    #             if char.name != None:
+    #                 self.charsByName[char.name] = char
 
-    def readBitmapDataFp(self, fp, char):
-        bitmapData = []
-        for line in fp:
-            if re.match(r'^\s*ENDCHAR\s*$', line, flags = re.IGNORECASE):
-                break
-            bitmapData.append(line.strip())
-        if len(bitmapData) < 1:
-            raise Exception("No bitmap data for %s in %s" % (char.name, self.filename))
-        # sys.stderr.write("--- %s ---\n" % char)
-        # for s in bitmapData:
-            # sys.stderr.write("[%s]\n" % s)
-        numBits = max(len(s) * 4 for s in bitmapData)
-        # print(s)
-        bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in bitmapData]
-        return bitmapData
+    # def readBitmapDataFp(self, fp, char):
+    #     bitmapData = []
+    #     for line in fp:
+    #         if re.match(r'^\s*ENDCHAR\s*$', line, flags = re.IGNORECASE):
+    #             break
+    #         bitmapData.append(line.strip())
+    #     if len(bitmapData) < 1:
+    #         raise Exception("No bitmap data for %s in %s" % (char.name, self.filename))
+    #     # sys.stderr.write("--- %s ---\n" % char)
+    #     # for s in bitmapData:
+    #         # sys.stderr.write("[%s]\n" % s)
+    #     numBits = max(len(s) * 4 for s in bitmapData)
+    #     # print(s)
+    #     bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in bitmapData]
+    #     return bitmapData
 
-    def readCharFp(self, fp, name):
-        char = self.newChar(name = name, font = self)
-        for line in fp:
-            args = bdfParseLine(line)
-            if len(args) < 1:
-                continue
-            (cmd, args) = (args[0].upper(), args[1:])
-            if cmd == 'BITMAP':
-                char.bitmapData = self.readBitmapDataFp(fp, char)
-                return char
-            elif cmd == 'ENDCHAR':
-                return char
-            elif cmd == 'ENCODING':
-                char.encoding = int(args[0])
-                if len(args) > 1:
-                    char.nonStandardEncoding = int(args[1])
-                if char.encoding == -1:
-                    char.encoding = None
-            elif cmd == 'BBX':
-                char.hasBoundingBox = True
-                char.boundingBoxX       = int(args[0])
-                char.boundingBoxY       = int(args[1])
-                char.boundingBoxXOffset = int(args[2])
-                char.boundingBoxYOffset = int(args[3])
-            elif cmd == 'SWIDTH':
-                char.scalableWidthX = float(args[0])
-                char.scalableWidthY = float(args[1])
-                if char.scalableWidthY != 0.0:
-                    raise Exception("SWIDTH with non-zero Y coordinate not supported")
-            elif cmd == 'DWIDTH':
-                char.devicePixelWidthX = int(args[0])
-                char.devicePixelWidthY = int(args[1])
-                if char.devicePixelWidthY != 0.0:
-                    raise Exception("DWIDTH with non-zero Y coordinate not supported")
-            elif cmd == 'SWIDTH1':
-                raise Exception("SWIDTH1 not supported")
-            elif cmd == 'DWIDTH1':
-                raise Exception("DWIDTH1 not supported")
-            elif cmd == 'VVECTOR':
-                raise Exception("VVECTOR not supported")
+    # def readCharFp(self, fp, name):
+    #     char = MyBDFChar(name = name, font = self)
+    #     for line in fp:
+    #         args = bdfParseLine(line)
+    #         if len(args) < 1:
+    #             continue
+    #         (cmd, args) = (args[0].upper(), args[1:])
+    #         if cmd == 'BITMAP':
+    #             char.bitmapData = self.readBitmapDataFp(fp, char)
+    #             return char
+    #         elif cmd == 'ENDCHAR':
+    #             return char
+    #         elif cmd == 'ENCODING':
+    #             char.encoding = int(args[0])
+    #             if len(args) > 1:
+    #                 char.nonStandardEncoding = int(args[1])
+    #             if self.char.encoding == -1:
+    #                 self.char.encoding = None
+    #         elif cmd == 'BBX':
+    #             char.hasBoundingBox = True
+    #             char.boundingBoxX       = int(args[0])
+    #             char.boundingBoxY       = int(args[1])
+    #             char.boundingBoxXOffset = int(args[2])
+    #             char.boundingBoxYOffset = int(args[3])
+    #         elif cmd == 'SWIDTH':
+    #             char.scalableWidthX = float(args[0])
+    #             char.scalableWidthY = float(args[1])
+    #             if self.char.scalableWidthY != 0.0:
+    #                 raise Exception("SWIDTH with non-zero Y coordinate not supported")
+    #         elif cmd == 'DWIDTH':
+    #             char.devicePixelWidthX = int(args[0])
+    #             char.devicePixelWidthY = int(args[1])
+    #             if char.devicePixelWidthY != 0.0:
+    #                 raise Exception("DWIDTH with non-zero Y coordinate not supported")
+    #         elif cmd == 'SWIDTH1':
+    #             raise Exception("SWIDTH1 not supported")
+    #         elif cmd == 'DWIDTH1':
+    #             raise Exception("DWIDTH1 not supported")
+    #         elif cmd == 'VVECTOR':
+    #             raise Exception("VVECTOR not supported")
 
     def parseLine(self, line):
         args = bdfParseLine(line)
@@ -201,7 +203,7 @@ class BDF:
             self.parseLineAtStageEndFont(line, cmd, args)
 
     def parseLineAtStageMain(self, line, cmd, args):
-        if cmd == "PROPERTIES":
+        if cmd == "STARTPROPERTIES":
             self.parseStage = PARSE_STAGE_PROPERTIES
         elif cmd == "CHARS":
             self.parseStage = PARSE_STAGE_CHARS
@@ -287,7 +289,7 @@ class BDF:
         if cmd == "BITMAP":
             self.startBitmap()
             self.parseStage = PARSE_STAGE_BITMAP
-        elif cmd == "ENDCHAR"
+        elif cmd == "ENDCHAR":
             self.endChar()
             self.parseStage = PARSE_STAGE_CHARS
         elif cmd == "ENDFONT":
@@ -300,24 +302,24 @@ class BDF:
         elif cmd == "BBX":
             if len(args) < 4:
                 raise Exception("%s: not enough arguments")
-            char.hasBoundingBox = True
-            char.boundingBoxX       = int(args[0])
-            char.boundingBoxY       = int(args[1])
-            char.boundingBoxXOffset = int(args[2])
-            char.boundingBoxYOffset = int(args[3])
+            self.char.hasBoundingBox = True
+            self.char.boundingBoxX       = int(args[0])
+            self.char.boundingBoxY       = int(args[1])
+            self.char.boundingBoxXOffset = int(args[2])
+            self.char.boundingBoxYOffset = int(args[3])
         elif cmd == "SWIDTH":
             if len(args) < 2:
                 raise Exception("%s: not enough arguments")
-            char.scalableWidthX = float(args[0])
-            char.scalableWidthY = float(args[1])
-            if char.scalableWidthY != 0.0:
+            self.char.scalableWidthX = float(args[0])
+            self.char.scalableWidthY = float(args[1])
+            if self.char.scalableWidthY != 0.0:
                 raise Exception("SWIDTH with non-zero Y coordinate not supported")
         elif cmd == "DWIDTH":
             if len(args) < 2:
                 raise Exception("%s: not enough arguments")
-            char.devicePixelWidthX = int(args[0])
-            char.devicePixelWidthY = int(args[1])
-            if char.devicePixelWidthY != 0.0:
+            self.char.devicePixelWidthX = int(args[0])
+            self.char.devicePixelWidthY = int(args[1])
+            if self.char.devicePixelWidthY != 0.0:
                 raise Exception("DWIDTH with non-zero Y coordinate not supported")
         elif cmd == "SWIDTH1":
             raise Exception("%s: not supported" % cmd)
@@ -331,7 +333,7 @@ class BDF:
             self.char.encoding = int(args[0])
             if len(args) > 1:
                 self.char.nonStandardEncoding = int(args[1])
-            if char.encoding == -1:
+            if self.char.encoding == -1:
                 self.char.encoding = None
         else:
             raise Exception("%s: not supported in main section" % cmd)
@@ -351,8 +353,9 @@ class BDF:
         pass
 
     def startChar(self, name):
-        self.char = self.newChar(name=name, font=self)
+        self.char = MyBDFChar(name=name, font=self)
         self.chars.append(self.char)
+        self.char.bitmapData = []
 
     def endChar(self):
         if self.char.encoding != None:
