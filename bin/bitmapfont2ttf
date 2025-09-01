@@ -62,6 +62,7 @@ parser.add_argument("--windows", action = "store_true", help = "adjust so px % 4
 parser.add_argument("--no-sfnt-names", action = "store_true", help = "omit SFNT names")
 parser.add_argument("--subfamily", help = "e.g., 'Bold Italic'")
 parser.add_argument("--unique-id")
+parser.add_argument("--copyright")
 
 
 parser.add_argument("filename")
