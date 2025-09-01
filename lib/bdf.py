@@ -211,26 +211,42 @@ class BDF:
         elif cmd == "ENDFONT":
             self.parseStage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTFONT":
-            if args.length < 1:
+            if len(args) < 1:
                 raise Exception("%s: not enough arguments")
         elif cmd == "CONTENTVERSION":
-            if args.length < 1:
+            if len(args) < 1:
                 raise Exception("%s: not enough arguments")
         elif cmd == "FONT":
-            if args.length < 1:
+            if len(args) < 1:
                 raise Exception("%s: not enough arguments")
         elif cmd == "SIZE":
-            if args.length < 3:
+            if len(args) < 3:
                 raise Exception("%s: not enough arguments")
+            self.pointSize = float(args[0])                 # point size of the glyphs
+            self.xRes      = float(args[1])                 # x resolution of the device for which the font is intended
+            self.yRes      = float(args[2])                 # y resolution "  "   "      "   "     "   "    "  "
         elif cmd == "FONTBOUNDINGBOX":
-            if args.length < 4:
+            if len(args) < 4:
                 raise Exception("%s: not enough arguments")
+            self.hasBoundingBox = True
+            self.boundingBoxX       = int(args[0])          # integer pixel values, offsets relative to origin
+            self.boundingBoxY       = int(args[1])
+            self.boundingBoxXOffset = int(args[2])
+            self.boundingBoxYOffset = int(args[3])
         elif cmd == "SWIDTH":
-            if args.length < 2:
+            if len(args) < 2:
                 raise Exception("%s: not enough arguments")
+            self.scalableWidthX = float(args[0])
+            self.scalableWidthY = float(args[1])
+            if self.scalableWidthY != 0.0:
+                raise Exception("SWIDTH with non-zero Y coordinate not supported")
         elif cmd == "DWIDTH":
-            if args.length < 2:
+            if len(args) < 2:
                 raise Exception("%s: not enough arguments")
+            self.devicePixelWidthX = float(args[0])
+            self.devicePixelWidthY = float(args[1])
+            if self.devicePixelWidthY != 0.0:
+                raise Exception("DWIDTH with non-zero Y coordinate not supported")
         elif cmd == "SWIDTH1":
             raise Exception("%s: not supported" % cmd)
         elif cmd == "DWIDTH1":
@@ -238,16 +254,25 @@ class BDF:
         elif cmd == "VVECTOR":
             raise Exception("%s: not supported" % cmd)
         elif cmd == "METRICSSET":
-            if args.length < 1:
+            if len(args) < 1:
                 raise Exception("%s: not enough arguments")
+            self.metricsSet = int(args[0])
         else:
-            ...
+            raise Exception("%s: not supported in main section" % cmd)
 
     def parseLineAtStageProperties(self, line, cmd, args):
         if cmd == "ENDPROPERTIES":
             self.parseStage = PARSE_STAGE_MAIN
         else:
-            ...
+            propName = cmd
+            if len(args) == 0:
+                del self.properties[propName]
+            else:
+                propValue = args[0]
+                propType = BDF_PROPERTY_TYPES.get(propName)
+                if propType is None:
+                    propType = str
+                self.properties[propName] = propType(propValue)
 
     def parseLineAtStageChars(self, line, cmd, args):
         if cmd == "STARTCHAR":
@@ -256,7 +281,7 @@ class BDF:
         elif cmd == "ENDFONT":
             self.parseStage = PARSE_STAGE_ENDFONT
         else:
-            ...
+            raise Exception("%s: not supported in chars section" % cmd)
 
     def parseLineAtStageChar(self, line, cmd, args):
         if cmd == "BITMAP":
@@ -273,14 +298,27 @@ class BDF:
             self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
         elif cmd == "BBX":
-            if args.length < 4:
+            if len(args) < 4:
                 raise Exception("%s: not enough arguments")
+            char.hasBoundingBox = True
+            char.boundingBoxX       = int(args[0])
+            char.boundingBoxY       = int(args[1])
+            char.boundingBoxXOffset = int(args[2])
+            char.boundingBoxYOffset = int(args[3])
         elif cmd == "SWIDTH":
-            if args.length < 2:
+            if len(args) < 2:
                 raise Exception("%s: not enough arguments")
+            char.scalableWidthX = float(args[0])
+            char.scalableWidthY = float(args[1])
+            if char.scalableWidthY != 0.0:
+                raise Exception("SWIDTH with non-zero Y coordinate not supported")
         elif cmd == "DWIDTH":
-            if args.length < 2:
+            if len(args) < 2:
                 raise Exception("%s: not enough arguments")
+            char.devicePixelWidthX = int(args[0])
+            char.devicePixelWidthY = int(args[1])
+            if char.devicePixelWidthY != 0.0:
+                raise Exception("DWIDTH with non-zero Y coordinate not supported")
         elif cmd == "SWIDTH1":
             raise Exception("%s: not supported" % cmd)
         elif cmd == "DWIDTH1":
@@ -288,10 +326,15 @@ class BDF:
         elif cmd == "VVECTOR":
             raise Exception("%s: not supported" % cmd)
         elif cmd == "ENCODING":
-            if args.length < 1:
+            if len(args) < 1:
                 raise Exception("%s: not enough arguments")
+            self.char.encoding = int(args[0])
+            if len(args) > 1:
+                self.char.nonStandardEncoding = int(args[1])
+            if char.encoding == -1:
+                self.char.encoding = None
         else:
-            ...
+            raise Exception("%s: not supported in main section" % cmd)
 
     def parseLineAtStageBitmap(self, line, cmd, args):
         if cmd == "ENDCHAR":
@@ -302,23 +345,29 @@ class BDF:
             self.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
         else:
-            ...
+            self.char.bitmapData.append(line.strip())
 
     def parseLineAtStageEndFont(self, line, cmd, args):
         pass
 
     def startChar(self, name):
-        pass
+        self.char = self.newChar(name=name, font=self)
+        self.chars.append(self.char)
 
     def endChar(self):
-        pass
+        if self.char.encoding != None:
+            self.charsByEncoding[self.char.encoding] = self.char
+        if self.char.nonStandardEncoding != None:
+            self.charsByEncoding[self.char.nonStandardEncoding] = self.char
+        if self.char.name != None:
+            self.charsByName[self.char.name] = self.char
 
     def startBitmap(self):
         pass
 
     def endBitmap(self):
-        pass
-
+        numBits = max(len(s) * 4 for s in self.char.bitmapData)
+        self.char.bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in self.char.bitmapData]
 
     def __str__(self):
         result = "<MyBDF"
