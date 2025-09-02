@@ -63,6 +63,9 @@ class BitmapFont2TTF:
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
         if self.monospace:
+            panose = list(self.font.os2_panose)
+            panose[3] = 9
+            self.font.os2_panose = tuple(panose)
             self.fixForMonospaceDetection()
         if self.modifyPanose:
             panose = list(self.font.os2_panose)
