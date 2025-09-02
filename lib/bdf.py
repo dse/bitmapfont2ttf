@@ -56,12 +56,11 @@ class BDF:
         if self.char.name != None:
             self.charsByName[self.char.name] = self.char
 
-    def startBitmap(self):
-        pass
+    def startCharBitmap(self):
+        self.char.startBitmap()
 
-    def endBitmap(self):
-        numBits = max(len(s) * 4 for s in self.char.bitmapData)
-        self.char.bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0') for s in self.char.bitmapData]
+    def endCharBitmap(self):
+        self.char.endBitmap()
 
     def newChar(self, name, font):
         return BDFChar(name = name, font = font)
@@ -208,6 +207,9 @@ class BDF:
     def appendCharBitmapData(self, *args):
         self.char.appendBitmapData(*args)
 
+    def appendCharBitmapPixelData(self, start, binData):
+        self.char.appendBitmapPixelData(start, binData)
+
     def __str__(self):
         string = ""
         string += self.getStartFontLine()
@@ -246,10 +248,10 @@ class BDF:
     def getBoundingBoxLine(self):
         if not self.hasBoundingBox:
             return ""
-        return "FONTBOUNDINGBOX %d\n" % (self.boundingBoxX,
-                                         self.boundingBoxY,
-                                         self.boundingBoxXOffset,
-                                         self.boundingBoxYOffset)
+        return "FONTBOUNDINGBOX %d %d %d %d\n" % (self.boundingBoxX,
+                                                  self.boundingBoxY,
+                                                  self.boundingBoxXOffset,
+                                                  self.boundingBoxYOffset)
 
     def getMetricsSetLine(self):
         if self.metricsSet is None:

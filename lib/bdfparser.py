@@ -10,6 +10,8 @@ PARSE_STAGE_CHAR = 3
 PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_ENDFONT = 5
 
+RX_PIXEL_LINE = r'^\s*([+|^])([^+|^]*)(?:[+|^]\s*)?$'
+
 class BDFParser():
     def __init__(self, filename=None, args=None):
         self.filename = filename
@@ -122,7 +124,7 @@ class BDFParser():
 
     def parseLineAtStageChar(self, line, filename, line_number, cmd, args):
         if cmd == "BITMAP":
-            self.font.startBitmap()
+            self.font.startCharBitmap()
             self.parseStage = PARSE_STAGE_BITMAP
         elif cmd == "ENDCHAR":
             self.font.endChar()
@@ -156,6 +158,10 @@ class BDFParser():
             if len(args) < 1:
                 raise Exception("%s: not enough arguments")
             self.font.setCharEncoding(args[0], args[1] if len(args) >= 2 else None)
+        elif match := re.fullmatch(RX_PIXEL_LINE, line):
+            self.font.startCharBitmap()
+            self.font.appendCharBitmapPixelData(match[1], match[2])
+            self.parseStage = PARSE_STAGE_BITMAP
         else:
             raise Exception("%s: not supported in main section" % cmd)
 
@@ -173,6 +179,8 @@ class BDFParser():
             self.font.endChar()
             self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
+        elif match := re.fullmatch(RX_PIXEL_LINE, line):
+            self.font.appendCharBitmapPixelData(match[1], match[2])
         else:
             self.font.appendCharBitmapData(line)
 

@@ -1,4 +1,10 @@
+import re, fontforge
+
 unknown_charname_counter = 0
+
+BITMAP_PIXEL_LINE_TYPE_NORMAL = 0
+BITMAP_PIXEL_LINE_TYPE_BASELINE = 1
+BITMAP_PIXEL_LINE_TYPE_CAP_HEIGHT = 2
 
 class BDFChar:
     def __init__(self, name = None, font = None):
@@ -19,6 +25,10 @@ class BDFChar:
         self.scalableWidthWritingMode1Y = None
         self.devicePixelWidthWritingMode1X = None
         self.devicePixelWidthWritingMode1Y = None
+        self.bitmapDataCapHeightIdx = None
+        self.bitmapDataBaselineIdx = None
+        self.bitmapDataHexLineCount = 0
+        self.bitmapDataPixelLineCount = 0
 
     def getSwidthX(self):
         if self.scalableWidthX != None:
@@ -83,12 +93,40 @@ class BDFChar:
                                     else int(nonStandardEncoding))
 
     def appendBitmapData(self, data):
+        self.bitmapDataHexLineCount += 1
         self.bitmapData.append(str(data).strip())
 
+    def startBitmap(self):
+        self.bitmapData = []
+        self.bitmapDataHexLineCount = 0
+        self.bitmapDataPixelLineCount = 0
+        self.bitmapDataCapHeightIdx = None
+        self.bitmapDataBaselineIdx = None
+
     def endBitmap(self):
-        numBits = max(len(s) * 4 for s in self.bitmapData)
-        self.bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0')
-                           for s in self.bitmapData]
+        self.bitmapData = [s.upper() + "0" * ((2 - len(s) % 2) % 2) for s in self.bitmapData]
+        maxlen = max([len(s) for s in self.bitmapData])
+        self.bitmapData = [s + "0" * (maxlen - len(s)) for s in self.bitmapData]
+        if self.bitmapDataHexLineCount == 0:
+            self.boundingBoxY = len(self.bitmapData)
+            if self.bitmapDataBaselineIdx is not None:
+                self.boundingBoxYOffset = self.bitmapDataBaselineIdx - len(self.bitmapData) + 1
+            else:
+                self.boundingBoxYOffset = 0
+
+    def appendBitmapPixelData(self, start, binData):
+        self.bitmapDataPixelLineCount += 1
+        if start == '^':
+            lineType = BITMAP_PIXEL_LINE_TYPE_CAP_HEIGHT
+        elif start == '+':
+            lineType = BITMAP_PIXEL_LINE_TYPE_BASELINE
+        else:
+            lineType = BITMAP_PIXEL_LINE_TYPE_NORMAL
+        if lineType == BITMAP_PIXEL_LINE_TYPE_CAP_HEIGHT:
+            self.bitmapDataCapHeightIdx = len(self.bitmapData)
+        elif lineType == BITMAP_PIXEL_LINE_TYPE_BASELINE:
+            self.bitmapDataBaselineIdx = len(self.bitmapData)
+        self.bitmapData.append(binDataToHexData(binData))
 
     def __str__(self):
         string = ""
@@ -99,6 +137,7 @@ class BDFChar:
         string += self.getSwidthLine()
         if len(self.bitmapData):
             string += "BITMAP\n"
+            string += repr(self.bitmapData) + "\n"
             string += "\n".join(self.bitmapData) + "\n"
         string += "ENDCHAR\n"
         return string
@@ -117,16 +156,22 @@ class BDFChar:
 
     def getEncodingLine(self):
         if self.nonStandardEncoding is None:
+            if self.encoding is None:
+                if self.name is not None:
+                    encoding = fontforge.unicodeFromName(self.name)
+                    return "ENCODING %d\n" % encoding
+                return "ENCODING -1\n"
             return "ENCODING %d\n" % self.encoding
         return "ENCODING %d %d\n" % self.encoding, self.nonStandardEncoding
 
     def getBoundingBoxLine(self):
-        if not self.hasBoundingBox:
+        [x, y, xOffset, yOffset] = [self.getBoundingBoxX(),
+                                    self.getBoundingBoxY(),
+                                    self.getBoundingBoxXOffset(),
+                                    self.getBoundingBoxYOffset()]
+        if x is None or y is None or xOffset is None or yOffset is None:
             return ""
-        return "BBX %d %d %d %d\n" % (self.boundingBoxX,
-                                      self.boundingBoxY,
-                                      self.boundingBoxXOffset,
-                                      self.boundingBoxYOffset)
+        return "BBX %d %d %d %d\n" % (x, y, xOffset, yOffset)
 
     def getDwidthLine(self):
         if self.devicePixelWidthX is None:
@@ -138,6 +183,46 @@ class BDFChar:
             return ""
         return "SWIDTH %d 0\n" % self.scalableWidthX
 
+    def getBoundingBoxX(self):
+        if self.boundingBoxX is not None:
+            return self.boundingBoxX
+        return self.font.boundingBoxX
+
+    def getBoundingBoxY(self):
+        if self.boundingBoxY is not None:
+            return self.boundingBoxY
+        return self.font.boundingBoxY
+
+    def getBoundingBoxXOffset(self):
+        if self.boundingBoxXOffset is not None:
+            return self.boundingBoxXOffset
+        return self.font.boundingBoxXOffset
+
+    def getBoundingBoxYOffset(self):
+        if self.boundingBoxYOffset is not None:
+            return self.boundingBoxYOffset
+        return self.font.boundingBoxYOffset
+
 def generateNewUnknownCharName():
     unknown_charname_counter += 1
     return "unknown%d" % unknown_charname_counter
+
+def binDataToHexData(binData):
+    if binData == "":
+        return "00"
+    binData = re.sub(r'[ .]', '0', binData)
+    binData = re.sub(r'[^0]', '1', binData)
+    binData += "0" * ((8 - len(binData) % 8) % 8)
+    hexLen = int(len(binData) / 4)
+    decData = int(binData, 2)
+    hexData = "%0*X" % (hexLen, decData)
+    return hexData
+
+def hexDataToBinData(hexData):
+    if hexData == "":
+        return "00000000"
+    hexData += "0" * ((2 - len(hexData) % 2) % 2)
+    decData = int(hexData, 16)
+    binLen = len(hexData) * 4
+    binData = "%0*b" % (binLen, decData)
+    return binData
