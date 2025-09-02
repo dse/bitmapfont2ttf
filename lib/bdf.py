@@ -151,9 +151,9 @@ class BDF:
         self.psFontName = str(value)
 
     def setSize(self, pointSize, xRes, yRes):
-        self.pointSize = float(pointSize)
-        self.xRes = float(xRes)
-        self.yRes = float(yRes)
+        self.pointSize = int(pointSize)
+        self.xRes = int(xRes)
+        self.yRes = int(yRes)
 
     def setBoundingBox(self, x, y, xOfs, yOfs):
         self.hasBoundingBox = True
@@ -163,14 +163,14 @@ class BDF:
         self.boundingBoxYOffset = int(yOfs)
 
     def setSwidth(self, x, y):
-        self.scalableWidthX = float(x)
-        self.scalableWidthY = float(y)
+        self.scalableWidthX = int(x)
+        self.scalableWidthY = int(y)
         if self.scalableWidthY != 0.0:
             raise Exception("SWIDTH with non-zero Y coordinate not supported")
 
     def setDwidth(self, x, y):
-        self.devicePixelWidthX = float(x)
-        self.devicePixelWidthY = float(y)
+        self.devicePixelWidthX = int(x)
+        self.devicePixelWidthY = int(y)
         if self.devicePixelWidthY != 0.0:
             raise Exception("DWIDTH with non-zero Y coordinate not supported")
 

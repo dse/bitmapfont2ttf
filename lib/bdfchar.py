@@ -64,14 +64,14 @@ class BDFChar:
         self.boundingBoxYOffset = int(yOfs)
 
     def setSwidth(self, x, y):
-        self.scalableWidthX = float(x)
-        self.scalableWidthY = float(y)
+        self.scalableWidthX = int(x)
+        self.scalableWidthY = int(y)
         if self.scalableWidthY != 0.0:
             raise Exception("SWIDTH with non-zero Y coordinate not supported")
 
     def setDwidth(self, x, y):
-        self.devicePixelWidthX = float(x)
-        self.devicePixelWidthY = float(y)
+        self.devicePixelWidthX = int(x)
+        self.devicePixelWidthY = int(y)
         if self.devicePixelWidthY != 0.0:
             raise Exception("DWIDTH with non-zero Y coordinate not supported")
 
