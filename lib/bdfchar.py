@@ -1,3 +1,5 @@
+unknown_charname_counter = 0
+
 class BDFChar:
     def __init__(self, name = None, font = None):
         self.name = name
@@ -89,17 +91,53 @@ class BDFChar:
                            for s in self.bitmapData]
 
     def __str__(self):
-        result = "<BDFChar"
-        if self.name != None:
-            result += (" %s" % self.name)
-        if self.encoding != None:
-            result += (" @%d" % self.encoding)
-        if self.nonStandardEncoding != None:
-            result += (" @[%d]" % self.nonStandardEncoding)
-        if self.hasBoundingBox:
-            result += (" [%g, %g offset %g, %g]" % (
-                self.boundingBoxX, self.boundingBoxY,
-                self.boundingBoxXOffset, self.boundingBoxYOffset
-            ))
-        result += ">"
-        return result
+        string = ""
+        string += self.getStartCharLine()
+        string += self.getEncodingLine()
+        string += self.getBoundingBoxLine()
+        string += self.getDwidthLine()
+        string += self.getSwidthLine()
+        if len(self.bitmapData):
+            string += "BITMAP\n"
+            string += "\n".join(self.bitmapData) + "\n"
+        string += "ENDCHAR\n"
+        return string
+
+    def getStartCharLine(self):
+        if self.encoding is None or self.encoding < 0:
+            if self.name is None:
+                return "STARTCHAR %s\n" % generateNewUnknownCharname()
+            else:
+                return "STARTCHAR %s\n" % self.name
+        else:
+            if self.name is not None:
+                return "STARTCHAR %s\n" % self.name
+            else:
+                return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+
+    def getEncodingLine(self):
+        if self.nonStandardEncoding is None:
+            return "ENCODING %d\n" % self.encoding
+        return "ENCODING %d %d\n" % self.encoding, self.nonStandardEncoding
+
+    def getBoundingBoxLine(self):
+        if not self.hasBoundingBox:
+            return ""
+        return "BBX %d %d %d %d\n" % (self.boundingBoxX,
+                                      self.boundingBoxY,
+                                      self.boundingBoxXOffset,
+                                      self.boundingBoxYOffset)
+
+    def getSwidthLine(self):
+        if self.scalableWidthX is None:
+            return ""
+        return "SWIDTH %d 0\n" % self.scalableWidthX
+
+    def getDwidthLine(self):
+        if self.devicePixelWidthX is None:
+            return ""
+        return "DWIDTH %d 0\n" % self.devicePixelWidthX
+
+def generateNewUnknownCharName():
+    unknown_charname_counter += 1
+    return "unknown%d" % unknown_charname_counter
