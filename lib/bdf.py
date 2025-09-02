@@ -285,4 +285,4 @@ class BDF:
 def bdfEscape(str):
     if not re.match(r'[\s"]', str):
         return str
-    return '"' + str.replace('"', '""')
+    return '"' + str.replace('"', '""') + '"'
