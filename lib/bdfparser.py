@@ -165,8 +165,14 @@ class BDFParser():
             self.font.endChar()
             self.parseStage = PARSE_STAGE_CHARS
         elif cmd == "ENDFONT":                                  # not strictly BDF
+            self.font.endCharBitmap()
             self.font.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
+        elif cmd == "STARTCHAR":
+            self.font.endCharBitmap()
+            self.font.endChar()
+            self.startChar(args[0] if len(args) else None)
+            self.parseStage = PARSE_STAGE_CHAR
         else:
             self.font.appendCharBitmapData(line)
 
