@@ -165,7 +165,6 @@ class BDFParser():
     def parseLineAtStageEndFont(self, line, cmd, args):
         pass
 
-
 def bdfParseLine(line):
     orig_line = line
     words = []
