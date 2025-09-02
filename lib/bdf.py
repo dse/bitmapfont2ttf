@@ -141,24 +141,6 @@ class BDF:
     def aspectRatioXtoY(self):
         return 1.0 * self.properties["RESOLUTION_Y"] / self.properties["RESOLUTION_X"]
 
-    def __str__(self):
-        result = "<BDF"
-        if self.filename != None:
-            result += (" %s" % self.filename)
-        if self.pointSize != None:
-            result += (" %gpt" % self.pointSize)
-        if self.xRes != None:
-            result += (" %gxdpi" % self.xRes)
-        if self.yRes != None:
-            result += (" %gydpi" % self.yRes)
-        if self.hasBoundingBox:
-            result += (" [%g, %g offset %g, %g]" % (
-                self.boundingBoxX, self.boundingBoxY,
-                self.boundingBoxXOffset, self.boundingBoxYOffset
-            ))
-        result += ">"
-        return result
-
     def setBdfVersion(self, value):
         self.bdfVersion = float(value)
 
@@ -225,3 +207,79 @@ class BDF:
 
     def appendCharBitmapData(self, *args):
         self.char.appendBitmapData(*args)
+
+    def __str__(self):
+        string = ""
+        string += self.getStartFontLine()
+        string += self.getContentVersionLine()
+        string += self.getFontNameLine()
+        string += self.getSizeLine()
+        string += self.getBoundingBoxLine()
+        string += self.getMetricsSetLine()
+        string += self.getDwidthLine()
+        string += self.getSwidthLine()
+        string += self.getPropertiesLines()
+        string += self.getCharsLines()
+        string += "ENDFONT\n"
+        return string
+
+    def getStartFontLine(self):
+        if self.bdfVersion is None:
+            return "STARTFONT 2.2\n"
+        return "STARTFONT %s\n" % str(self.bdfVersion)
+
+    def getContentVersionLine(self):
+        if self.contentVersion is None:
+            return ""
+        return "CONTENTVERSION %d\n" % self.contentVersion
+
+    def getFontNameLine(self):
+        if self.psFontName is None:
+            return ""
+        return "FONT %s\n" % bdfEscape(self.psFontName)
+
+    def getSizeLine(self):
+        if self.pointSize is None or self.xRes is None or self.yRes is None:
+            return ""
+        return "SIZE %d %d %d\n" % (self.pointSize, self.xRes, self.yRes)
+
+    def getBoundingBoxLine(self):
+        if not self.hasBoundingBox:
+            return ""
+        return "FONTBOUNDINGBOX %d\n" % (self.boundingBoxX,
+                                         self.boundingBoxY,
+                                         self.boundingBoxXOffset,
+                                         self.boundingBoxYOffset)
+
+    def getMetricsSetLine(self):
+        if self.metricsSet is None:
+            return ""
+        return "METRICSSET %d\n" % self.metricsSet
+
+    def getDwidthLine(self):
+        if self.devicePixelWidthX is None:
+            return ""
+        return "DWIDTH %d 0\n" % self.devicePixelWidthX
+
+    def getSwidthLine(self):
+        if self.scalableWidthX is None:
+            return ""
+        return "SWIDTH %d 0\n" % self.scalableWidthX
+
+    def getPropertiesLines(self):
+        keys = self.properties.keys()
+        if len(keys) == 0:
+            return ""
+        string = "STARTPROPERTIES %d\n" % len(keys)
+        for key in self.properties.keys():
+            string += "%s %s\n" % (key, bdfEscape(self.properties[key]))
+        string += "ENDPROPERTIES\n"
+        return string
+
+    def getCharsLines(self):
+        string = "CHARS %d\n" % len(self.chars)
+        for char in self.chars:
+            string += str(char)
+        return string
+
+sub bdfEscape(str):
