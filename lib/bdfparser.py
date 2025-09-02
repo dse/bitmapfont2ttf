@@ -46,6 +46,7 @@ class BDFParser():
     def parseLineAtStageMain(self, line, filename, line_number, cmd, args):
         dirname = os.path.dirname(filename)
         if cmd == "INCLUDE":                                    # not strictly BDF
+            # path arguments are relative to directory containing parent file
             for include_filename in args:
                 include_filename = os.path.join(dirname, include_filename)
                 self.read(include_filename)
@@ -53,10 +54,10 @@ class BDFParser():
             self.parseStage = PARSE_STAGE_PROPERTIES
         elif cmd == "CHARS":
             self.parseStage = PARSE_STAGE_CHARS
-        elif cmd == "STARTCHAR":
+        elif cmd == "STARTCHAR":                                # not strictly BDF
             self.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
-        elif cmd == "ENDFONT":
+        elif cmd == "ENDFONT":                                  # not strictly BDF
             self.parseStage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTFONT":
             if len(args) < 1:
@@ -126,10 +127,10 @@ class BDFParser():
         elif cmd == "ENDCHAR":
             self.font.endChar()
             self.parseStage = PARSE_STAGE_CHARS
-        elif cmd == "ENDFONT":
+        elif cmd == "ENDFONT":                                  # not strictly BDF
             self.font.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
-        elif cmd == "STARTCHAR":
+        elif cmd == "STARTCHAR":                                # not strictly BDF
             self.font.endChar()
             self.font.startChar(args[0] if len(args) else None)
             self.parseStage = PARSE_STAGE_CHAR
@@ -163,7 +164,7 @@ class BDFParser():
             self.font.endCharBitmap()
             self.font.endChar()
             self.parseStage = PARSE_STAGE_CHARS
-        elif cmd == "ENDFONT":
+        elif cmd == "ENDFONT":                                  # not strictly BDF
             self.font.endChar()
             self.parseStage = PARSE_STAGE_ENDFONT
         else:
