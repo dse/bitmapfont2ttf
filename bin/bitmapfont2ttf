@@ -9,6 +9,7 @@ libdir = os.path.dirname(os.path.realpath(__file__)) + '/../lib'
 sys.path.append(libdir)
 
 from bitmapfont2ttf import BitmapFont2TTF
+from bdfparser import BDFParser
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 
@@ -69,5 +70,7 @@ parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs  = '*')
 
 args = parser.parse_args()
-bf2ttf = BitmapFont2TTF(args)
-bf2ttf.bitmapfont2ttf()         # loop is in here
+
+bdf_parser = BDFParser(filename=args.filename, args=args)
+bdf2ttf = BitmapFont2TTF(args)
+bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)

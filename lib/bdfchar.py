@@ -54,6 +54,40 @@ class BDFChar:
             return 0
         return self.bitmapData[rowIndex].count('1')
 
+    def setBoundingBox(self, x, y, xOfs, yOfs):
+        self.hasBoundingBox = True
+        self.boundingBoxX       = int(x)          # integer pixel values, offsets relative to origin
+        self.boundingBoxY       = int(y)
+        self.boundingBoxXOffset = int(xOfs)
+        self.boundingBoxYOffset = int(yOfs)
+
+    def setSwidth(self, x, y):
+        self.scalableWidthX = float(x)
+        self.scalableWidthY = float(y)
+        if self.scalableWidthY != 0.0:
+            raise Exception("SWIDTH with non-zero Y coordinate not supported")
+
+    def setDwidth(self, x, y):
+        self.devicePixelWidthX = float(x)
+        self.devicePixelWidthY = float(y)
+        if self.devicePixelWidthY != 0.0:
+            raise Exception("DWIDTH with non-zero Y coordinate not supported")
+
+    def setEncoding(self, encoding, nonStandardEncoding):
+        self.encoding = int(encoding)
+        if self.encoding == -1:
+            self.encoding = None
+        self.nonStandardEncoding = (None if nonStandardEncoding is None
+                                    else int(nonStandardEncoding))
+
+    def appendBitmapData(self, data):
+        self.bitmapData.append(str(data).strip())
+
+    def endBitmap(self):
+        numBits = max(len(s) * 4 for s in self.bitmapData)
+        self.bitmapData = [bin(int(s, 16))[2:].rjust(numBits, '0')
+                           for s in self.bitmapData]
+
     def __str__(self):
         result = "<BDFChar"
         if self.name != None:

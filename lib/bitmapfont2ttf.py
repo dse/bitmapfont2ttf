@@ -15,10 +15,13 @@ class BitmapFont2TTF:
         self.setArgs(args)
         self.fixFilenames()
 
-    def bitmapfont2ttf(self):
+    def bitmapfont2ttf(self, font=None):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
-        self.bdf = BDF(self.filename)
+        if font is None:
+            self.bdf = BDF(self.filename)
+        else:
+            self.bdf = font
         if self.args.bdf_ascent_descent_2:
             if self.properties.get("PIXEL_SIZE") is None:
                 raise Exception("PIXEL_SIZE missing")
