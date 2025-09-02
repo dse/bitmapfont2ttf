@@ -1,0 +1,38 @@
+STARTFONT 2.2
+FONT Test1
+FONTBOUNDINGBOX 7 8 0 0
+SIZE 6 96 96
+CHARS 1
+STARTCHAR zero
+|  ###  |
+| #   # |
+| #  ## |
+| # # # |
+| ##  # |
+| #   # |
++  ###  |
+|       |
+ENDCHAR
+STARTCHAR zero
+|  ###  |
+| #   # |
+| #  ## |
+| # # # |
+| ##  # |
+| #   # |
++  ###  |
+|       |
+|       |
+|       |
+|       |
+|       |
+ENDCHAR
+STARTCHAR five
+| ##### |
+| #     |
+| ####  |
+|     # |
+|     # |
+| #   # |
++  ###  |
+ENDCHAR
