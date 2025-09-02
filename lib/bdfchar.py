@@ -128,15 +128,15 @@ class BDFChar:
                                       self.boundingBoxXOffset,
                                       self.boundingBoxYOffset)
 
-    def getSwidthLine(self):
-        if self.scalableWidthX is None:
-            return ""
-        return "SWIDTH %d 0\n" % self.scalableWidthX
-
     def getDwidthLine(self):
         if self.devicePixelWidthX is None:
             return ""
         return "DWIDTH %d 0\n" % self.devicePixelWidthX
+
+    def getSwidthLine(self):
+        if self.scalableWidthX is None:
+            return ""
+        return "SWIDTH %d 0\n" % self.scalableWidthX
 
 def generateNewUnknownCharName():
     unknown_charname_counter += 1
