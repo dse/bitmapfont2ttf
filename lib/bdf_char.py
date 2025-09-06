@@ -146,7 +146,7 @@ class BDFChar:
     def get_startchar_line(self):
         if self.encoding is None or self.encoding < 0:
             if self.name is None:
-                return "STARTCHAR %s\n" % generateNewUnknownCharname()
+                return "STARTCHAR %s\n" % generate_new_unknown_char_name()
             else:
                 return "STARTCHAR %s\n" % self.name
         else:
@@ -204,6 +204,6 @@ class BDFChar:
             return self.bbx_ofs_y
         return self.font.bbx_ofs_y
 
-def generateNewUnknownCharName():
+def generate_new_unknown_char_name():
     unknown_charname_counter += 1
     return "unknown%d" % unknown_charname_counter
