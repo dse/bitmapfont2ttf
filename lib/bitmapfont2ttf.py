@@ -6,7 +6,7 @@ import re
 import sys
 import math
 
-from bdf_utils import binDataToHexData, hexDataToBinData
+from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data
 
 # https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
 # https://spencermortensen.com/articles/bezier-circle/
@@ -14,8 +14,8 @@ THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
 class BitmapFont2TTF:
     def __init__(self, args):
-        self.setArgs(args)
-        self.fixFilenames()
+        self.set_args(args)
+        self.fix_filenames()
 
     def bitmapfont2ttf(self, font=None):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
@@ -39,28 +39,28 @@ class BitmapFont2TTF:
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
-        if self.bdfAscentDescent:
-            ascentPx = self.bdf.ascentPx()
-            descentPx = self.bdf.descentPx()
-            pixelSize = self.bdf.getPixelSize()
-            emUnitsPerPixel = 1.0 * self.font.em / (ascentPx + descentPx)
-            self.font.ascent  = int(round(ascentPx * emUnitsPerPixel))
-            self.font.descent = int(round(descentPx * emUnitsPerPixel))
-        if self.removeAscentAdd:
+        if self.bdf_ascent_descent:
+            ascent_px = self.bdf.ascent_px()
+            descent_px = self.bdf.descent_px()
+            pixelSize = self.bdf.get_pixel_size()
+            em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
+            self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
+            self.font.descent = int(round(descent_px * em_units_per_pixel))
+        if self.remove_ascent_add:
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
             self.font.os2_typoascent_add  = 0
             self.font.os2_typodescent_add = 0
             self.font.os2_winascent_add   = 0
             self.font.os2_windescent_add  = 0
-        if self.allAscentDescent:
+        if self.all_ascent_descent:
             self.font.hhea_ascent     = self.font.ascent
             self.font.hhea_descent    = -self.font.descent
             self.font.os2_typoascent  = self.font.ascent
             self.font.os2_typodescent = -self.font.descent
             self.font.os2_winascent   = self.font.ascent
             self.font.os2_windescent  = self.font.descent
-        if self.removeLineGap:
+        if self.remove_line_gap:
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
@@ -68,37 +68,37 @@ class BitmapFont2TTF:
             panose = list(self.font.os2_panose)
             panose[3] = 9
             self.font.os2_panose = tuple(panose)
-            self.fixForMonospaceDetection()
-        if self.modifyPanose:
+            self.fix_for_monospace_detection()
+        if self.modify_panose:
             panose = list(self.font.os2_panose)
-            if self.setPanose0 is not None: panose[0] = self.setPanose0
-            if self.setPanose1 is not None: panose[1] = self.setPanose1
-            if self.setPanose2 is not None: panose[2] = self.setPanose2
-            if self.setPanose3 is not None: panose[3] = self.setPanose3
-            if self.setPanose4 is not None: panose[4] = self.setPanose4
-            if self.setPanose5 is not None: panose[5] = self.setPanose5
-            if self.setPanose6 is not None: panose[6] = self.setPanose6
-            if self.setPanose7 is not None: panose[7] = self.setPanose7
-            if self.setPanose8 is not None: panose[8] = self.setPanose8
-            if self.setPanose9 is not None: panose[9] = self.setPanose9
+            if self.set_panose_0 is not None: panose[0] = self.set_panose_0
+            if self.set_panose_1 is not None: panose[1] = self.set_panose_1
+            if self.set_panose_2 is not None: panose[2] = self.set_panose_2
+            if self.set_panose_3 is not None: panose[3] = self.set_panose_3
+            if self.set_panose_4 is not None: panose[4] = self.set_panose_4
+            if self.set_panose_5 is not None: panose[5] = self.set_panose_5
+            if self.set_panose_6 is not None: panose[6] = self.set_panose_6
+            if self.set_panose_7 is not None: panose[7] = self.set_panose_7
+            if self.set_panose_8 is not None: panose[8] = self.set_panose_8
+            if self.set_panose_9 is not None: panose[9] = self.set_panose_9
             self.font.os2_panose = tuple(panose)
 
-        if self.setPSFontName != None:
-            self.font.fontname = self.setPSFontName
-        elif self.bdf.psFontName != None:
-            self.font.fontname = self.bdf.psFontName
+        if self.set_font_name != None:
+            self.font.fontname = self.set_font_name
+        elif self.bdf.font_name != None:
+            self.font.fontname = self.bdf.font_name
 
-        if self.setFullName != None:
-            self.font.fullname = self.setFullName
+        if self.set_full_name != None:
+            self.font.fullname = self.set_full_name
         elif self.bdf.properties.get("FULL_NAME") != None:
             self.font.fullname = self.bdf.properties["FULL_NAME"]
 
-        if self.setFamilyName != None:
-            self.font.familyname = self.setFamilyName
+        if self.set_family_name != None:
+            self.font.familyname = self.set_family_name
         elif self.bdf.properties.get("FAMILY_NAME") != None:
             self.font.familyname = self.bdf.properties["FAMILY_NAME"]
 
-        if self.setWeightName != None:
+        if self.set_weight_name != None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
             # normal weight, or "Extra-Light" for all the others.
@@ -106,17 +106,17 @@ class BitmapFont2TTF:
             # Removing the spaces from the BDF weight names does not solve
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
-            self.font.weight = self.setWeightName
+            self.font.weight = self.set_weight_name
         elif self.bdf.properties.get("WEIGHT_NAME") != None:
             self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
-        if self.setOS2Weight != None:
-            self.font.os2_weight = self.setOS2Weight
+        if self.set_os2_weight != None:
+            self.font.os2_weight = self.set_os2_weight
 
-        if self.italicAngle != None:
-            self.font.italicangle = self.italicAngle
-        elif self.italicizeAngle != None:
-            self.font.italicangle = self.italicizeAngle
+        if self.italic_angle != None:
+            self.font.italicangle = self.italic_angle
+        elif self.italicize_angle != None:
+            self.font.italicangle = self.italicize_angle
         elif self.bdf.properties.get("SLANT") != None:
             slant = self.bdf.properties["SLANT"].upper()
             if slant == "R":
@@ -129,14 +129,14 @@ class BitmapFont2TTF:
         if self.copyright != None:
             self.font.copyright = self.copyright
 
-        if not self.noSfntNames:
+        if not self.no_sfnt_names:
             self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
             self.font.appendSFNTName("English (US)", "Family", self.font.familyname) # [1]
             if self.subfamily != None:
                 self.font.appendSFNTName("English (US)", "SubFamily", self.subfamily) # [2] FIXME: else autogenerate
-            if self.uniqueId != None:
-                self.font.appendSFNTName("English (US)", "UniqueID", self.uniqueId) # [3]
+            if self.unique_id != None:
+                self.font.appendSFNTName("English (US)", "UniqueID", self.unique_id) # [3]
             else:
                 self.font.appendSFNTName("English (US)", "UniqueID", self.font.familyname + " 2024") # FIXME [3]
             self.font.appendSFNTName("English (US)", "Fullname", self.font.fullname) # [4]
@@ -163,7 +163,7 @@ class BitmapFont2TTF:
 
     # make sure all glyphs are the same width.
     # otherwise font may not be detected as monospace.
-    def fixForMonospaceDetection(self):
+    def fix_for_monospace_detection(self):
         count = 0
         counts = {}
         for glyph in self.font.glyphs():
@@ -190,33 +190,33 @@ class BitmapFont2TTF:
                 print("generating %s" % dest)
                 self.font.generate(dest)
 
-    def setArgs(self, args):
+    def set_args(self, args):
         self.args = args
 
         self.filename              = args.filename
         self.destfilenames         = args.destfilenames
-        self.dotWidth              = args.dot_width
-        self.dotHeight             = args.dot_height
-        self.aspectRatio           = args.aspect_ratio
-        self.circularDots          = args.circular_dots
+        self.dot_width              = args.dot_width
+        self.dot_height             = args.dot_height
+        self.aspect_ratio           = args.aspect_ratio
+        self.circular_dots          = args.circular_dots
         self.bottom                = args.bottom
         self.top                   = args.top
         self.monospace             = args.monospace
-        self.bdfAscentDescent      = args.bdf_ascent_descent
-        self.removeLineGap         = args.remove_line_gap
-        self.removeAscentAdd       = args.remove_ascent_add
-        self.allAscentDescent      = args.all_ascent_descent
-        self.setPanose0            = args.panose_0
-        self.setPanose1            = args.panose_1
-        self.setPanose2            = args.panose_2
-        self.setPanose3            = args.panose_3
-        self.setPanose4            = args.panose_4
-        self.setPanose5            = args.panose_5
-        self.setPanose6            = args.panose_6
-        self.setPanose7            = args.panose_7
-        self.setPanose8            = args.panose_8
-        self.setPanose9            = args.panose_9
-        self.modifyPanose          = (args.panose_0 is not None or
+        self.bdf_ascent_descent      = args.bdf_ascent_descent
+        self.remove_line_gap         = args.remove_line_gap
+        self.remove_ascent_add       = args.remove_ascent_add
+        self.all_ascent_descent      = args.all_ascent_descent
+        self.set_panose_0            = args.panose_0
+        self.set_panose_1            = args.panose_1
+        self.set_panose_2            = args.panose_2
+        self.set_panose_3            = args.panose_3
+        self.set_panose_4            = args.panose_4
+        self.set_panose_5            = args.panose_5
+        self.set_panose_6            = args.panose_6
+        self.set_panose_7            = args.panose_7
+        self.set_panose_8            = args.panose_8
+        self.set_panose_9            = args.panose_9
+        self.modify_panose          = (args.panose_0 is not None or
                                       args.panose_1 is not None or
                                       args.panose_2 is not None or
                                       args.panose_3 is not None or
@@ -226,21 +226,21 @@ class BitmapFont2TTF:
                                       args.panose_7 is not None or
                                       args.panose_8 is not None or
                                       args.panose_9 is not None)
-        self.setWeightName         = args.weight_name
-        self.setPSFontName         = args.font_name
-        self.setFullName           = args.full_name
-        self.setFamilyName         = args.family_name
-        self.setOS2Weight          = args.os2_weight
+        self.set_weight_name         = args.weight_name
+        self.set_font_name         = args.font_name
+        self.set_full_name           = args.full_name
+        self.set_family_name         = args.family_name
+        self.set_os2_weight          = args.os2_weight
 
-        self.italicizeAngle           = args.italicize_angle
-        self.italicizeCenterY         = args.italicize_center
-        self.italicizeSlant           = args.italicize_slant
-        self.italicAngle              = args.italic_angle
+        self.italicize_angle           = args.italicize_angle
+        self.italicize_center_y         = args.italicize_center
+        self.italicize_slant           = args.italicize_slant
+        self.italic_angle              = args.italic_angle
 
         self.copyright               = args.copyright
-        self.noSfntNames             = args.no_sfnt_names
+        self.no_sfnt_names             = args.no_sfnt_names
         self.subfamily               = args.subfamily
-        self.uniqueId                = args.unique_id
+        self.unique_id                = args.unique_id
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent
@@ -258,7 +258,7 @@ class BitmapFont2TTF:
         # self.fixSlant              = args.fix_slant
         # self.fixMacStyle           = args.fix_mac_style
 
-    def fixFilenames(self):
+    def fix_filenames(self):
         if self.filename == os.path.basename(self.filename):
             # Work around an issue where importBitmaps segfaults if you only
             # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
@@ -279,69 +279,69 @@ class BitmapFont2TTF:
             except:
                 sys.stderr.write('\nERROR: encoding %s; name %s\n' % (encoding, char.name))
                 raise
-            self.traceGlyph(glyph, char)
+            self.trace_glyph(glyph, char)
             glyph.addExtrema()
             glyph.simplify()
 
-    def traceGlyph(self, glyph, bdfChar):
-        yOffset = bdfChar.boundingBoxYOffset
-        if yOffset == None:
-            yOffset = self.bdf.boundingBoxYOffset
-        if yOffset == None:
+    def trace_glyph(self, glyph, bdf_char):
+        ofs_y = bdf_char.bbx_ofs_y
+        if ofs_y == None:
+            ofs_y = self.bdf.bbx_ofs_y
+        if ofs_y == None:
             raise Exception("cannot find bounding box y offset: %s" % glyph)
-        xOffset = bdfChar.boundingBoxXOffset
-        if xOffset == None:
-            xOffset = self.bdf.boundingBoxXOffset
-        if xOffset == None:
+        ofs_x = bdf_char.bbx_ofs_x
+        if ofs_x == None:
+            ofs_x = self.bdf.bbx_ofs_x
+        if ofs_x == None:
             raise Exception("cannot find bounding box x offset: %s" % glyph)
-        height = bdfChar.boundingBoxY
+        height = bdf_char.bbx_y
         if height == None:
-            height = self.bdf.boundingBoxY
+            height = self.bdf.bbx_y
         if height == None:
             raise Exception("cannot find bounding box height: %s" % glyph)
-        width = bdfChar.boundingBoxX
+        width = bdf_char.bbx_x
         if width == None:
-            width = self.bdf.boundingBoxX
+            width = self.bdf.bbx_x
         if width == None:
             raise Exception("cannot find bounding box width: %s" % glyph)
 
-        y = yOffset + height
-        pixY = 1.0 * self.font.em / self.bdf.getPixelSize()
-        pixX = 1.0 * self.font.em / self.bdf.getPixelSize() * self.bdf.aspectRatioXtoY() * self.aspectRatio
-        deltaX = pixX * (1.0 - self.dotWidth) / 2
-        deltaY = pixY * (1.0 - self.dotHeight) / 2
+        y = ofs_y + height
+        pixY = 1.0 * self.font.em / self.bdf.get_pixel_size()
+        pixX = 1.0 * self.font.em / self.bdf.get_pixel_size() * self.bdf.get_aspect_ratio() * self.aspect_ratio
+        deltaX = pixX * (1.0 - self.dot_width) / 2
+        deltaY = pixY * (1.0 - self.dot_height) / 2
 
-        italicizeSlant = 0.0
-        italicizeAngle = 0.0
-        if self.italicizeAngle is not None:
-            italicizeAngle = self.italicizeAngle
-            italicizeSlant = math.tan(self.italicizeAngle * math.pi / 180) * pixY / pixX
-            self.italicizeSlant = italicizeSlant
-        elif self.italicizeSlant is not None:
-            italicizeSlant = self.italicizeSlant
-            italicizeAngle = math.atan(self.italicizeSlant * pixX / pixY) * 180 / math.pi
-            self.italicizeAngle = italicizeAngle
-            print("italicizeAngle = %f" % self.italicizeAngle)
-        italicizeCenterY = self.italicizeCenterY if self.italicizeCenterY is not None else 0
+        italicize_slant = 0.0
+        italicize_angle = 0.0
+        if self.italicize_angle is not None:
+            italicize_angle = self.italicize_angle
+            italicize_slant = math.tan(self.italicize_angle * math.pi / 180) * pixY / pixX
+            self.italicize_slant = italicize_slant
+        elif self.italicize_slant is not None:
+            italicize_slant = self.italicize_slant
+            italicize_angle = math.atan(self.italicize_slant * pixX / pixY) * 180 / math.pi
+            self.italicize_angle = italicize_angle
+            print("italicize_angle = %f" % self.italicize_angle)
+        italicize_center_y = self.italicize_center_y if self.italicize_center_y is not None else 0
 
-        for line in bdfChar.bitmapData:
-            line = hexDataToBinData(line)
+        for line in bdf_char.bitmap_data:
+            line = hex_data_to_bin_data(line)
             y = y - 1
-            if self.circularDots:
-                x = xOffset
+            if self.circular_dots:
+                x = ofs_x
                 for pixel in line:
                     if pixel == '1':
-                        xh = round(pixX * self.dotWidth * 0.5)
-                        yh = round(pixY * self.dotHeight * 0.5)
+                        xh = round(pixX * self.dot_width * 0.5)
+                        yh = round(pixY * self.dot_height * 0.5)
                         r = max(xh, yh)
-                        xc = round(pixX * (x + 0.5 - italicizeSlant * (y - italicizeCenterY)))
+                        xc = round(pixX * (x + 0.5 - italicize_slant * (y - italicize_center_y)))
                         yc = round(pixY * (y + 0.5))
                         x1 = xc - r
                         x2 = xc + r
                         y1 = yc - r
                         y2 = yc + r
-                        xcp = round(pixX * self.dotWidth * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
-                        ycp = round(pixY * self.dotHeight * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        xcp = round(pixX * self.dot_width * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        ycp = round(pixY * self.dot_height * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
                         contour = fontforge.contour();
                         contour.moveTo(xc, y1)
                         contour.cubicTo((xc + xcp, y1), (x2, yc - ycp), (x2, yc))
@@ -351,11 +351,11 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-            elif self.dotWidth < 1:
-                x = xOffset
+            elif self.dot_width < 1:
+                x = ofs_x
                 for pixel in line:
                     if pixel == '1':
-                        xx = x - italicizeSlant * (y - italicizeCenterY)
+                        xx = x - italicize_slant * (y - italicize_center_y)
                         x1 = pixX * xx       + deltaX
                         x2 = pixX * (xx + 1) - deltaX
                         y1 = pixY * y       + deltaY
@@ -376,24 +376,24 @@ class BitmapFont2TTF:
                     y2unit = self.top
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
-                pixelBlocks = []
-                pixelBlock = None
-                x = xOffset
+                pixel_blocks = []
+                pixel_block = None
+                x = ofs_x
                 bottom = 0
                 top = 1
                 for pixel in line:
                     if pixel == '1':
-                        if pixelBlock == None:
-                            pixelBlock = [x, x]
-                            pixelBlocks.append(pixelBlock)
+                        if pixel_block == None:
+                            pixel_block = [x, x]
+                            pixel_blocks.append(pixel_block)
                         else:
-                            pixelBlock[1] = x;
+                            pixel_block[1] = x;
                     else:
-                        pixelBlock = None
+                        pixel_block = None
                     x = x + 1
-                for pixelBlock in pixelBlocks:
-                    xa = pixelBlock[0] - italicizeSlant * (y - italicizeCenterY)
-                    xb = pixelBlock[1] - italicizeSlant * (y - italicizeCenterY)
+                for pixel_block in pixel_blocks:
+                    xa = pixel_block[0] - italicize_slant * (y - italicize_center_y)
+                    xb = pixel_block[1] - italicize_slant * (y - italicize_center_y)
                     x1 = pixX * xa       + deltaX
                     x2 = pixX * (xb + 1) - deltaX
                     y1 = pixY * y        + deltaY
@@ -408,4 +408,4 @@ class BitmapFont2TTF:
                     contour.lineTo(round(x2), round(y1))
                     contour.closed = True
                     glyph.layers['Fore'] += contour
-        glyph.width = int(round(bdfChar.getDwidthX() * pixX))
+        glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))

@@ -1,20 +1,20 @@
-def binDataToHexData(binData):
-    if binData == "":
+def bin_data_to_hex_data(bin_data):
+    if bin_data == "":
         return "00"
-    binData = re.sub(r'[ .]', '0', binData)
-    binData = re.sub(r'[^0]', '1', binData)
-    binData += "0" * ((8 - len(binData) % 8) % 8)
-    hexLen = int(len(binData) / 4)
-    decData = int(binData, 2)
-    hexData = "%0*X" % (hexLen, decData)
-    return hexData
+    bin_data = re.sub(r'[ .]', '0', bin_data)
+    bin_data = re.sub(r'[^0]', '1', bin_data)
+    bin_data += "0" * ((8 - len(bin_data) % 8) % 8)
+    hex_len = int(len(bin_data) / 4)
+    dec_data = int(bin_data, 2)
+    hex_data = "%0*X" % (hex_len, dec_data)
+    return hex_data
 
-def hexDataToBinData(hexData):
-    if hexData == "":
+def hex_data_to_bin_data(hex_data):
+    if hex_data == "":
         return "00000000"
-    hexData += "0" * ((2 - len(hexData) % 2) % 2)
-    decData = int(hexData, 16)
-    binLen = len(hexData) * 4
-    binData = bin(decData)[2:]
-    binData = "0" * ((8 - len(binData) % 8) % 8) + binData
-    return binData
+    hex_data += "0" * ((2 - len(hex_data) % 2) % 2)
+    dec_data = int(hex_data, 16)
+    bin_len = len(hex_data) * 4
+    bin_data = bin(dec_data)[2:]
+    bin_data = "0" * ((8 - len(bin_data) % 8) % 8) + bin_data
+    return bin_data
