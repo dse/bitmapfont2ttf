@@ -51,8 +51,8 @@ class BDFFont:
     def end_char(self):
         if self.char.encoding != None:
             self.chars_by_encoding[self.char.encoding] = self.char
-        if self.char.non_standard_encoding != None:
-            self.chars_by_encoding[self.char.non_standard_encoding] = self.char
+        if self.char.alt_encoding != None:
+            self.chars_by_encoding[self.char.alt_encoding] = self.char
         if self.char.name != None:
             self.chars_by_name[self.char.name] = self.char
 
