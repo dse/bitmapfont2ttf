@@ -1,7 +1,7 @@
 import re
 import sys
-from bdfchar import BDFChar
-from bdfpropertytypes import BDF_PROPERTY_TYPES
+from bdf_char import BDFChar
+from bdf_property_types import BDF_PROPERTY_TYPES
 
 PARSE_STAGE_MAIN = 0
 PARSE_STAGE_PROPERTIES = 1
@@ -10,7 +10,7 @@ PARSE_STAGE_CHAR = 3
 PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_ENDFONT = 5
 
-class BDF:
+class BDFFont:
     def __init__(self, filename = None):
         self.bdfVersion = None
         self.contentVersion = None

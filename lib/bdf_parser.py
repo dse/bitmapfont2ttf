@@ -1,7 +1,7 @@
 import re
 import os
-from bdf import BDF
-from bdfchar import BDFChar
+from bdf_font import BDFFont
+from bdf_char import BDFChar
 
 PARSE_STAGE_MAIN = 0
 PARSE_STAGE_PROPERTIES = 1
@@ -15,7 +15,7 @@ RX_PIXEL_LINE = r'^\s*([+|^])([^+|^]*)(?:[+|^]\s*)?$'
 class BDFParser():
     def __init__(self, filename=None, args=None):
         self.filename = filename
-        self.font = BDF()
+        self.font = BDFFont()
         self.parseStage = PARSE_STAGE_MAIN
         self.args = args
         if filename is not None:

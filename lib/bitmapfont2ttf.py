@@ -1,4 +1,4 @@
-from bdf import BDF
+from bdf_font import BDFFont
 
 import fontforge
 import os
@@ -19,7 +19,7 @@ class BitmapFont2TTF:
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
         if font is None:
-            self.bdf = BDF(self.filename)
+            self.bdf = BDFFont(self.filename)
         else:
             self.bdf = font
         if self.args.bdf_ascent_descent_2:

@@ -9,7 +9,7 @@ libdir = os.path.dirname(os.path.realpath(__file__)) + '/../lib'
 sys.path.append(libdir)
 
 from bitmapfont2ttf import BitmapFont2TTF
-from bdfparser import BDFParser
+from bdf_parser import BDFParser
 
 parser = argparse.ArgumentParser(description = "Generate TTF files from bitmap fonts, e.g., BDF and PCF")
 
