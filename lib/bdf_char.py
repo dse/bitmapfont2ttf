@@ -137,7 +137,6 @@ class BDFChar:
         string += self.getSwidthLine()
         if len(self.bitmapData):
             string += "BITMAP\n"
-            string += repr(self.bitmapData) + "\n"
             string += "\n".join(self.bitmapData) + "\n"
         string += "ENDCHAR\n"
         return string
