@@ -39,6 +39,7 @@ class BDFFont:
         self.charsByNonStandardEncoding = {}
         self.chars_by_name = {}
         self.parse_stage = PARSE_STAGE_MAIN
+        self.comments = []
 
         if filename != None:
             self.read(filename)
@@ -213,6 +214,7 @@ class BDFFont:
     def __str__(self):
         string = ""
         string += self.get_startfont_line()
+        string += self.get_comment_lines()
         string += self.get_content_version_line()
         string += self.get_font_name_line()
         string += self.get_size_line()
@@ -223,6 +225,12 @@ class BDFFont:
         string += self.get_properties_lines()
         string += self.get_chars_lines()
         string += "ENDFONT\n"
+        return string
+
+    def get_comment_lines(self):
+        string = ""
+        for line in self.comments:
+            string += "COMMENT " + line + "\n"
         return string
 
     def get_startfont_line(self):
@@ -284,7 +292,14 @@ class BDFFont:
             string += str(char)
         return string
 
-def bdf_escape(str):
-    if not re.match(r'[\s"]', str):
-        return str
-    return '"' + str.replace('"', '""') + '"'
+    def append_comment(self, comment):
+        self.comments.append(comment)
+
+def bdf_escape(value):
+    if value is None:
+        return ""
+    if type(value) != str:
+        value = str(value)
+    if not re.match(r'[\s"]', value):
+        return value
+    return '"' + value.replace('"', '""') + '"'
