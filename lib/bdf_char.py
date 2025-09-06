@@ -1,5 +1,7 @@
 import re, fontforge
 
+from bdf_utils import binDataToHexData, hexDataToBinData
+
 unknown_charname_counter = 0
 
 BITMAP_PIXEL_LINE_TYPE_NORMAL = 0
@@ -205,23 +207,3 @@ class BDFChar:
 def generateNewUnknownCharName():
     unknown_charname_counter += 1
     return "unknown%d" % unknown_charname_counter
-
-def binDataToHexData(binData):
-    if binData == "":
-        return "00"
-    binData = re.sub(r'[ .]', '0', binData)
-    binData = re.sub(r'[^0]', '1', binData)
-    binData += "0" * ((8 - len(binData) % 8) % 8)
-    hexLen = int(len(binData) / 4)
-    decData = int(binData, 2)
-    hexData = "%0*X" % (hexLen, decData)
-    return hexData
-
-def hexDataToBinData(hexData):
-    if hexData == "":
-        return "00000000"
-    hexData += "0" * ((2 - len(hexData) % 2) % 2)
-    decData = int(hexData, 16)
-    binLen = len(hexData) * 4
-    binData = "%0*b" % (binLen, decData)
-    return binData

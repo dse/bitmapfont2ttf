@@ -6,6 +6,8 @@ import re
 import sys
 import math
 
+from bdf_utils import binDataToHexData, hexDataToBinData
+
 # https://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves
 # https://spencermortensen.com/articles/bezier-circle/
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
@@ -323,6 +325,7 @@ class BitmapFont2TTF:
         italicizeCenterY = self.italicizeCenterY if self.italicizeCenterY is not None else 0
 
         for line in bdfChar.bitmapData:
+            line = hexDataToBinData(line)
             y = y - 1
             if self.circularDots:
                 x = xOffset
