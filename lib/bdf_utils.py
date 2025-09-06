@@ -1,3 +1,5 @@
+import re
+
 def bin_data_to_hex_data(bin_data):
     if bin_data == "":
         return "00"
