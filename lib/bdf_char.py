@@ -13,7 +13,7 @@ class BDFChar:
         self.name = name
         self.font = font
         self.encoding = None
-        self.non_standard_encoding = None
+        self.alt_encoding = None
         self.has_bbx = False
         self.bbx_x = None
         self.bbx_y = None
@@ -87,12 +87,12 @@ class BDFChar:
         if self.dwidth_y != 0.0:
             raise Exception("DWIDTH with non-zero Y coordinate not supported")
 
-    def set_encoding(self, encoding, non_standard_encoding):
+    def set_encoding(self, encoding, alt_encoding):
         self.encoding = int(encoding)
         if self.encoding == -1:
             self.encoding = None
-        self.non_standard_encoding = (None if non_standard_encoding is None
-                                    else int(non_standard_encoding))
+        self.alt_encoding = (None if alt_encoding is None
+                                    else int(alt_encoding))
 
     def append_bitmap_data(self, data):
         self.bitmap_data_hex_line_count += 1
@@ -156,14 +156,14 @@ class BDFChar:
                 return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
 
     def get_encoding_line(self):
-        if self.non_standard_encoding is None:
+        if self.alt_encoding is None:
             if self.encoding is None:
                 if self.name is not None:
                     encoding = fontforge.unicodeFromName(self.name)
                     return "ENCODING %d\n" % encoding
                 return "ENCODING -1\n"
             return "ENCODING %d\n" % self.encoding
-        return "ENCODING %d %d\n" % self.encoding, self.non_standard_encoding
+        return "ENCODING %d %d\n" % self.encoding, self.alt_encoding
 
     def get_bbx_line(self):
         [x, y, ofs_x, ofs_y] = [self.get_bbx_x(),
