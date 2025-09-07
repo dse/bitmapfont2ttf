@@ -26,7 +26,6 @@ def bdf_escape(value):
         return ""
     if type(value) != str:
         value = str(value)
-    print(">>" + value + "<<")
     if not re.search(r'[\s"]', value):
         return value
     return '"' + value.replace('"', '""') + '"'
