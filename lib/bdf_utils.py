@@ -20,3 +20,13 @@ def hex_data_to_bin_data(hex_data):
     bin_data = bin(dec_data)[2:]
     bin_data = "0" * ((8 - len(bin_data) % 8) % 8) + bin_data
     return bin_data
+
+def bdf_escape(value):
+    if value is None:
+        return ""
+    if type(value) != str:
+        value = str(value)
+    print(">>" + value + "<<")
+    if not re.search(r'[\s"]', value):
+        return value
+    return '"' + value.replace('"', '""') + '"'

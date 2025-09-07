@@ -103,7 +103,7 @@ class BDFParser():
                 raise Exception("%s: not enough arguments")
             self.font.set_metrics_set(args[0])
         elif cmd == "COMMENT":
-            comment = re.sub(r'^\s*comment\s?', '', line, re.IGNORECASE).rstrip()
+            comment = re.sub(r'^\s*comment\s?', '', line, flags=re.IGNORECASE).rstrip()
             self.font.append_comment(comment)
         else:
             raise Exception("%s: not supported in main section" % cmd)

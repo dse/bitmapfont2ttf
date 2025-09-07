@@ -1,6 +1,6 @@
 import re, fontforge
 
-from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data
+from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data, bdf_escape
 
 unknown_charname_counter = 0
 
@@ -8,8 +8,15 @@ BITMAP_PIXEL_LINE_TYPE_NORMAL = 0
 BITMAP_PIXEL_LINE_TYPE_BASELINE = 1
 BITMAP_PIXEL_LINE_TYPE_CAP_HEIGHT = 2
 
+DEFAULT_ORDER = [
+    "ENCODING",
+    "DWIDTH",
+    "SWIDTH",
+    "BBX",
+]
+
 class BDFChar:
-    def __init__(self, name=None, font=None):
+    def __init__(self, name=None, font=None, order=None):
         self.name = name
         self.font = font
         self.encoding = None
@@ -27,6 +34,12 @@ class BDFChar:
         self.bitmap_data_baseline_idx = None
         self.bitmap_data_hex_line_count = 0
         self.bitmap_data_pixel_line_count = 0
+        self.normalize_char_names = False
+
+        self.order = order
+        if type(self.order) == str:
+            self.order = self.order.replace(',', ' ').strip().split()
+            self.order = [upper(x) for x in self.order]
 
     def get_swidth_x(self):
         if self.swidth_x is not None:
@@ -119,15 +132,31 @@ class BDFChar:
     def __str__(self):
         string = ""
         string += self.get_startchar_line()
-        string += self.get_encoding_line()
-        string += self.get_bbx_line()
-        string += self.get_dwidth_line()
-        string += self.get_swidth_line()
+        flags = {}
+        if self.order is not None:
+            for line_type in self.order:
+                if not (line_type in flags and flags[line_type]):
+                    string += self.get_line(line_type)
+                    flags[line_type] = True
+        for line_type in DEFAULT_ORDER:
+            if not (line_type in flags and flags[line_type]):
+                string += self.get_line(line_type)
+                flags[line_type] = True
         if len(self.bitmap_data):
             string += "BITMAP\n"
             string += self.get_bitmap_data_lines()
         string += "ENDCHAR\n"
         return string
+
+    def get_line(self, attr_type):
+        if attr_type == "ENCODING":
+            return self.get_encoding_line()
+        if attr_type == "BBX":
+            return self.get_bbx_line()
+        if attr_type == "SWIDTH":
+            return self.get_swidth_line()
+        if attr_type == "DWIDTH":
+            return self.get_dwidth_line()
 
     def get_startchar_line(self):
         if self.name is None:
@@ -139,8 +168,13 @@ class BDFChar:
             if self.encoding is None or self.encoding < 0:
                 return "STARTCHAR %s\n" % self.name
             else:
-                # normalize charname
-                return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+                if self.normalize_char_names:
+                    return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+                else:
+                    if fontforge.unicodeFromName(self.name) == self.encoding:
+                        return "STARTCHAR %s\n" % self.name
+                    else:
+                        return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
 
     def get_encoding_line(self):
         string = "ENCODING"
@@ -208,7 +242,7 @@ class BDFChar:
         string = ""
         for data in self.bitmap_data:
             string += data.strip() + "\n"
-        return data
+        return string
 
 def generate_new_unknown_char_name():
     unknown_charname_counter += 1

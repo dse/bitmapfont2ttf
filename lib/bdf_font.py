@@ -2,9 +2,22 @@ import re
 import sys
 from bdf_char import BDFChar
 from bdf_property_types import BDF_PROPERTY_TYPES
+from bdf_utils import bdf_escape
+
+DEFAULT_ORDER = [
+    "FONT",
+    "SIZE",
+    "FONTBOUNDINGBOX",
+    "COMMENT",
+    "CONTENTVERSION",
+    "METRICSSET",
+    "DWIDTH",
+    "SWIDTH",
+    "PROPERTIES",
+]
 
 class BDFFont:
-    def __init__(self, filename=None):
+    def __init__(self, filename=None, order=None):
         self.bdf_version = None
         self.content_version = None
         self.font_name = None                                  # FONT (font.fontname)
@@ -28,6 +41,11 @@ class BDFFont:
         self.charsByNonStandardEncoding = {}
         self.chars_by_name = {}
         self.comments = []
+
+        self.order = order
+        if type(self.order) == str:
+            self.order = self.order.replace(',', ' ').strip().split()
+            self.order = [upper(x) for x in self.order]
 
         if filename is not None:
             self.read(filename)
@@ -202,18 +220,41 @@ class BDFFont:
     def __str__(self):
         string = ""
         string += self.get_startfont_line()
-        string += self.get_comment_lines()
-        string += self.get_content_version_line()
-        string += self.get_font_name_line()
-        string += self.get_size_line()
-        string += self.get_bbx_line()
-        string += self.get_metrics_set_line()
-        string += self.get_dwidth_line()
-        string += self.get_swidth_line()
-        string += self.get_properties_lines()
+        flags = {}
+        if self.order is not None:
+            for line_type in self.order:
+                if not (line_type in flags and flags[line_type]):
+                    string += self.get_line(line_type)
+                    flags[line_type] = True
+        for line_type in DEFAULT_ORDER:
+            if not (line_type in flags and flags[line_type]):
+                string += self.get_line(line_type)
+                flags[line_type] = True
         string += self.get_chars_lines()
         string += "ENDFONT\n"
         return string
+
+    def get_line(self, line_type):
+        if line_type == "COMMENT":
+            return self.get_comment_lines()
+        if line_type == "STARTFONT":
+            return self.get_startfont_line()
+        if line_type == "CONTENTVERSION":
+            return self.get_content_version_line()
+        if line_type == "FONT":
+            return self.get_font_name_line()
+        if line_type == "SIZE":
+            return self.get_size_line()
+        if line_type == "FONTBOUNDINGBOX":
+            return self.get_bbx_line()
+        if line_type == "METRICSSET":
+            return self.get_metrics_set_line()
+        if line_type == "DWIDTH":
+            return self.get_dwidth_line()
+        if line_type == "SWIDTH":
+            return self.get_swidth_line()
+        if line_type == "PROPERTIES":
+            return self.get_properties_lines()
 
     def get_comment_lines(self):
         string = ""
@@ -282,12 +323,3 @@ class BDFFont:
 
     def append_comment(self, comment):
         self.comments.append(comment)
-
-def bdf_escape(value):
-    if value is None:
-        return ""
-    if type(value) != str:
-        value = str(value)
-    if not re.match(r'[\s"]', value):
-        return value
-    return '"' + value.replace('"', '""') + '"'
