@@ -3,13 +3,6 @@ import sys
 from bdf_char import BDFChar
 from bdf_property_types import BDF_PROPERTY_TYPES
 
-PARSE_STAGE_MAIN = 0
-PARSE_STAGE_PROPERTIES = 1
-PARSE_STAGE_CHARS = 2
-PARSE_STAGE_CHAR = 3
-PARSE_STAGE_BITMAP = 4
-PARSE_STAGE_ENDFONT = 5
-
 class BDFFont:
     def __init__(self, filename=None):
         self.bdf_version = None
@@ -38,7 +31,6 @@ class BDFFont:
         self.chars_by_encoding = {}
         self.charsByNonStandardEncoding = {}
         self.chars_by_name = {}
-        self.parse_stage = PARSE_STAGE_MAIN
         self.comments = []
 
         if filename is not None:
