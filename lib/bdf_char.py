@@ -23,10 +23,6 @@ class BDFChar:
         self.swidth_y = None
         self.dwidth_x = None
         self.dwidth_y = None
-        self.swidth1_x = None
-        self.swidth1_y = None
-        self.dwidth1_x = None
-        self.dwidth1_y = None
         self.bitmap_data_cap_height_idx = None
         self.bitmap_data_baseline_idx = None
         self.bitmap_data_hex_line_count = 0

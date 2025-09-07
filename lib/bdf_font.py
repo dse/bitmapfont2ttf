@@ -21,10 +21,6 @@ class BDFFont:
         self.swidth_y = None
         self.dwidth_x = None
         self.dwidth_y = None
-        self.swidth1_x = None
-        self.swidth1_y = None
-        self.dwidth1_x = None
-        self.dwidth1_y = None
         self.properties = {}
         self.filename = None
         self.chars = []
