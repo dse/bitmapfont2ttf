@@ -58,16 +58,6 @@ class BDFChar:
     def get_resolution_y(self):
         return self.font.get_resolution_y()
 
-    # row =  0 for pixel row just above baseline
-    # row = -1 for pixel row just below baseline
-    def pixelCountByRow(self, row):
-        row = int(round(row))
-        top_y = self.bbx_ofs_y + self.bbx_y - 1
-        row_idx = top_y - row   # into bitmap_data
-        if row_idx < 0 or row_idx >= len(self.bitmap_data):
-            return 0
-        return self.bitmap_data[row_idx].count('1')
-
     def set_bbx(self, x, y, ofs_x, ofs_y):
         self.has_bbx = True
         self.bbx_x       = int(x)          # integer pixel values, offsets relative to origin
