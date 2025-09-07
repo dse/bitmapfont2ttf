@@ -33,9 +33,9 @@ class BDFChar:
         self.bitmap_data_pixel_line_count = 0
 
     def get_swidth_x(self):
-        if self.swidth_x != None:
+        if self.swidth_x is not None:
             return self.swidth_x
-        if self.dwidth_x != None:
+        if self.dwidth_x is not None:
             return self.dwidth_x / 72000.0 * self.get_resolution_x() * self.font.get_point_size()
         return self.font.get_swidth_x()
 
@@ -43,9 +43,9 @@ class BDFChar:
         return 0
 
     def get_dwidth_x(self):
-        if self.dwidth_x != None:
+        if self.dwidth_x is not None:
             return self.dwidth_x
-        if self.swidth_x != None:
+        if self.swidth_x is not None:
             return int(round(self.swidth_x * 72000.0 / self.get_resolution_x() / self.font.get_point_size()))
         return self.font.get_dwidth_x()
 

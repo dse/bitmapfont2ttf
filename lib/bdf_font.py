@@ -41,7 +41,7 @@ class BDFFont:
         self.parse_stage = PARSE_STAGE_MAIN
         self.comments = []
 
-        if filename != None:
+        if filename is not None:
             self.read(filename)
 
     def start_char(self, name):
@@ -50,11 +50,11 @@ class BDFFont:
         self.char.bitmap_data = []
 
     def end_char(self):
-        if self.char.encoding != None:
+        if self.char.encoding is not None:
             self.chars_by_encoding[self.char.encoding] = self.char
-        if self.char.alt_encoding != None:
+        if self.char.alt_encoding is not None:
             self.chars_by_encoding[self.char.alt_encoding] = self.char
-        if self.char.name != None:
+        if self.char.name is not None:
             self.chars_by_name[self.char.name] = self.char
 
     def start_char_bitmap(self):
@@ -67,9 +67,9 @@ class BDFFont:
         return BDFChar(name = name, font = font)
 
     def get_swidth_x(self):
-        if self.swidth_x != None:
+        if self.swidth_x is not None:
             return self.swidth_x
-        if self.dwidth_x != None:
+        if self.dwidth_x is not None:
             return self.dwidth_x / 72000.0 * self.get_resolution_x() * self.get_point_size()
         raise Exception('cannot determine swidthX')
 
@@ -77,9 +77,9 @@ class BDFFont:
         return 0
 
     def get_dwidth_x(self):
-        if self.dwidth_x != None:
+        if self.dwidth_x is not None:
             return self.dwidth_x
-        if self.swidth_x != None:
+        if self.swidth_x is not None:
             return int(round(self.swidth_x * 72000.0 / self.get_resolution_x() / self.get_point_size()))
         raise Exception('cannot determine dwidthX')
 
@@ -88,7 +88,7 @@ class BDFFont:
 
     def get_point_size(self):
         pt10 = self.properties["POINT_SIZE"]
-        if pt10 != None:
+        if pt10 is not None:
             return pt10 / 10.0
         raise Exception('font does not have a POINT_SIZE property')
 
@@ -99,31 +99,31 @@ class BDFFont:
 
     def get_pixel_size(self):
         px = self.properties["PIXEL_SIZE"]
-        if px != None:
+        if px is not None:
             return px
         raise Exception('font does not specify pixel size')
 
     def get_resolution_x(self):
         r = self.properties["RESOLUTION_X"]
-        if r != None:
+        if r is not None:
             return r
         raise Exception('cannot determine resolutionX')
 
     def get_resolution_y(self):
         r = self.properties["RESOLUTION_Y"]
-        if r != None:
+        if r is not None:
             return r
         raise Exception('cannot determine resolutionY')
 
     def ascent_px(self):
         ascent = self.properties["FONT_ASCENT"]
-        if ascent != None:
+        if ascent is not None:
             return ascent
         raise Exception('cannot determine ascent_px')
 
     def descent_px(self):
         descent = self.properties["FONT_DESCENT"]
-        if descent != None:
+        if descent is not None:
             return descent
         raise Exception('cannot determine descent_px')
 

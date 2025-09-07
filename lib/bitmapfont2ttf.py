@@ -83,22 +83,22 @@ class BitmapFont2TTF:
             if self.set_panose_9 is not None: panose[9] = self.set_panose_9
             self.font.os2_panose = tuple(panose)
 
-        if self.set_font_name != None:
+        if self.set_font_name is not None:
             self.font.fontname = self.set_font_name
-        elif self.bdf.font_name != None:
+        elif self.bdf.font_name is not None:
             self.font.fontname = self.bdf.font_name
 
-        if self.set_full_name != None:
+        if self.set_full_name is not None:
             self.font.fullname = self.set_full_name
-        elif self.bdf.properties.get("FULL_NAME") != None:
+        elif self.bdf.properties.get("FULL_NAME") is not None:
             self.font.fullname = self.bdf.properties["FULL_NAME"]
 
-        if self.set_family_name != None:
+        if self.set_family_name is not None:
             self.font.familyname = self.set_family_name
-        elif self.bdf.properties.get("FAMILY_NAME") != None:
+        elif self.bdf.properties.get("FAMILY_NAME") is not None:
             self.font.familyname = self.bdf.properties["FAMILY_NAME"]
 
-        if self.set_weight_name != None:
+        if self.set_weight_name is not None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
             # normal weight, or "Extra-Light" for all the others.
@@ -107,17 +107,17 @@ class BitmapFont2TTF:
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
             self.font.weight = self.set_weight_name
-        elif self.bdf.properties.get("WEIGHT_NAME") != None:
+        elif self.bdf.properties.get("WEIGHT_NAME") is not None:
             self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
-        if self.set_os2_weight != None:
+        if self.set_os2_weight is not None:
             self.font.os2_weight = self.set_os2_weight
 
-        if self.italic_angle != None:
+        if self.italic_angle is not None:
             self.font.italicangle = self.italic_angle
-        elif self.italicize_angle != None:
+        elif self.italicize_angle is not None:
             self.font.italicangle = self.italicize_angle
-        elif self.bdf.properties.get("SLANT") != None:
+        elif self.bdf.properties.get("SLANT") is not None:
             slant = self.bdf.properties["SLANT"].upper()
             if slant == "R":
                 self.font.italicangle = 0
@@ -126,16 +126,16 @@ class BitmapFont2TTF:
             elif slant == "I":
                 self.font.italicangle = -12
 
-        if self.copyright != None:
+        if self.copyright is not None:
             self.font.copyright = self.copyright
 
         if not self.no_sfnt_names:
             self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
             self.font.appendSFNTName("English (US)", "Family", self.font.familyname) # [1]
-            if self.subfamily != None:
+            if self.subfamily is not None:
                 self.font.appendSFNTName("English (US)", "SubFamily", self.subfamily) # [2] FIXME: else autogenerate
-            if self.unique_id != None:
+            if self.unique_id is not None:
                 self.font.appendSFNTName("English (US)", "UniqueID", self.unique_id) # [3]
             else:
                 self.font.appendSFNTName("English (US)", "UniqueID", self.font.familyname + " 2024") # FIXME [3]
@@ -264,7 +264,7 @@ class BitmapFont2TTF:
             # specify a filename 'foo.pcf'.  Yes, './foo.pcf' works pefectly
             # fine whereas 'foo.pcf' does not.
             self.filename = os.path.join('.', self.filename)
-        if self.destfilenames == None or len(self.destfilenames) == 0:
+        if self.destfilenames is None or len(self.destfilenames) == 0:
             (rootdestfilename, junk) = os.path.splitext(self.filename)
             self.destfilenames = [rootdestfilename + '.ttf']
 
@@ -273,7 +273,7 @@ class BitmapFont2TTF:
         index = 0
         for char in self.bdf.chars:
             index = index + 1
-            encoding = char.encoding if char.encoding != None else -1
+            encoding = char.encoding if char.encoding is not None else -1
             try:
                 glyph = self.font.createChar(encoding, char.name)
             except:
@@ -285,24 +285,24 @@ class BitmapFont2TTF:
 
     def trace_glyph(self, glyph, bdf_char):
         ofs_y = bdf_char.bbx_ofs_y
-        if ofs_y == None:
+        if ofs_y is None:
             ofs_y = self.bdf.bbx_ofs_y
-        if ofs_y == None:
+        if ofs_y is None:
             raise Exception("cannot find bounding box y offset: %s" % glyph)
         ofs_x = bdf_char.bbx_ofs_x
-        if ofs_x == None:
+        if ofs_x is None:
             ofs_x = self.bdf.bbx_ofs_x
-        if ofs_x == None:
+        if ofs_x is None:
             raise Exception("cannot find bounding box x offset: %s" % glyph)
         height = bdf_char.bbx_y
-        if height == None:
+        if height is None:
             height = self.bdf.bbx_y
-        if height == None:
+        if height is None:
             raise Exception("cannot find bounding box height: %s" % glyph)
         width = bdf_char.bbx_x
-        if width == None:
+        if width is None:
             width = self.bdf.bbx_x
-        if width == None:
+        if width is None:
             raise Exception("cannot find bounding box width: %s" % glyph)
 
         y = ofs_y + height
@@ -370,9 +370,9 @@ class BitmapFont2TTF:
                     x = x + 1
             else:
                 [y1unit, y2unit] = [0, 1]
-                if self.bottom != None:
+                if self.bottom is not None:
                     y1unit = self.bottom
-                if self.top != None:
+                if self.top is not None:
                     y2unit = self.top
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
@@ -383,7 +383,7 @@ class BitmapFont2TTF:
                 top = 1
                 for pixel in line:
                     if pixel == '1':
-                        if pixel_block == None:
+                        if pixel_block is None:
                             pixel_block = [x, x]
                             pixel_blocks.append(pixel_block)
                         else:
