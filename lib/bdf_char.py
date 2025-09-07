@@ -9,7 +9,7 @@ BITMAP_PIXEL_LINE_TYPE_BASELINE = 1
 BITMAP_PIXEL_LINE_TYPE_CAP_HEIGHT = 2
 
 class BDFChar:
-    def __init__(self, name = None, font = None):
+    def __init__(self, name=None, font=None):
         self.name = name
         self.font = font
         self.encoding = None
@@ -129,7 +129,7 @@ class BDFChar:
         string += self.get_swidth_line()
         if len(self.bitmap_data):
             string += "BITMAP\n"
-            string += "\n".join(self.bitmap_data) + "\n"
+            string += self.get_bitmap_data()
         string += "ENDCHAR\n"
         return string
 
@@ -193,6 +193,12 @@ class BDFChar:
         if self.bbx_ofs_y is not None:
             return self.bbx_ofs_y
         return self.font.bbx_ofs_y
+
+    def get_bitmap_data(self):
+        string = ""
+        for data in self.bitmap_data:
+            string += data.strip() + "\n"
+        return data
 
 def generate_new_unknown_char_name():
     unknown_charname_counter += 1

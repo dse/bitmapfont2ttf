@@ -11,7 +11,7 @@ PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_ENDFONT = 5
 
 class BDFFont:
-    def __init__(self, filename = None):
+    def __init__(self, filename=None):
         self.bdf_version = None
         self.content_version = None
         self.font_name = None                                  # FONT (font.fontname)
