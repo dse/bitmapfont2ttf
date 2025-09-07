@@ -11,4 +11,24 @@ def main():
     bdf_parser = BDFParser(filename=args.filename)
     print(str(bdf_parser.font))
 
+    # bdfbdf compat:
+    #   -x, --resolution-x, --res-x, --x-resolution, --x-res    int
+    #   -y, --resolution-y, --res-y, --y-resolution, --y-res    int
+    #   -f, --font-name, --ps-font-name                         str
+    #   -m, --family-name                                       str
+    #   -w, --weight-name                                       str
+    #   -W, --setwidth-name                                     str
+    #   -s, --style-name                                        str
+    #   -F, --full-name                                         str
+    #   -p, --property=name=value                               str
+    #   --no-guess
+    #   --guess-only
+    #   --upper-case
+    #   --lower-case
+    #   --agl-names
+    #   --dwidth-then-swidth
+    #   --swidth-then-dwidth
+    #   --verbose                                               incr
+    #   --help
+
 main()
