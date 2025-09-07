@@ -125,31 +125,45 @@ class BDFChar:
         string += self.get_swidth_line()
         if len(self.bitmap_data):
             string += "BITMAP\n"
-            string += self.get_bitmap_data()
+            string += self.get_bitmap_data_lines()
         string += "ENDCHAR\n"
         return string
 
     def get_startchar_line(self):
-        if self.encoding is None or self.encoding < 0:
-            if self.name is None:
+        if self.name is None:
+            if self.encoding is None or self.encoding < 0:
                 return "STARTCHAR %s\n" % generate_new_unknown_char_name()
             else:
-                return "STARTCHAR %s\n" % self.name
+                return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
         else:
-            if self.name is not None:
+            if self.encoding is None or self.encoding < 0:
                 return "STARTCHAR %s\n" % self.name
             else:
+                # normalize charname
                 return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
 
     def get_encoding_line(self):
-        if self.alt_encoding is None:
-            if self.encoding is None:
-                if self.name is not None:
-                    encoding = fontforge.unicodeFromName(self.name)
-                    return "ENCODING %d\n" % encoding
-                return "ENCODING -1\n"
-            return "ENCODING %d\n" % self.encoding
-        return "ENCODING %d %d\n" % self.encoding, self.alt_encoding
+        string = "ENCODING"
+        if self.encoding is None or self.encoding < 0:
+            if self.name is None:
+                if self.encoding is None:
+                    string += " -1"
+                else:
+                    string += " %d" % self.encoding
+            else:
+                encoding = fontforge.unicodeFromName(self.name)
+                if encoding is None or encoding < 0:
+                    if self.encoding is None:
+                        string += " -1"
+                    else:
+                        string += " %d" % self.encoding
+                else:
+                    string += " %d" % encoding
+        else:
+            string += " %d" % self.encoding
+        if self.alt_encoding is not None:
+            string += " %d" % self.alt_encoding
+        return string + "\n"
 
     def get_bbx_line(self):
         [x, y, ofs_x, ofs_y] = [self.get_bbx_x(),
@@ -190,7 +204,7 @@ class BDFChar:
             return self.bbx_ofs_y
         return self.font.bbx_ofs_y
 
-    def get_bitmap_data(self):
+    def get_bitmap_data_lines(self):
         string = ""
         for data in self.bitmap_data:
             string += data.strip() + "\n"
