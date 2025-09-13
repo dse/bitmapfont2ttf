@@ -71,5 +71,5 @@ parser.add_argument("destfilenames",  nargs ='*')
 args = parser.parse_args()
 
 bdf_parser = BDFParser(filename=args.filename, args=args)
-bdf2ttf = BitmapFont2TTF(args)
+bdf2ttf = BitmapFont2TTF(args=args)
 bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)

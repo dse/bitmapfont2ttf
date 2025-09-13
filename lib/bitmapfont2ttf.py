@@ -13,8 +13,9 @@ from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data
 THAT_CIRCLE_BEZIER_CONSTANT = 0.5519150244935105707435627
 
 class BitmapFont2TTF:
-    def __init__(self, args):
-        self.set_args(args)
+    def __init__(self, args=None):
+        if args is not None:
+            self.set_args(args)
         self.fix_filenames()
 
     def bitmapfont2ttf(self, font=None):
