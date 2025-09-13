@@ -242,6 +242,7 @@ class BitmapFont2TTF:
         self.no_sfnt_names             = args.no_sfnt_names
         self.subfamily               = args.subfamily
         self.unique_id                = args.unique_id
+        self.use_properties           = args.use_properties
 
         # self.newAscent             = args.new_ascent
         # self.newDescent            = args.new_descent

@@ -117,6 +117,7 @@ class BDFChar:
         self.bitmap_data_baseline_idx = None
 
     def end_bitmap(self):
+        # make sure this is idempotent.
         self.bitmap_data = [s.upper() + "0" * ((2 - len(s) % 2) % 2) for s in self.bitmap_data]
         maxlen = max([len(s) for s in self.bitmap_data])
         self.bitmap_data = [s + "0" * (maxlen - len(s)) for s in self.bitmap_data]
@@ -267,6 +268,10 @@ class BDFChar:
         for data in self.bitmap_data:
             string += data.strip() + "\n"
         return string
+
+    def end_char(self):
+        # make sure this is idempotent.
+        pass
 
 def generate_new_unknown_char_name():
     global unknown_charname_counter

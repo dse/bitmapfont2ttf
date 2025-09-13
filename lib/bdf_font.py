@@ -50,6 +50,7 @@ class BDFFont:
         self.charsByNonStandardEncoding = {}
         self.chars_by_name = {}
         self.comments = []
+        self.use_properties = False
 
         self.order = order
         if type(self.order) == str:
@@ -65,17 +66,24 @@ class BDFFont:
         self.char.bitmap_data = []
 
     def end_char(self):
+        # make sure this is idempotent.
+        if self.char is None:
+            return
         if self.char.encoding is not None:
             self.chars_by_encoding[self.char.encoding] = self.char
         if self.char.alt_encoding is not None:
             self.chars_by_encoding[self.char.alt_encoding] = self.char
         if self.char.name is not None:
             self.chars_by_name[self.char.name] = self.char
+        self.char.end_bitmap()
+        self.char.end_char()
+        self.char = None
 
     def start_char_bitmap(self):
         self.char.start_bitmap()
 
     def end_char_bitmap(self):
+        # make sure this is idempotent.
         self.char.end_bitmap()
 
     def newChar(self, name, font):
@@ -177,11 +185,17 @@ class BDFFont:
 
     def set_font_name(self, value):
         self.font_name = str(value)
+        if self.use_properties:
+            self.propreties.set("FONT", value)
 
     def set_size(self, point_size, res_x, res_y):
         self.point_size = int(point_size)
         self.res_x = int(res_x)
         self.res_y = int(res_y)
+        if self.use_properties:
+            self.properties.set("POINT_SIZE", point_size * 10)
+            self.properties.set("RESOLUTION_X", res_x)
+            self.properties.set("RESOLUTION_Y", res_y)
 
     def set_bbx(self, x, y, ofs_x, ofs_y):
         self.has_bbx = True
@@ -219,6 +233,7 @@ class BDFFont:
         return prop_type
 
     def end_char_bitmap(self):
+        # make sure this is idempotent.
         self.char.end_bitmap()
 
     def set_char_bbx(self, *args):
@@ -364,3 +379,7 @@ class BDFFont:
         ry2 = self.properties.get("RESOLUTION_Y")
         if ry1 is not None and ry2 is not None and ry1 != ry2:
             sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different")
+
+    def end_font(self):
+        # make sure this is idempotent.
+        pass

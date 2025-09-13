@@ -65,6 +65,8 @@ parser.add_argument("--subfamily", help="e.g., 'Bold Italic'")
 parser.add_argument("--unique-id")
 parser.add_argument("--copyright")
 
+parser.add_argument("--use-properties", action="store_true")
+
 parser.add_argument("filename")
 parser.add_argument("destfilenames",  nargs ='*')
 

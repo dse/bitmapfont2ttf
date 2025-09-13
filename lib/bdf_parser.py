@@ -22,6 +22,10 @@ class BDFParser():
             self.read(filename)
             self.font.issue_warnings()
 
+
+            self.font.end_char()
+            self.font.end_font()
+
     def read(self, filename):
         line_number = 0
         for line in open(filename, "r"):
@@ -64,6 +68,7 @@ class BDFParser():
             self.font.start_char(args[0] if len(args) else None)
             self.parse_stage = PARSE_STAGE_CHAR
         elif cmd == "ENDFONT":                                  # not strictly BDF
+            self.font.end_font()
             self.parse_stage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTFONT":
             if len(args) < 1:
@@ -125,6 +130,7 @@ class BDFParser():
             self.font.start_char(args[0] if len(args) else None)
             self.parse_stage = PARSE_STAGE_CHAR
         elif cmd == "ENDFONT":
+            self.font.end_font()
             self.parse_stage = PARSE_STAGE_ENDFONT
         else:
             raise Exception("%s: not supported in chars section" % cmd)
@@ -138,6 +144,7 @@ class BDFParser():
             self.parse_stage = PARSE_STAGE_CHARS
         elif cmd == "ENDFONT":                                  # not strictly BDF
             self.font.end_char()
+            self.font.end_font()
             self.parse_stage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTCHAR":                                # not strictly BDF
             self.font.end_char()
@@ -180,6 +187,7 @@ class BDFParser():
         elif cmd == "ENDFONT":                                  # not strictly BDF
             self.font.end_char_bitmap()
             self.font.end_char()
+            self.font.end_font()
             self.parse_stage = PARSE_STAGE_ENDFONT
         elif cmd == "STARTCHAR":
             self.font.end_char_bitmap()
