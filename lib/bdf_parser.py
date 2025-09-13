@@ -20,6 +20,7 @@ class BDFParser():
         self.args = args
         if filename is not None:
             self.read(filename)
+            self.font.issue_warnings()
 
     def read(self, filename):
         line_number = 0
@@ -169,7 +170,7 @@ class BDFParser():
             self.font.append_char_bitmap_pixel_data(match[1], match[2])
             self.parse_stage = PARSE_STAGE_BITMAP
         else:
-            raise Exception("%s: not supported in main section" % cmd)
+            raise Exception("%s: not supported in char section" % cmd)
 
     def parse_line_at_stage_bitmap(self, line, filename, line_number, cmd, args):
         if cmd == "ENDCHAR":
