@@ -16,6 +16,15 @@ DEFAULT_ORDER = [
     "PROPERTIES",
 ]
 
+FORCE_QUOTE = {
+    "SPACING": True,
+    "FOUNDRY": True,
+    "WEIGHT_NAME": True,
+    "SETWIDTH_NAME": True,
+    "FAMILY_NAME": True,
+    "SLANT": True,
+}
+
 class BDFFont:
     def __init__(self, filename=None, order=None):
         self.bdf_version = None
@@ -76,7 +85,13 @@ class BDFFont:
         if self.swidth_x is not None:
             return self.swidth_x
         if self.dwidth_x is not None:
-            return self.dwidth_x / 72000.0 * self.get_resolution_x() * self.get_point_size()
+            return (
+                self.dwidth_x                                   # pixels
+                / self.get_resolution_x()                       # inches
+                * 72.27                                         # points
+                / self.get_point_size()                         # em units
+                * 1000                                          # milliem units
+            )
         raise Exception('cannot determine swidthX')
 
     def get_swidth_y(self):
@@ -86,17 +101,25 @@ class BDFFont:
         if self.dwidth_x is not None:
             return self.dwidth_x
         if self.swidth_x is not None:
-            return int(round(self.swidth_x * 72000.0 / self.get_resolution_x() / self.get_point_size()))
+            return (
+                self.swidth_x                                   # milliem units
+                / 1000                                          # em units
+                * self.get_point_size()                         # points
+                / 72.27                                         # inches
+                * self.get_resolution_x()                       # pixels
+            )
         raise Exception('cannot determine dwidthX')
 
     def get_dwidth_y(self):
         return 0
 
     def get_point_size(self):
-        pt10 = self.properties["POINT_SIZE"]
+        if self.point_size is not None:
+            return self.point_size
+        pt10 = self.properties.get("POINT_SIZE")
         if pt10 is not None:
             return pt10 / 10.0
-        raise Exception('font does not have a POINT_SIZE property')
+        raise Exception("cannot find font's point size")
 
     def setPixelSize(self, px):
         self.properties["PIXEL_SIZE"] = px
@@ -110,12 +133,16 @@ class BDFFont:
         raise Exception('font does not specify pixel size')
 
     def get_resolution_x(self):
+        if self.res_x is not None:
+            return self.res_x
         r = self.properties["RESOLUTION_X"]
         if r is not None:
             return r
         raise Exception('cannot determine resolutionX')
 
     def get_resolution_y(self):
+        if self.res_y is not None:
+            return self.res_y
         r = self.properties["RESOLUTION_Y"]
         if r is not None:
             return r
@@ -145,7 +172,7 @@ class BDFFont:
 
     # less than 1 means taller than wide; greater than 1 means wider than tall
     def get_aspect_ratio(self):
-        return 1.0 * self.properties["RESOLUTION_Y"] / self.properties["RESOLUTION_X"]
+        return 1.0 * self.get_resolution_y() / self.get_resolution_x()
 
     def set_bdf_version(self, value):
         self.bdf_version = float(value)
@@ -275,20 +302,21 @@ class BDFFont:
     def get_font_name_line(self):
         if self.font_name is None:
             return ""
-        return "FONT %s\n" % bdf_escape(self.font_name)
+        return "FONT %s\n" % bdf_escape(self.font_name, forcequote=True)
 
     def get_size_line(self):
         if self.point_size is None or self.res_x is None or self.res_y is None:
             return ""
         return "SIZE %d %d %d\n" % (self.point_size, self.res_x, self.res_y)
 
-    def get_bbx_line(self):
+    def get_bbx_line(self, name="FONTBOUNDINGBOX"):
         if not self.has_bbx:
             return ""
-        return "FONTBOUNDINGBOX %d %d %d %d\n" % (self.bbx_x,
-                                                  self.bbx_y,
-                                                  self.bbx_ofs_x,
-                                                  self.bbx_ofs_y)
+        return "%s %d %d %d %d\n" % (name,
+                                     self.bbx_x,
+                                     self.bbx_y,
+                                     self.bbx_ofs_x,
+                                     self.bbx_ofs_y)
 
     def get_metrics_set_line(self):
         if self.metrics_set is None:
@@ -296,14 +324,16 @@ class BDFFont:
         return "METRICSSET %d\n" % self.metrics_set
 
     def get_dwidth_line(self):
-        if self.dwidth_x is None:
+        dwidth_x = self.get_dwidth_x()
+        if dwidth_x is None:
             return ""
-        return "DWIDTH %d 0\n" % self.dwidth_x
+        return "DWIDTH %d 0\n" % dwidth_x
 
     def get_swidth_line(self):
-        if self.swidth_x is None:
+        swidth_x = self.get_swidth_x()
+        if swidth_x is None:
             return ""
-        return "SWIDTH %d 0\n" % self.swidth_x
+        return "SWIDTH %d 0\n" % swidth_x
 
     def get_properties_lines(self):
         keys = self.properties.keys()
@@ -311,7 +341,7 @@ class BDFFont:
             return ""
         string = "STARTPROPERTIES %d\n" % len(keys)
         for key in self.properties.keys():
-            string += "%s %s\n" % (key, bdf_escape(self.properties[key]))
+            string += "%s %s\n" % (key, bdf_escape(self.properties[key], forcequote=FORCE_QUOTE.get(key, False)))
         string += "ENDPROPERTIES\n"
         return string
 
@@ -323,3 +353,19 @@ class BDFFont:
 
     def append_comment(self, comment):
         self.comments.append(comment)
+
+    def issue_warnings(self):
+        self.issue_resolution_x_warning()
+        self.issue_resolution_y_warning()
+
+    def issue_resolution_x_warning(self):
+        rx1 = self.res_x
+        rx2 = self.properties.get("RESOLUTION_X")
+        if rx1 is not None and rx2 is not None and rx1 != rx2:
+            sys.stderr.write("WARNING: x-resolution specified in properties and SIZE line are different")
+
+    def issue_resolution_y_warning(self):
+        ry1 = self.res_y
+        ry2 = self.properties.get("RESOLUTION_Y")
+        if ry1 is not None and ry2 is not None and ry1 != ry2:
+            sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different")

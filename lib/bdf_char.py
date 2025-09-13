@@ -45,7 +45,13 @@ class BDFChar:
         if self.swidth_x is not None:
             return self.swidth_x
         if self.dwidth_x is not None:
-            return self.dwidth_x / 72000.0 * self.get_resolution_x() * self.font.get_point_size()
+            return (
+                self.dwidth_x                                   # pixels
+                / self.get_resolution_x()                       # inches
+                * 72.27                                         # points
+                / self.get_point_size()                         # em units
+                * 1000                                          # milliem units
+            )
         return self.font.get_swidth_x()
 
     def get_swidth_y(self):
@@ -55,7 +61,13 @@ class BDFChar:
         if self.dwidth_x is not None:
             return self.dwidth_x
         if self.swidth_x is not None:
-            return int(round(self.swidth_x * 72000.0 / self.get_resolution_x() / self.font.get_point_size()))
+            return (
+                self.swidth_x                                   # milliem units
+                / 1000                                          # em units
+                * self.get_point_size()                         # points
+                / 72.27                                         # inches
+                * self.get_resolution_x()                       # pixels
+            )
         return self.font.get_dwidth_x()
 
     def get_dwidth_y(self):
@@ -200,7 +212,7 @@ class BDFChar:
                     return [fontforge.nameFromUnicode(self.encoding), self.encoding]
 
     def get_startchar_line(self):
-        return "STARTCHAR %s" % self.get_normalized_charname_encoding()[0]
+        return "STARTCHAR %s\n" % self.get_normalized_charname_encoding()[0]
 
     def get_encoding_line(self):
         string = "ENCODING %d" % self.get_normalized_charname_encoding()[1]
@@ -210,22 +222,25 @@ class BDFChar:
 
     def get_bbx_line(self):
         [x, y, ofs_x, ofs_y] = [self.get_bbx_x(),
-                                    self.get_bbx_y(),
-                                    self.get_bbx_ofs_x(),
-                                    self.get_bbx_ofs_y()]
+                                self.get_bbx_y(),
+                                self.get_bbx_ofs_x(),
+                                self.get_bbx_ofs_y()]
         if x is None or y is None or ofs_x is None or ofs_y is None:
-            return ""
+            return self.font.get_bbx_line(name="BBX")
+        # each character must specify own bounding box for some utils to work
         return "BBX %d %d %d %d\n" % (x, y, ofs_x, ofs_y)
 
     def get_dwidth_line(self):
-        if self.dwidth_x is None:
+        dwidth_x = self.get_dwidth_x()
+        if dwidth_x is None:
             return ""
-        return "DWIDTH %d 0\n" % self.dwidth_x
+        return "DWIDTH %d 0\n" % dwidth_x
 
     def get_swidth_line(self):
-        if self.swidth_x is None:
+        swidth_x = self.get_swidth_x()
+        if swidth_x is None:
             return ""
-        return "SWIDTH %d 0\n" % self.swidth_x
+        return "SWIDTH %d 0\n" % swidth_x
 
     def get_bbx_x(self):
         if self.bbx_x is not None:
