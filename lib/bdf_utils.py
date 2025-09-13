@@ -21,11 +21,15 @@ def hex_data_to_bin_data(hex_data):
     bin_data = "0" * ((8 - len(bin_data) % 8) % 8) + bin_data
     return bin_data
 
-def bdf_escape(value):
+def bdf_escape(value, forcequote=False):
     if value is None:
+        if forcequote:
+            return '""'
         return ""
     if type(value) != str:
         value = str(value)
     if not re.search(r'[\s"]', value):
+        if forcequote:
+            return '"' + value + '"'
         return value
     return '"' + value.replace('"', '""') + '"'
