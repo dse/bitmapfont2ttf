@@ -158,43 +158,52 @@ class BDFChar:
         if attr_type == "DWIDTH":
             return self.get_dwidth_line()
 
-    def get_startchar_line(self):
+    def get_normalized_charname_encoding(self):
         if self.name is None:
-            if self.encoding is None or self.encoding < 0:
-                return "STARTCHAR %s\n" % generate_new_unknown_char_name()
+            if self.encoding is None:
+                return [generate_new_unknown_char_name(), -1]
+            elif self.encoding < 0:
+                return [generate_new_unknown_char_name(), -1]
             else:
-                return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+                return [fontforge.nameFromUnicode(encoding), self.encoding]
+        elif match := re.match('U\+([0-9a-f]+)', self.name, flags=re.IGNORECASE):
+            encoding_from_name = int(match[1], 16)
+            if self.encoding is None:
+                return [fontforge.nameFromUnicode(encoding_from_name), encoding_from_name]
+            elif self.encoding < 0:
+                return [fontforge.nameFromUnicode(encoding_from_name) + "." + generate_new_unknown_char_name(), -1]
+            elif self.encoding == encoding_from_name:
+                return [fontforge.nameFromUnicode(self.encoding), self.encoding]
+            else:
+                # std charname based on ENCODING overrides non-std charname specified in STARTCHAR
+                return [fontforge.nameFromUnicode(self.encoding), self.encoding]
         else:
-            if self.encoding is None or self.encoding < 0:
-                return "STARTCHAR %s\n" % self.name
-            else:
-                if self.normalize_char_names:
-                    return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+            encoding_from_name = fontforge.unicodeFromName(self.name)
+            if encoding_from_name < 0:                          # invalid charname
+                if self.encoding is None:
+                    return [self.name, -1]
+                elif self.encoding < 0:
+                    return [self.name, -1]
                 else:
-                    if fontforge.unicodeFromName(self.name) == self.encoding:
-                        return "STARTCHAR %s\n" % self.name
-                    else:
-                        return "STARTCHAR %s\n" % fontforge.nameFromUnicode(self.encoding)
+                    return [fontforge.nameFromUnicode(self.encoding), self.encoding]
+            else:
+                if self.encoding is None:
+                    return [self.name, encoding_from_name]
+                elif self.encoding < 0:
+                    return [self.name + "." + generate_new_unknown_char_name(), -1]
+                elif self.encoding == encoding_from_name:
+                    return [self.name, encoding_from_name]
+                else:
+                    process.stderr.write("WARNING: STARTCHAR %s (%d) conflicts with ENCODING %d\n" %
+                                         (self.name, encoding_from_name, self.encoding))
+                    # ENCODING overrides STARTCHAR
+                    return [fontforge.nameFromUnicode(self.encoding), self.encoding]
+
+    def get_startchar_line(self):
+        return "STARTCHAR %s" % self.get_normalized_charname_encoding()[0]
 
     def get_encoding_line(self):
-        string = "ENCODING"
-        if self.encoding is None or self.encoding < 0:
-            if self.name is None:
-                if self.encoding is None:
-                    string += " -1"
-                else:
-                    string += " %d" % self.encoding
-            else:
-                encoding = fontforge.unicodeFromName(self.name)
-                if encoding is None or encoding < 0:
-                    if self.encoding is None:
-                        string += " -1"
-                    else:
-                        string += " %d" % self.encoding
-                else:
-                    string += " %d" % encoding
-        else:
-            string += " %d" % self.encoding
+        string = "ENCODING %d" % self.get_normalized_charname_encoding()[1]
         if self.alt_encoding is not None:
             string += " %d" % self.alt_encoding
         return string + "\n"
@@ -245,5 +254,6 @@ class BDFChar:
         return string
 
 def generate_new_unknown_char_name():
+    global unknown_charname_counter
     unknown_charname_counter += 1
     return "unknown%d" % unknown_charname_counter
