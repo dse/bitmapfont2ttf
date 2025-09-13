@@ -121,11 +121,6 @@ class BDFFont:
             return pt10 / 10.0
         raise Exception("cannot find font's point size")
 
-    def setPixelSize(self, px):
-        self.properties["PIXEL_SIZE"] = px
-        self.properties["POINT_SIZE"] = int(round(px * 720.0 / self.get_resolution_y()))
-        self.point_size = int(round(px * 72.0 / self.get_resolution_y()))
-
     def get_pixel_size(self):
         px = self.properties["PIXEL_SIZE"]
         if px is not None:
