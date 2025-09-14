@@ -433,3 +433,30 @@ class BDFFont:
             self.point_size = int(round(self.properties["POINT_SIZE"] / 10))
         elif self.point_size is not None and self.properties.get("POINT_SIZE") is None:
             self.properties["POINT_SIZE"] = self.point_size * 10
+
+    def set_full_name(self, value):
+        self.properties["FACE_NAME"] = str(value)
+        if "FULL_NAME" in self.properties:
+            self.properties["FULL_NAME"] = str(value)
+
+    def set_family_name(self, value):
+        self.properties["FAMILY_NAME"] = str(value)
+
+    def set_add_style_name(self, value):
+        self.properties["ADD_STYLE_NAME"] = str(value)
+
+    def set_setwidth_name(self, value):
+        self.properties["SETWIDTH_NAME"] = str(value)
+
+    def set_weight_name(self, value):
+        self.properties["WEIGHT_NAME"] = str(value)
+
+    def set_resolution_x(self, value):
+        self.res_x = int(value)
+        if "RESOLUTION_X" in self.properties:
+            self.properties["RESOLUTION_X"] = int(value)
+
+    def set_resolution_y(self, value):
+        self.res_y = int(value)
+        if "RESOLUTION_Y" in self.properties:
+            self.properties["RESOLUTION_Y"] = int(value)
