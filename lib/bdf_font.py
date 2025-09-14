@@ -130,7 +130,7 @@ class BDFFont:
         raise Exception("cannot find font's point size")
 
     def get_pixel_size(self):
-        px = self.properties["PIXEL_SIZE"]
+        px = self.properties.get("PIXEL_SIZE")
         if px is not None:
             return px
         raise Exception('font does not specify pixel size')
@@ -138,7 +138,7 @@ class BDFFont:
     def get_resolution_x(self):
         if self.res_x is not None:
             return self.res_x
-        r = self.properties["RESOLUTION_X"]
+        r = self.properties.get("RESOLUTION_X")
         if r is not None:
             return r
         raise Exception('cannot determine resolutionX')
@@ -146,19 +146,19 @@ class BDFFont:
     def get_resolution_y(self):
         if self.res_y is not None:
             return self.res_y
-        r = self.properties["RESOLUTION_Y"]
+        r = self.properties.get("RESOLUTION_Y")
         if r is not None:
             return r
         raise Exception('cannot determine resolutionY')
 
     def ascent_px(self):
-        ascent = self.properties["FONT_ASCENT"]
+        ascent = self.properties.get("FONT_ASCENT")
         if ascent is not None:
             return ascent
         raise Exception('cannot determine ascent_px')
 
     def descent_px(self):
-        descent = self.properties["FONT_DESCENT"]
+        descent = self.properties.get("FONT_DESCENT")
         if descent is not None:
             return descent
         raise Exception('cannot determine descent_px')
