@@ -5,7 +5,7 @@ import os
 import sys
 import argparse
 
-libdir = os.path.dirname(os.path.realpath(__file__)) + '/../lib'
+libdir = os.path.dirname(os.path.realpath(__file__)) + "/../lib"
 sys.path.append(libdir)
 
 from bitmapfont2ttf import BitmapFont2TTF
@@ -20,14 +20,14 @@ parser.add_argument("-w", "--weight-name", "--weight",     help="assign font wei
 
 # Various types of bitmap font effects, such as dot matrix printers,
 # LCD display panels, CRT phosphor, etc.
-parser.add_argument("--dot-width",     type=float, default=1.0, help='width of each dot as multiple of pixel width, e.g., 0.9')
-parser.add_argument("--dot-height",    type=float, default=1.0, help='height of each dot as multiple of pixel width, e.g., 0.9')
+parser.add_argument("--dot-width",     type=float, default=1.0, help="width of each dot as multiple of pixel width, e.g., 0.9")
+parser.add_argument("--dot-height",    type=float, default=1.0, help="height of each dot as multiple of pixel width, e.g., 0.9")
 parser.add_argument("--aspect-ratio",  type=float, default=1.0, help="ratio of px.wd. to px.ht. (>1 = wide; <1 = narrow)")
-parser.add_argument("--circular-dots", action='store_true')
+parser.add_argument("--circular-dots", action="store_true")
 parser.add_argument("--bottom", type=float, default=0.0, help="proportion of pixel height above baseline; default = 0.0")
 parser.add_argument("--top", type=float, default=1.0, help="proportion of pixel height above baseline; default = 1.0")
 
-parser.add_argument("--monospace", action='store_true')
+parser.add_argument("--monospace", action="store_true")
 parser.add_argument("--bdf-ascent-descent", action="store_true")
 parser.add_argument("--bdf-ascent-descent-2", action="store_true")
 parser.add_argument("--remove-line-gap", action="store_true", help="remove line gap from font metrics")
@@ -68,7 +68,7 @@ parser.add_argument("--copyright")
 parser.add_argument("--use-properties", action="store_true")
 
 parser.add_argument("filename")
-parser.add_argument("destfilenames",  nargs ='*')
+parser.add_argument("destfilenames",  nargs ="*")
 
 args = parser.parse_args()
 
