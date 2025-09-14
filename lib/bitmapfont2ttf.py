@@ -23,8 +23,10 @@ class BitmapFont2TTF:
             raise Exception("only bdf bitmap fonts are supported")
         if font is None:
             self.bdf = BDFFont(self.filename)
+            self.bdf.use_properties = self.use_properties
         else:
             self.bdf = font
+            self.bdf.use_properties = self.use_properties
         if self.args.bdf_ascent_descent_2:
             if self.properties.get("PIXEL_SIZE") is None:
                 raise Exception("PIXEL_SIZE missing")

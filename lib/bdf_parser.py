@@ -18,11 +18,11 @@ class BDFParser():
         self.font = BDFFont()
         self.parse_stage = PARSE_STAGE_MAIN
         self.args = args
+        if self.args is not None:
+            self.font.use_properties = self.args.use_properties
         if filename is not None:
             self.read(filename)
             self.font.issue_warnings()
-
-
             self.font.end_char()
             self.font.end_font()
 

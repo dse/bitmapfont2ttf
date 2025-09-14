@@ -186,16 +186,16 @@ class BDFFont:
     def set_font_name(self, value):
         self.font_name = str(value)
         if self.use_properties:
-            self.propreties.set("FONT", value)
+            self.fix_font_name()
 
     def set_size(self, point_size, res_x, res_y):
         self.point_size = int(point_size)
         self.res_x = int(res_x)
         self.res_y = int(res_y)
         if self.use_properties:
-            self.properties.set("POINT_SIZE", point_size * 10)
-            self.properties.set("RESOLUTION_X", res_x)
-            self.properties.set("RESOLUTION_Y", res_y)
+            self.fix_point_size()
+            self.fix_resolution_x()
+            self.fix_resolution_y()
 
     def set_bbx(self, x, y, ofs_x, ofs_y):
         self.has_bbx = True
@@ -367,6 +367,19 @@ class BDFFont:
     def issue_warnings(self):
         self.issue_resolution_x_warning()
         self.issue_resolution_y_warning()
+        self.issue_font_name_warning()
+        self.issue_point_size_warning()
+
+    # TODO: allow XLFD FONT in main section and normal FONT property?
+    def issue_font_name_warning(self):
+        if self.font_name is not None and self.properties.get("FONT") is not None:
+            if self.font_name != self.properties.get("FONT"):
+                sys.stderr.write("WARNING: FONT in main section and properties do not match")
+
+    def issue_point_size_warning(self):
+        if self.point_size is not None and self.properties.get("POINT_SIZE") is not None:
+            if self.point_size != int(round(self.properties["POINT_SIZE"] / 10)):
+                sys.stderr.write("WARNING: inconsistent point sizes")
 
     def issue_resolution_x_warning(self):
         rx1 = self.res_x
@@ -381,5 +394,42 @@ class BDFFont:
             sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different")
 
     def end_font(self):
+        if self.use_properties:
+            self.fix_properties()
+
+    def fix_properties(self):
         # make sure this is idempotent.
-        pass
+        self.fix_resolution_x()
+        self.fix_resolution_y()
+        self.fix_font_name()
+        self.fix_point_size()
+        self.fix_charset()
+
+    def fix_charset(self):
+        if self.properties.get("CHARSET_REGISTRY") is None and self.properties.get("CHARSET_ENCODING") is None:
+            self.properties["CHARSET_REGISTRY"] = "ISO10646"
+            self.properties["CHARSET_ENCODING"] = "1"
+
+    def fix_resolution_x(self):
+        if self.res_x is None and self.properties.get("RESOLUTION_X") is not None:
+            self.res_x = self.properties.get("RESOLUTION_X")
+        elif self.res_x is not None and self.properties.get("RESOLUTION_X") is None:
+            self.properties["RESOLUTION_X"] = self.res_x
+
+    def fix_resolution_y(self):
+        if self.res_y is None and self.properties.get("RESOLUTION_Y") is not None:
+            self.res_y = self.properties.get("RESOLUTION_Y")
+        elif self.res_y is not None and self.properties.get("RESOLUTION_Y") is None:
+            self.properties["RESOLUTION_Y"] = self.res_y
+
+    def fix_font_name(self):
+        if self.font_name is None and self.properties.get("FONT") is not None:
+            self.font_name = self.properties["FONT"]
+        elif self.font_name is not None and self.properties.get("FONT") is None:
+            self.properties["FONT"] = self.font_name
+
+    def fix_point_size(self):
+        if self.point_size is None and self.properties.get("POINT_SIZE") is not None:
+            self.point_size = int(round(self.properties["POINT_SIZE"] / 10))
+        elif self.point_size is not None and self.properties.get("POINT_SIZE") is None:
+            self.properties["POINT_SIZE"] = self.point_size * 10
