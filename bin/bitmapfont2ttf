@@ -11,7 +11,7 @@ sys.path.append(libdir)
 from bitmapfont2ttf import BitmapFont2TTF
 from bdf_parser import BDFParser
 
-parser = argparse.ArgumentParser(description="Generate TTF files from bitmap fonts, e.g., BDF and PCF")
+parser = argparse.ArgumentParser(description="Generate TTF files from BDF bitmap fonts.")
 
 parser.add_argument("-m", "--family-name",                 help="assign family name, e.g., 'Times New Roman'")
 parser.add_argument("-f", "--font-name", "--ps-font-name", help="assign font name, e.g., 'TimesNewRomanPSMT', 'TimesNewRomanPS-BoldItalicMT'")
@@ -68,10 +68,18 @@ parser.add_argument("--copyright")
 parser.add_argument("--use-properties", action="store_true")
 
 parser.add_argument("filename")
-parser.add_argument("destfilenames",  nargs ="*")
+parser.add_argument("destfilenames", nargs ="*")
 
 args = parser.parse_args()
 
 bdf_parser = BDFParser(filename=args.filename, args=args)
 bdf2ttf = BitmapFont2TTF(args=args)
-bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)
+font = bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)
+
+for filename in args.destfilenames:
+    if filename.endswith(".sfd"):
+        print("saving %s (%d glyphs)" % (dest, len(font.glyphs())))
+        font.save(filename)
+    else:
+        print("generating %s (%d glyphs)" % (dest, len(font.glyphs())))
+        font.generate(filename)

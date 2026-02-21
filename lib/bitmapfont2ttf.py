@@ -157,12 +157,9 @@ class BitmapFont2TTF:
         # fstype?
 
         # self.f800()
-        self.save()
+        ### self.save()
 
-        count2 = 0
-        for glyph in self.font.glyphs():
-            count2 += 1
-        print("there are %d glyphs" % count2)
+        return self.font
 
     # make sure all glyphs are the same width.
     # otherwise font may not be detected as monospace.
@@ -186,8 +183,7 @@ class BitmapFont2TTF:
 
     def save(self):
         for dest in self.destfilenames:
-            if (os.path.splitext(dest))[1].lower() == '.sfd':
-                print("saving %s" % dest)
+            if dest.endswith(".sfd"):
                 self.font.save(dest)
             else:
                 print("generating %s" % dest)
