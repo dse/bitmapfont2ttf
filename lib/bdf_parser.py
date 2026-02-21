@@ -11,6 +11,26 @@ PARSE_STAGE_BITMAP = 4
 PARSE_STAGE_ENDFONT = 5
 
 RX_PIXEL_LINE = r'^\s*([+|^])([^+|^]*)(?:[+|^]\s*)?$'
+# U+0041 LATIN CAPITAL LETTER A
+# ^   #   ^   This code parses BDFs with one important extenstion that allows
+# |  # #  |   us to edit bitmap fonts more easily.  In place of a BITMAP line
+# | #   # |   and a bunch of hexadecimal data, a series of lines starting with
+# | #   # |   a pipe ("|") can be used to visually specify each glyph's pixels.
+# | ##### |   A line can also start with a plus ("+") to indicate the glyph's
+# | #   # |   baseline; the default baseline will simply be the last line.  A
+# + #   # +   circumflex ("^") can also be used for the start character for any
+# |       |   visual purpose, but it has no effect.
+# |       |
+# U+0079 LATIN SMALL LETTER Y
+# ^       ^
+# |       |
+# | #   # |
+# | #   # |
+# |  # #  |
+# |  # #  |
+# +   #   +
+# |   #   |
+# | ##    |
 
 class BDFParser():
     def __init__(self, filename=None, args=None):
