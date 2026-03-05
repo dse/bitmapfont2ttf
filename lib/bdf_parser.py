@@ -1,5 +1,7 @@
 import re
 import os
+import sys
+
 from bdf_font import BDFFont
 from bdf_char import BDFChar
 
@@ -41,10 +43,12 @@ class BDFParser():
         if self.args is not None:
             self.font.use_properties = self.args.use_properties
         if filename is not None:
+            sys.stderr.write("Reading %s\n" % filename)
             self.read(filename)
             self.font.issue_warnings()
             self.font.end_char()
             self.font.end_font()
+            sys.stderr.write("Finished reading %s\n" % filename)
 
     def read(self, filename):
         line_number = 0

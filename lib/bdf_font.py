@@ -46,11 +46,10 @@ class BDFFont:
         self.properties = {}
         self.filename = None
         self.chars = []
-        self.chars_by_encoding = {}
-        self.charsByNonStandardEncoding = {}
-        self.chars_by_name = {}
         self.comments = []
         self.use_properties = False
+        self.char = None
+        self.finalized = False
 
         self.order = order
         if type(self.order) == str:
@@ -62,6 +61,10 @@ class BDFFont:
 
     def start_char(self, name):
         self.char = BDFChar(name=name, font=self)
+
+        encoding = self.char.encoding
+        charname = self.char.name
+
         self.chars.append(self.char)
         self.char.bitmap_data = []
 
@@ -69,12 +72,6 @@ class BDFFont:
         # make sure this is idempotent.
         if self.char is None:
             return
-        if self.char.encoding is not None:
-            self.chars_by_encoding[self.char.encoding] = self.char
-        if self.char.alt_encoding is not None:
-            self.chars_by_encoding[self.char.alt_encoding] = self.char
-        if self.char.name is not None:
-            self.chars_by_name[self.char.name] = self.char
         self.char.end_bitmap()
         self.char.end_char()
         self.char = None
@@ -374,28 +371,29 @@ class BDFFont:
     def issue_font_name_warning(self):
         if self.font_name is not None and self.properties.get("FONT") is not None:
             if self.font_name != self.properties.get("FONT"):
-                sys.stderr.write("WARNING: FONT in main section and properties do not match")
+                sys.stderr.write("WARNING: FONT in main section and properties do not match\n")
 
     def issue_point_size_warning(self):
         if self.point_size is not None and self.properties.get("POINT_SIZE") is not None:
             if self.point_size != int(round(self.properties["POINT_SIZE"] / 10)):
-                sys.stderr.write("WARNING: inconsistent point sizes")
+                sys.stderr.write("WARNING: inconsistent point sizes\n")
 
     def issue_resolution_x_warning(self):
         rx1 = self.res_x
         rx2 = self.properties.get("RESOLUTION_X")
         if rx1 is not None and rx2 is not None and rx1 != rx2:
-            sys.stderr.write("WARNING: x-resolution specified in properties and SIZE line are different")
+            sys.stderr.write("WARNING: x-resolution specified in properties and SIZE line are different\n")
 
     def issue_resolution_y_warning(self):
         ry1 = self.res_y
         ry2 = self.properties.get("RESOLUTION_Y")
         if ry1 is not None and ry2 is not None and ry1 != ry2:
-            sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different")
+            sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different\n")
 
     def end_font(self):
         if self.use_properties:
             self.fix_properties()
+        self.finalize()
 
     def fix_properties(self):
         # make sure this is idempotent.
@@ -460,3 +458,26 @@ class BDFFont:
         self.res_y = int(value)
         if "RESOLUTION_Y" in self.properties:
             self.properties["RESOLUTION_Y"] = int(value)
+
+    def finalize(self):
+        if self.finalized:
+            return
+
+        chars = []
+        chars_by_encoding = {}
+        chars_by_name = {}
+
+        for char in self.chars:
+            if char.name not in chars_by_name and char.encoding not in chars_by_encoding:
+                if char.encoding >= 0:
+                    chars_by_encoding[char.encoding] = char
+                chars_by_name[char.name] = char
+                chars.append(char)
+            else:
+                if char.encoding in chars_by_encoding and char.encoding >= 0:
+                    sys.stderr.write("WARNING: duplicate characters with encoding %d\n" % char.encoding)
+                if char.encoding in chars_by_name:
+                    sys.stderr.write("WARNING: duplicate characters named %s\n" % char.name)
+
+        self.chars = chars
+        self.finalized = True
