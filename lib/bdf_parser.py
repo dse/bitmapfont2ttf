@@ -53,10 +53,10 @@ class BDFParser():
             self.parse_line(line, filename, line_number)
 
     def parse_line(self, line, filename, line_number):
+        if re.match(r'^[ \t]*#', line):
+            return
         args = bdf_parse_line(line)
         if len(args) == 0:
-            return
-        if re.match(r'^ *#', line):
             return
         (cmd, args) = (args[0].upper(), args[1:])
         if cmd == "INCLUDE":                                    # not strictly BDF
