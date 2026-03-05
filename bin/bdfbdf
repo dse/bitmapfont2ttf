@@ -1,9 +1,11 @@
 #!/usr/bin/env fontforge
 # -*- mode: python; coding: utf-8 -*-
+
 import os, sys, argparse
 libdir = os.path.dirname(os.path.realpath(__file__)) + "/../lib"
 sys.path.append(libdir)
 from bdf_parser import BDFParser
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("filename")
