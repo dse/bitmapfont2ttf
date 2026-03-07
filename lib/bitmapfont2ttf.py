@@ -145,7 +145,6 @@ class BitmapFont2TTF:
             self.font.appendSFNTName("English (US)", "Fullname", self.font.fullname) # [4]
             self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
             self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
-            print("sfnt_names: %s" % repr(self.font.sfnt_names))
 
         self.font.os2_fstype = 0x0040
 
@@ -165,7 +164,12 @@ class BitmapFont2TTF:
         if self.args.stylemap is not None:
             self.font.os2_stylemap = self.args.stylemap
         if self.args.panose is not None:
-            self.font.os2_panose = tuple(args.panose)
+            self.font.os2_panose = tuple(self.args.panose)
+
+        # early PostScript interpreters cannot have more than 29 (yes, twenty-nine) characters
+        # https://glyphsapp.com/learn/naming
+        if len(self.font.fontname) > 29:
+            print("WARNING: PS font name longer than 29 characters: %s" % repr(self.font.fontname))
 
         return self.font
 
@@ -181,21 +185,20 @@ class BitmapFont2TTF:
             counts[glyph.width] += 1
         widths = list(counts.keys())
         if len(widths) == 1:
-            print("    all %d glyphs are %d/%d wide; is monospace" % (count, widths[0], self.font.em))
             return
         width = widths[0]
         for glyph in self.font.glyphs():
-            if glyph.width != width:
-                print("    U+%04X: chaning width from %d to %d" % (glyph.encoding, glyph.width, width))
             glyph.width = width
 
     def save(self):
         for dest in self.destfilenames:
             if dest.endswith(".sfd"):
+                print("Saving %s..." % dest)
                 self.font.save(dest)
             else:
-                print("generating %s" % dest)
+                print("Generating %s..." % dest)
                 self.font.generate(dest)
+            print("Done.");
 
     def set_args(self, args):
         self.args = args
@@ -329,7 +332,6 @@ class BitmapFont2TTF:
             italicize_slant = self.italicize_slant
             italicize_angle = math.atan(self.italicize_slant * pixX / pixY) * 180 / math.pi
             self.italicize_angle = italicize_angle
-            print("italicize_angle = %f" % self.italicize_angle)
         italicize_center_y = self.italicize_center_y if self.italicize_center_y is not None else 0
 
         for line in bdf_char.bitmap_data:

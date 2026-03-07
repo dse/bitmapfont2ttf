@@ -82,8 +82,9 @@ font = bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)
 
 for filename in args.destfilenames:
     if filename.endswith(".sfd"):
-        print("saving %s (%d glyphs)" % (filename, len(list(font.glyphs()))))
+        print("saving %s (%d glyphs) ..." % (filename, len(list(font.glyphs()))))
         font.save(filename)
     else:
-        print("generating %s (%d glyphs)" % (filename, len(list(font.glyphs()))))
+        print("generating %s (%d glyphs) ..." % (filename, len(list(font.glyphs()))))
         font.generate(filename)
+    print("Done.")
