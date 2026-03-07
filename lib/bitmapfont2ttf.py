@@ -149,6 +149,7 @@ class BitmapFont2TTF:
 
         self.font.os2_fstype = 0x0040
 
+
         # os2_family_class?
         # os2_family_class?
         # os2_vendor?
@@ -158,6 +159,11 @@ class BitmapFont2TTF:
 
         # self.f800()
         ### self.save()
+
+        if self.args.macstyle is not None:
+            self.font.macstyle = self.args.macstyle
+        if self.args.stylemap is not None:
+            self.font.os2_stylemap = self.args.stylemap
 
         return self.font
 

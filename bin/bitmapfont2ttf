@@ -58,7 +58,7 @@ parser.add_argument("--add-pixel-size", type=int, default=0)
 # For pixel sizes 6, 10, 14, etc., there is no point size you can
 # specify in Windows, manually or from the dropdown, that will show an
 # un-blurry font.
-parser.add_argument("--windows", action="store_true", help="adjust so px % 4 != 2")
+parser.add_argument("--windows", action="store_true", help="adjust so px modulo 4 != 2")
 
 parser.add_argument("--no-sfnt-names", action="store_true", help="omit SFNT names")
 parser.add_argument("--subfamily", help="e.g., 'Bold Italic'")
@@ -66,6 +66,9 @@ parser.add_argument("--unique-id")
 parser.add_argument("--copyright")
 
 parser.add_argument("--use-properties", action="store_true")
+
+parser.add_argument("--macstyle", type=int)
+parser.add_argument("--stylemap", type=int)
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames", nargs ="*")
