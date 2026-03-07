@@ -16,7 +16,7 @@ DEFAULT_ORDER = [
 PREFER_STARTCHAR_NAME = False
 
 class BDFChar:
-    def __init__(self, name=None, font=None, order=None):
+    def __init__(self, name, font, filename, line_number, order=None):
         self.name = name
         self.font = font
         self.encoding = None
@@ -36,6 +36,8 @@ class BDFChar:
         self.bitmap_data_pixel_line_count = 0
         self.normalize_char_names = False
         self.finalized = False
+        self.filename = filename
+        self.line_number = line_number
 
         self.order = order
         if type(self.order) == str:
@@ -294,10 +296,10 @@ class BDFChar:
         if variant is not None:
             name += "." + variant
 
-        sys.stderr.write("%s %d => %s %d\n" % (self.name if self.name is not None else "(none)",
-                                               self.encoding if self.encoding is not None else -2,
-                                               name,
-                                               encoding))
+        # sys.stderr.write("%s %d => %s %d\n" % (self.name if self.name is not None else "(none)",
+        #                                        self.encoding if self.encoding is not None else -2,
+        #                                        name,
+        #                                        encoding))
 
         self.name = name
         self.encoding = encoding

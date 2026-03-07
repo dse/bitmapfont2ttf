@@ -59,8 +59,8 @@ class BDFFont:
         if filename is not None:
             self.read(filename)
 
-    def start_char(self, name):
-        self.char = BDFChar(name=name, font=self)
+    def start_char(self, name, filename, line_number):
+        self.char = BDFChar(name, self, filename, line_number)
 
         encoding = self.char.encoding
         charname = self.char.name
@@ -82,9 +82,6 @@ class BDFFont:
     def end_char_bitmap(self):
         # make sure this is idempotent.
         self.char.end_bitmap()
-
-    def newChar(self, name, font):
-        return BDFChar(name = name, font = font)
 
     def get_swidth_x(self):
         if self.swidth_x is not None:
@@ -466,18 +463,40 @@ class BDFFont:
         chars = []
         chars_by_encoding = {}
         chars_by_name = {}
+        all_chars_by_encoding = {}
+        all_chars_by_name = {}
+        duped_encodings = {}
+        duped_names = {}
 
         for char in self.chars:
+            if char.encoding not in all_chars_by_encoding:
+                all_chars_by_encoding[char.encoding] = []
+            if char.name not in all_chars_by_name:
+                all_chars_by_name[char.name] = []
+            all_chars_by_name[char.name].append(char)
+            all_chars_by_encoding[char.encoding].append(char)
+
             if char.name not in chars_by_name and char.encoding not in chars_by_encoding:
                 if char.encoding >= 0:
                     chars_by_encoding[char.encoding] = char
                 chars_by_name[char.name] = char
                 chars.append(char)
             else:
-                if char.encoding in chars_by_encoding and char.encoding >= 0:
-                    sys.stderr.write("WARNING: duplicate characters with encoding %d\n" % char.encoding)
-                if char.encoding in chars_by_name:
-                    sys.stderr.write("WARNING: duplicate characters named %s\n" % char.name)
+                if char.name in chars_by_name:
+                    duped_names[char.name] = True
+                if char.encoding in chars_by_encoding:
+                    duped_encodings[char.encoding] = True
+
+        for encoding in duped_encodings.keys():
+            print("WARNING: duplicate characters with encoding %d" % encoding, file=sys.stderr)
+            for char in all_chars_by_encoding[encoding]:
+                print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
+                                                    char.name, char.encoding), file=sys.stderr)
+        for name in duped_names.keys():
+            print("WARNING: duplicate characters with name %s" % name, file=sys.stderr)
+            for char in all_chars_by_name[name]:
+                print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
+                                                    char.name, char.encoding), file=sys.stderr)
 
         self.chars = chars
         self.finalized = True
