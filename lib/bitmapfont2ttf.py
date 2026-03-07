@@ -164,6 +164,8 @@ class BitmapFont2TTF:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
             self.font.os2_stylemap = self.args.stylemap
+        if self.args.panose is not None:
+            self.font.os2_panose = tuple(args.panose)
 
         return self.font
 

@@ -46,6 +46,7 @@ parser.add_argument("--panose-6", type=int, help="arm style")
 parser.add_argument("--panose-7", type=int, help="letterform")
 parser.add_argument("--panose-8", type=int, help="midline")
 parser.add_argument("--panose-9", type=int, help="x-height --- see https://bit.ly/panose")
+parser.add_argument("--panose", type=int, nargs=10)
 
 group = parser.add_mutually_exclusive_group()
 group.add_argument("--italic-angle", type=float, help="in degrees, typically negative")
