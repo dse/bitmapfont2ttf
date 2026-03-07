@@ -296,11 +296,6 @@ class BDFChar:
         if variant is not None:
             name += "." + variant
 
-        # sys.stderr.write("%s %d => %s %d\n" % (self.name if self.name is not None else "(none)",
-        #                                        self.encoding if self.encoding is not None else -2,
-        #                                        name,
-        #                                        encoding))
-
         self.name = name
         self.encoding = encoding
 
