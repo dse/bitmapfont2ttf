@@ -163,8 +163,26 @@ class BitmapFont2TTF:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
             self.font.os2_stylemap = self.args.stylemap
+        elif self.args.guess_stylemap:
+            stylemap = 0x00
+            if self.font.italic_angle:
+                stylemap |= 0x0001
+            if not stylemap:
+                stylemap = 0x0040
         if self.args.panose is not None:
             self.font.os2_panose = tuple(self.args.panose)
+        if self.args.fstype is not None:
+            self.font.os2_fstype = self.args.fstype
+        if self.args.os2_version is not None:
+            self.font.os2_version = self.args.os2_version
+        if self.args.use_typo_metrics == True:
+            self.font.os2_use_typo_metrics = True
+        elif self.args.use_typo_metrics == False:
+            self.font.os2_use_typo_metrics = False
+        if self.args.family_class is not None:
+            self.font.os2_family_class = self.args.family_class
+        if self.args.vendor is not None:
+            self.font.os2_vendor = self.args.vendor
 
         # early PostScript interpreters cannot have more than 29 (yes, twenty-nine) characters
         # https://glyphsapp.com/learn/naming
