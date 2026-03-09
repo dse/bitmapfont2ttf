@@ -34,7 +34,7 @@ parser.add_argument("--remove-line-gap", action="store_true", help="remove line 
 parser.add_argument("--remove-ascent-add", action="store_true")
 parser.add_argument("--all-ascent-descent", action="store_true")
 
-parser.add_argument("--os2-weight", type=int, help="100 .. 900")
+parser.add_argument("--os2-weight", type=int, help="100 .. 900") # TTFWeight in SFD files.
 
 parser.add_argument("--panose-0", type=int, help="family kind, for latin text")
 parser.add_argument("--panose-1", type=int, help="serif style")
