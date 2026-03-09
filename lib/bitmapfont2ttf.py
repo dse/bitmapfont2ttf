@@ -271,22 +271,6 @@ class BitmapFont2TTF:
         self.unique_id                = args.unique_id
         self.use_properties           = args.use_properties
 
-        # self.newAscent             = args.new_ascent
-        # self.newDescent            = args.new_descent
-        # self.newPixelSize          = args.new_pixel_size
-        # self.fontName              = args.font_name
-        # self.comment               = args.comment
-        # self.version               = args.version
-        # self.weight                = args.weight
-        # self.panose2               = args.panose2
-        # self.os2Weight             = args.os2_weight
-        # self.lineGap               = args.line_gap
-        # self.fixAscentDescent      = args.fix_ascent_descent
-        # self.fixWeight             = args.fix_weight
-        # self.fixStyleMap           = args.fix_style_map
-        # self.fixSlant              = args.fix_slant
-        # self.fixMacStyle           = args.fix_mac_style
-
     def fix_filenames(self):
         if self.filename == os.path.basename(self.filename):
             # Work around an issue where importBitmaps segfaults if you only
