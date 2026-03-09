@@ -116,6 +116,10 @@ class BitmapFont2TTF:
         if self.set_os2_weight is not None:
             self.font.os2_weight = self.set_os2_weight
 
+        # if --italic-angle and --italicize-anything are specified,
+        # the nominal italic angle is set to the first one.
+        # apparently setting it to -12 fixes an issue where
+        # bold italic wasn't showing up
         if self.italic_angle is not None:
             self.font.italicangle = self.italic_angle
         elif self.italicize_angle is not None:
@@ -133,7 +137,8 @@ class BitmapFont2TTF:
             self.font.copyright = self.copyright
 
         if not self.no_sfnt_names:
-            self.font.sfntRevision = 0x00010000
+            if self.font.sfntRevision is None:
+                self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
             self.font.appendSFNTName("English (US)", "Family", self.font.familyname) # [1]
             if self.subfamily is not None:
@@ -160,8 +165,6 @@ class BitmapFont2TTF:
             self.font.os2_panose = tuple(self.args.panose)
         if self.args.fstype is not None:
             self.font.os2_fstype = self.args.fstype
-        if self.args.os2_version is not None:
-            self.font.os2_version = self.args.os2_version
         if self.args.use_typo_metrics == True:
             self.font.os2_use_typo_metrics = True
         elif self.args.use_typo_metrics == False:
@@ -170,6 +173,10 @@ class BitmapFont2TTF:
             self.font.os2_family_class = self.args.family_class
         if self.args.vendor is not None:
             self.font.os2_vendor = self.args.vendor
+        if self.args.os2_version is not None:
+            self.font.os2_version = self.args.os2_version
+        if self.args.weight_width_slope_only is not None:
+            self.font.os2_weight_width_slope_only = self.args.weight_width_slope_only
 
         # early PostScript interpreters cannot have more than 29 (yes, twenty-nine) characters
         # https://glyphsapp.com/learn/naming
