@@ -19,6 +19,7 @@ def main():
     parser.add_argument('-W', '--setwidth-name')
     parser.add_argument('-s', '--add-style-name', '--style-name')
     parser.add_argument('-F', '--full-name')
+    parser.add_argument('-S', '--slant')
 
     args = parser.parse_args()
     bdf_parser = BDFParser(filename=args.filename, args=args)
@@ -40,6 +41,8 @@ def main():
         bdf_font.set_add_style_name(args.add_style_name)
     if args.full_name is not None:
         bdf_font.set_full_name(args.full_name)
+    if args.slant is not None:
+        bdf_font.set_property("SLANT", args.slant)
 
     print(str(bdf_font))
 
