@@ -19,6 +19,7 @@ def main():
     parser.add_argument('-W', '--setwidth-name')
     parser.add_argument('-s', '--add-style-name', '--style-name')
     parser.add_argument('-F', '--full-name')
+    parser.add_argument('-S', '--slant')
 
     args = parser.parse_args()
     bdf_parser = BDFParser(filename=args.filename, args=args)
@@ -40,27 +41,9 @@ def main():
         bdf_font.set_add_style_name(args.add_style_name)
     if args.full_name is not None:
         bdf_font.set_full_name(args.full_name)
+    if args.slant is not None:
+        bdf_font.set_property("SLANT", args.slant)
 
     print(str(bdf_font))
-
-    # bdfbdf (perl-font-bdf) compat:
-    #   -x, --resolution-x, --res-x, --x-resolution, --x-res    int
-    #   -y, --resolution-y, --res-y, --y-resolution, --y-res    int
-    #   -f, --font-name, --ps-font-name                         str
-    #   -m, --family-name                                       str
-    #   -w, --weight-name                                       str
-    #   -W, --setwidth-name                                     str
-    #   -s, --style-name                                        str
-    #   -F, --full-name                                         str
-    #   -p, --property=name=value                               str
-    #   --no-guess
-    #   --guess-only
-    #   --upper-case
-    #   --lower-case
-    #   --agl-names
-    #   --dwidth-then-swidth
-    #   --swidth-then-dwidth
-    #   --verbose                                               incr
-    #   --help
 
 main()
