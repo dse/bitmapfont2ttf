@@ -49,10 +49,11 @@ parser.add_argument("--panose-9", type=int, help="x-height --- see https://bit.l
 parser.add_argument("--panose", type=int, nargs=10)
 
 group = parser.add_mutually_exclusive_group()
-group.add_argument("--italic-angle", type=float, help="in degrees, typically negative")
 group.add_argument("--italicize-angle", type=float, help="in degrees, typically negative")
 group.add_argument("--italicize-slant", type=float, help="in pixels, typically negative")
+
 parser.add_argument("--italicize-center", type=int, default=0, help="in pixels above baseline")
+parser.add_argument("--italic-angle", type=float, help="in degrees, typically negative")
 
 parser.add_argument("--add-pixel-size", type=int, default=0)
 
@@ -78,6 +79,7 @@ parser.add_argument("--use-typo-metrics", action=argparse.BooleanOptionalAction,
 parser.add_argument("--pfm-family", type=int)
 parser.add_argument("--family-class", type=int)
 parser.add_argument("--vendor", type=str)
+parser.add_argument("--weight-width-slope-only", "--wwso", type=int)
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames", nargs ="*")
