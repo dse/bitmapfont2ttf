@@ -146,8 +146,6 @@ class BitmapFont2TTF:
             self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
             self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
 
-        self.font.os2_fstype = 0x0040
-
         if self.args.macstyle is not None:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
