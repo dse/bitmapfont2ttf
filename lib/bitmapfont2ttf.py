@@ -210,55 +210,55 @@ class BitmapFont2TTF:
     def set_args(self, args):
         self.args = args
 
-        self.filename              = args.filename
-        self.destfilenames         = args.destfilenames
-        self.dot_width              = args.dot_width
-        self.dot_height             = args.dot_height
-        self.aspect_ratio           = args.aspect_ratio
-        self.circular_dots          = args.circular_dots
-        self.bottom                = args.bottom
-        self.top                   = args.top
-        self.monospace             = args.monospace
-        self.bdf_ascent_descent      = args.bdf_ascent_descent
-        self.remove_line_gap         = args.remove_line_gap
-        self.remove_ascent_add       = args.remove_ascent_add
-        self.all_ascent_descent      = args.all_ascent_descent
-        self.set_panose_0            = args.panose_0
-        self.set_panose_1            = args.panose_1
-        self.set_panose_2            = args.panose_2
-        self.set_panose_3            = args.panose_3
-        self.set_panose_4            = args.panose_4
-        self.set_panose_5            = args.panose_5
-        self.set_panose_6            = args.panose_6
-        self.set_panose_7            = args.panose_7
-        self.set_panose_8            = args.panose_8
-        self.set_panose_9            = args.panose_9
-        self.modify_panose          = (args.panose_0 is not None or
-                                      args.panose_1 is not None or
-                                      args.panose_2 is not None or
-                                      args.panose_3 is not None or
-                                      args.panose_4 is not None or
-                                      args.panose_5 is not None or
-                                      args.panose_6 is not None or
-                                      args.panose_7 is not None or
-                                      args.panose_8 is not None or
-                                      args.panose_9 is not None)
-        self.set_weight_name         = args.weight_name
-        self.set_font_name         = args.font_name
-        self.set_full_name           = args.full_name
-        self.set_family_name         = args.family_name
-        self.set_os2_weight          = args.os2_weight
+        self.filename           = args.filename
+        self.destfilenames      = args.destfilenames
+        self.dot_width          = args.dot_width
+        self.dot_height         = args.dot_height
+        self.aspect_ratio       = args.aspect_ratio
+        self.circular_dots      = args.circular_dots
+        self.bottom             = args.bottom
+        self.top                = args.top
+        self.monospace          = args.monospace
+        self.bdf_ascent_descent = args.bdf_ascent_descent
+        self.remove_line_gap    = args.remove_line_gap
+        self.remove_ascent_add  = args.remove_ascent_add
+        self.all_ascent_descent = args.all_ascent_descent
+        self.set_panose_0       = args.panose_0
+        self.set_panose_1       = args.panose_1
+        self.set_panose_2       = args.panose_2
+        self.set_panose_3       = args.panose_3
+        self.set_panose_4       = args.panose_4
+        self.set_panose_5       = args.panose_5
+        self.set_panose_6       = args.panose_6
+        self.set_panose_7       = args.panose_7
+        self.set_panose_8       = args.panose_8
+        self.set_panose_9       = args.panose_9
+        self.modify_panose      = (args.panose_0 is not None or
+                                   args.panose_1 is not None or
+                                   args.panose_2 is not None or
+                                   args.panose_3 is not None or
+                                   args.panose_4 is not None or
+                                   args.panose_5 is not None or
+                                   args.panose_6 is not None or
+                                   args.panose_7 is not None or
+                                   args.panose_8 is not None or
+                                   args.panose_9 is not None)
+        self.set_weight_name    = args.weight_name
+        self.set_font_name      = args.font_name
+        self.set_full_name      = args.full_name
+        self.set_family_name    = args.family_name
+        self.set_os2_weight     = args.os2_weight
 
-        self.italicize_angle           = args.italicize_angle
-        self.italicize_center_y         = args.italicize_center
-        self.italicize_slant           = args.italicize_slant
-        self.italic_angle              = args.italic_angle
+        self.italicize_angle    = args.italicize_angle
+        self.italicize_center_y = args.italicize_center
+        self.italicize_slant    = args.italicize_slant
+        self.italic_angle       = args.italic_angle
 
-        self.copyright               = args.copyright
-        self.no_sfnt_names             = args.no_sfnt_names
-        self.subfamily               = args.subfamily
-        self.unique_id                = args.unique_id
-        self.use_properties           = args.use_properties
+        self.copyright          = args.copyright
+        self.no_sfnt_names      = args.no_sfnt_names
+        self.subfamily          = args.subfamily
+        self.unique_id          = args.unique_id
+        self.use_properties     = args.use_properties
 
     def fix_filenames(self):
         if self.filename == os.path.basename(self.filename):
