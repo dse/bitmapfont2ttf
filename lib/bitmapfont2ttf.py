@@ -27,18 +27,6 @@ class BitmapFont2TTF:
         else:
             self.bdf = font
             self.bdf.use_properties = self.use_properties
-        if self.args.bdf_ascent_descent_2:
-            if self.properties.get("PIXEL_SIZE") is None:
-                raise Exception("PIXEL_SIZE missing")
-            if self.properties.get("FONT_DESCENT") is None:
-                raise Exception("FONT_DESCENT missing")
-            if self.args.windows:
-                if self.bdf.properties["PIXEL_SIZE"] % 4 == 2:
-                    self.bdf.properties["PIXEL_SIZE"] += 1
-                    self.bdf.properties["FONT_DESCENT"] += 1
-            else:
-                self.bdf.properties["PIXEL_SIZE"] += self.args.add_pixel_size
-                self.bdf.properties["FONT_DESCENT"] += self.args.add_pixel_size
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
