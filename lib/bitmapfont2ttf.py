@@ -91,10 +91,10 @@ class BitmapFont2TTF:
             if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
-        if not self.dumb:
+        if not self.args.dumb:
             self.inherit_bdf_metas()
 
-        if not (self.args.no_sfnt_names or self.dumb):
+        if not (self.args.no_sfnt_names or self.args.dumb):
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
@@ -258,7 +258,7 @@ class BitmapFont2TTF:
             italicize_angle = math.atan(self.args.italicize_slant * pixX / pixY) * 180 / math.pi
         italicize_center_y = self.args.italicize_center if self.args.italicize_center is not None else 0
 
-        if not self.dumb:
+        if not self.args.dumb:
             self.font.italicangle = italicize_angle
 
         for line in bdf_char.bitmap_data:
