@@ -61,9 +61,10 @@ class BitmapFont2TTF:
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
         if self.args.monospace:
-            panose = list(self.font.os2_panose)
-            panose[3] = 9
-            self.font.os2_panose = tuple(panose)
+            if not self.args.dumb:
+                panose = list(self.font.os2_panose)
+                panose[3] = 9
+                self.font.os2_panose = tuple(panose)
             self.make_font_detect_as_monospace()
         if self.modify_panose:
             panose = list(self.font.os2_panose)
@@ -148,12 +149,6 @@ class BitmapFont2TTF:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
             self.font.os2_stylemap = self.args.stylemap
-        elif self.args.guess_stylemap:
-            stylemap = 0x00
-            if self.font.italic_angle:
-                stylemap |= 0x0001
-            if not stylemap:
-                stylemap = 0x0040
         if self.args.panose is not None:
             self.font.os2_panose = tuple(self.args.panose)
         if self.args.fstype is not None:
