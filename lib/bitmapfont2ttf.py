@@ -1,10 +1,15 @@
 from bdf_font import BDFFont
 
+import math
+import statistics
 import fontforge
 import os
 import re
 import sys
 import math
+
+FUDGE_FACTOR = 1.01
+MIN_GLYPH_WIDTH_EM = 0.1
 
 from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data
 
@@ -30,36 +35,36 @@ class BitmapFont2TTF:
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
-        if self.bdf_ascent_descent:
+        if self.args.bdf_ascent_descent:
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
             pixelSize = self.bdf.get_pixel_size()
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
-        if self.remove_ascent_add:
+        if self.args.remove_ascent_add:
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
             self.font.os2_typoascent_add  = 0
             self.font.os2_typodescent_add = 0
             self.font.os2_winascent_add   = 0
             self.font.os2_windescent_add  = 0
-        if self.all_ascent_descent:
+        if self.args.all_ascent_descent:
             self.font.hhea_ascent     = self.font.ascent
             self.font.hhea_descent    = -self.font.descent
             self.font.os2_typoascent  = self.font.ascent
             self.font.os2_typodescent = -self.font.descent
             self.font.os2_winascent   = self.font.ascent
             self.font.os2_windescent  = self.font.descent
-        if self.remove_line_gap:
+        if self.args.remove_line_gap:
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
-        if self.monospace:
+        if self.args.monospace:
             panose = list(self.font.os2_panose)
             panose[3] = 9
             self.font.os2_panose = tuple(panose)
-            self.fix_for_monospace_detection()
+            self.make_font_detect_as_monospace()
         if self.modify_panose:
             panose = list(self.font.os2_panose)
             if self.set_panose_0 is not None: panose[0] = self.set_panose_0
@@ -173,22 +178,41 @@ class BitmapFont2TTF:
 
         return self.font
 
-    # make sure all glyphs are the same width.
-    # otherwise font may not be detected as monospace.
-    def fix_for_monospace_detection(self):
-        count = 0
-        counts = {}
-        for glyph in self.font.glyphs():
-            count += 1
-            if glyph.width not in counts:
-                counts[glyph.width] = 0
-            counts[glyph.width] += 1
-        widths = list(counts.keys())
-        if len(widths) == 1:
+    # make sure all glyphs are the same width.  otherwise font may not be detected as monospace.  TODO: handle dual-width fonts
+    def make_font_detect_as_monospace(self):
+        glyphs = list([glyph for glyph in self.font.glyphs()
+                       if glyph.glyphname not in [".notdef", ".null", "nonmarkingreturn"]])
+        #                              widths are nonzero,   zero,    nonzero
+        if len(glyphs) == 0:
             return
-        width = widths[0]
-        for glyph in self.font.glyphs():
-            glyph.width = width
+        super_narrow_glyphs = [glyph for glyph in glyphs if glyph.width < MIN_GLYPH_WIDTH_EM * glyph.font.em]
+        for glyph in super_narrow_glyphs:
+            glyph.width = 0
+        substantive_glyphs = [glyph for glyph in glyphs if glyph.width >= MIN_GLYPH_WIDTH_EM * glyph.font.em]
+        if len(substantive_glyphs) == 0:
+            raise Exception("while detecting monospacedness, did not find any worthy glyphs")
+        clusters = get_clusters(substantive_glyphs, fn=lambda g:g.width)
+        if len(clusters) > 1:
+            raise Exception("font is dualspace; dualspace fonts not supported yet")
+
+        widths = [glyph.width for glyph in clusters[0]]
+        new_glyph_width = statistics.mean(statistics.multimode(widths))
+        for glyph in substantive_glyphs:
+            print(type(glyph.width))                            # int
+            print(type(new_glyph_width))                        # int
+            print(type(glyph.left_side_bearing))                # float
+            print(type(glyph.right_side_bearing))               # float
+            glyph.left_side_bearing = int(glyph.left_side_bearing + (new_glyph_width - glyph.width) / 2)
+            glyph.width = new_glyph_width
+
+        if "notdef" in self.font:
+            notdef = self.font["notdef"]
+            if notdef.width:
+                notdef.width = new_glyph_width
+        if "nmreturn" in self.font:
+            nmreturn = self.font["nmreturn"]
+            if nmreturn.width:
+                nmreturn.width = new_glyph_width
 
     def save(self):
         for dest in self.destfilenames:
@@ -211,11 +235,6 @@ class BitmapFont2TTF:
         self.circular_dots      = args.circular_dots
         self.bottom             = args.bottom
         self.top                = args.top
-        self.monospace          = args.monospace
-        self.bdf_ascent_descent = args.bdf_ascent_descent
-        self.remove_line_gap    = args.remove_line_gap
-        self.remove_ascent_add  = args.remove_ascent_add
-        self.all_ascent_descent = args.all_ascent_descent
         self.set_panose_0       = args.panose_0
         self.set_panose_1       = args.panose_1
         self.set_panose_2       = args.panose_2
@@ -403,3 +422,58 @@ class BitmapFont2TTF:
                     contour.closed = True
                     glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
+
+def close(a, b):
+    return (a <= (b * FUDGE_FACTOR)) and (b <= (a * FUDGE_FACTOR))
+
+def get_clusters(items, fn=lambda i:i):
+    print([fn(i) for i in items])
+    A = []
+    H = []
+    D = []
+    for item in items:
+        if not len(A):
+            A.append(item)
+            continue
+
+        II = fn(item)
+        AA = [fn(i) for i in A]
+        DD = [fn(i) for i in D]
+        HH = [fn(i) for i in H]
+
+        # is this value close to any in cluster A?
+        if len([ii for ii in AA if close(II, ii)]):
+            A.append(item)
+            continue
+        # is this value close to double of anything in cluster A?
+        if len([ii for ii in AA if close(II, ii*2)]):
+            if len(D):
+                raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+            H.append(item)
+            continue
+        # is this value close to any in cluster H?
+        if len([ii for ii in HH if close(II, ii)]):
+            if len(D):
+                raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+            H.append(item)
+            continue
+        # is this value close to half of anything in cluster A?
+        if len([ii for ii in AA if close(II, ii/2)]):
+            if len(H):
+                raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+            D.append(item)
+            continue
+        # is this value close to anything in cluster D?
+        if len([ii for ii in DD if close(II, ii)]):
+            if len(H):
+                raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+            D.append(item)
+            continue
+        raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+    if len(H) and len(D):
+        raise Exception("neither monospace nor dualspace: %s" % repr([II, AA, HH, DD]))
+    if len(H):
+        return [H, A]
+    if len(D):
+        return [A, D]
+    return [A]
