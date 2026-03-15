@@ -28,9 +28,6 @@ class BitmapFont2TTF:
 
         self.filename           = args.filename
         self.destfilenames      = args.destfilenames
-        self.bottom             = args.bottom
-        self.top                = args.top
-
         self.italicize_angle    = args.italicize_angle
         self.italicize_center_y = args.italicize_center
         self.italicize_slant    = args.italicize_slant
@@ -348,10 +345,10 @@ class BitmapFont2TTF:
                     x = x + 1
             else:
                 [y1unit, y2unit] = [0, 1]
-                if self.bottom is not None:
-                    y1unit = self.bottom
-                if self.top is not None:
-                    y2unit = self.top
+                if self.args.bottom is not None:
+                    y1unit = self.args.bottom
+                if self.args.top is not None:
+                    y2unit = self.args.top
                 # Draw contiguous horizontal sequences of pixels.
                 # This saves considerable disk space.
                 pixel_blocks = []
