@@ -30,31 +30,21 @@ class BitmapFont2TTF:
         self.destfilenames      = args.destfilenames
         self.bottom             = args.bottom
         self.top                = args.top
-        self.set_font_name      = args.font_name
-        self.set_full_name      = args.full_name
-        self.set_family_name    = args.family_name
-        self.set_os2_weight     = args.os2_weight
 
         self.italicize_angle    = args.italicize_angle
         self.italicize_center_y = args.italicize_center
         self.italicize_slant    = args.italicize_slant
         self.italic_angle       = args.italic_angle
 
-        self.copyright          = args.copyright
-        self.no_sfnt_names      = args.no_sfnt_names
-        self.subfamily          = args.subfamily
-        self.unique_id          = args.unique_id
-        self.use_properties     = args.use_properties
-
     def bitmapfont2ttf(self, font=None):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
         if font is None:
             self.bdf = BDFFont(self.filename)
-            self.bdf.use_properties = self.use_properties
+            self.bdf.use_properties = self.args.use_properties
         else:
             self.bdf = font
-            self.bdf.use_properties = self.use_properties
+            self.bdf.use_properties = self.args.use_properties
         self.font = fontforge.font()
         self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
         self.trace()
@@ -108,18 +98,18 @@ class BitmapFont2TTF:
             if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
-        if self.set_font_name is not None:
-            self.font.fontname = self.set_font_name
+        if self.args.font_name is not None:
+            self.font.fontname = self.args.font_name
         elif self.bdf.font_name is not None:
             self.font.fontname = self.bdf.font_name
 
-        if self.set_full_name is not None:
-            self.font.fullname = self.set_full_name
+        if self.args.full_name is not None:
+            self.font.fullname = self.args.full_name
         elif self.bdf.properties.get("FULL_NAME") is not None:
             self.font.fullname = self.bdf.properties["FULL_NAME"]
 
-        if self.set_family_name is not None:
-            self.font.familyname = self.set_family_name
+        if self.args.family_name is not None:
+            self.font.familyname = self.args.family_name
         elif self.bdf.properties.get("FAMILY_NAME") is not None:
             self.font.familyname = self.bdf.properties["FAMILY_NAME"]
 
@@ -135,8 +125,8 @@ class BitmapFont2TTF:
         elif self.bdf.properties.get("WEIGHT_NAME") is not None:
             self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
-        if self.set_os2_weight is not None:
-            self.font.os2_weight = self.set_os2_weight
+        if self.args.os2_weight is not None:
+            self.font.os2_weight = self.args.os2_weight
 
         # if --italic-angle and --italicize-anything are specified,
         # the nominal italic angle is set to the first one.
@@ -155,18 +145,18 @@ class BitmapFont2TTF:
             elif slant == "I":
                 self.font.italicangle = -12
 
-        if self.copyright is not None:
-            self.font.copyright = self.copyright
+        if self.args.copyright is not None:
+            self.font.copyright = self.args.copyright
 
-        if not self.no_sfnt_names:
+        if not self.args.no_sfnt_names:
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
             self.font.appendSFNTName("English (US)", "Family", self.font.familyname) # [1]
-            if self.subfamily is not None:
-                self.font.appendSFNTName("English (US)", "SubFamily", self.subfamily) # [2] FIXME: else autogenerate
-            if self.unique_id is not None:
-                self.font.appendSFNTName("English (US)", "UniqueID", self.unique_id) # [3]
+            if self.args.subfamily is not None:
+                self.font.appendSFNTName("English (US)", "SubFamily", self.args.subfamily) # [2] FIXME: else autogenerate
+            if self.args.unique_id is not None:
+                self.font.appendSFNTName("English (US)", "UniqueID", self.args.unique_id) # [3]
             else:
                 self.font.appendSFNTName("English (US)", "UniqueID", self.font.familyname + " 2024") # FIXME [3]
             self.font.appendSFNTName("English (US)", "Fullname", self.font.fullname) # [4]
