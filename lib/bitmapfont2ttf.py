@@ -23,6 +23,29 @@ class BitmapFont2TTF:
             self.set_args(args)
         self.fix_filenames()
 
+    def set_args(self, args):
+        self.args = args
+
+        self.filename           = args.filename
+        self.destfilenames      = args.destfilenames
+        self.bottom             = args.bottom
+        self.top                = args.top
+        self.set_font_name      = args.font_name
+        self.set_full_name      = args.full_name
+        self.set_family_name    = args.family_name
+        self.set_os2_weight     = args.os2_weight
+
+        self.italicize_angle    = args.italicize_angle
+        self.italicize_center_y = args.italicize_center
+        self.italicize_slant    = args.italicize_slant
+        self.italic_angle       = args.italic_angle
+
+        self.copyright          = args.copyright
+        self.no_sfnt_names      = args.no_sfnt_names
+        self.subfamily          = args.subfamily
+        self.unique_id          = args.unique_id
+        self.use_properties     = args.use_properties
+
     def bitmapfont2ttf(self, font=None):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
@@ -223,29 +246,6 @@ class BitmapFont2TTF:
                 print("Generating %s..." % dest)
                 self.font.generate(dest)
             print("Done.");
-
-    def set_args(self, args):
-        self.args = args
-
-        self.filename           = args.filename
-        self.destfilenames      = args.destfilenames
-        self.bottom             = args.bottom
-        self.top                = args.top
-        self.set_font_name      = args.font_name
-        self.set_full_name      = args.full_name
-        self.set_family_name    = args.family_name
-        self.set_os2_weight     = args.os2_weight
-
-        self.italicize_angle    = args.italicize_angle
-        self.italicize_center_y = args.italicize_center
-        self.italicize_slant    = args.italicize_slant
-        self.italic_angle       = args.italic_angle
-
-        self.copyright          = args.copyright
-        self.no_sfnt_names      = args.no_sfnt_names
-        self.subfamily          = args.subfamily
-        self.unique_id          = args.unique_id
-        self.use_properties     = args.use_properties
 
     def fix_filenames(self):
         if self.filename == os.path.basename(self.filename):
