@@ -94,33 +94,6 @@ class BitmapFont2TTF:
         if not self.dumb:
             self.inherit_bdf_metas()
 
-        if self.args.font_name is not None:
-            self.font.fontname = self.args.font_name
-        if self.args.full_name is not None:
-            self.font.fullname = self.args.full_name
-        if self.args.family_name is not None:
-            self.font.familyname = self.args.family_name
-        if self.args.weight_name is not None:
-            # BDF weight names are "Ultra Light", "Extra Light", "Light",
-            # and "Semi Light".  Weight Names would be "Medium" for the
-            # normal weight, or "Extra-Light" for all the others.
-            #
-            # Removing the spaces from the BDF weight names does not solve
-            # this.  Setting self.font.weight doesn't fix it either.
-            # --os2-weight fixes this.
-            self.font.weight = self.args.weight_name
-        if self.args.os2_weight is not None:
-            self.font.os2_weight = self.args.os2_weight
-        if self.args.italic_angle is not None:
-            # if --italic-angle and --italicize-anything are specified,
-            # the nominal italic angle is set to the first one.
-            # apparently setting it to -12 fixes an issue where
-            # bold italic wasn't showing up
-            self.font.italicangle = self.args.italic_angle
-
-        if self.args.copyright is not None:
-            self.font.copyright = self.args.copyright
-
         if not (self.args.no_sfnt_names or self.dumb):
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
@@ -136,6 +109,20 @@ class BitmapFont2TTF:
             self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
             self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
 
+        if self.args.font_name is not None:
+            self.font.fontname = self.args.font_name
+        if self.args.full_name is not None:
+            self.font.fullname = self.args.full_name
+        if self.args.family_name is not None:
+            self.font.familyname = self.args.family_name
+        if self.args.weight_name is not None:
+            self.font.weight = self.args.weight_name
+        if self.args.os2_weight is not None:
+            self.font.os2_weight = self.args.os2_weight
+        if self.args.italic_angle is not None:
+            self.font.italicangle = self.args.italic_angle
+        if self.args.copyright is not None:
+            self.font.copyright = self.args.copyright
         if self.args.macstyle is not None:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
@@ -144,10 +131,8 @@ class BitmapFont2TTF:
             self.font.os2_panose = tuple(self.args.panose)
         if self.args.fstype is not None:
             self.font.os2_fstype = self.args.fstype
-        if self.args.use_typo_metrics == True:
-            self.font.os2_use_typo_metrics = True
-        elif self.args.use_typo_metrics == False:
-            self.font.os2_use_typo_metrics = False
+        if self.args.use_typo_metrics is not None:
+            self.font.os2_use_typo_metrics = self.args.use_typo_metrics
         if self.args.family_class is not None:
             self.font.os2_family_class = self.args.family_class
         if self.args.vendor is not None:
