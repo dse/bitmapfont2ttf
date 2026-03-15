@@ -95,21 +95,15 @@ class BitmapFont2TTF:
             if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
+        if not self.dumb:
+            self.inherit_bdf_metas()
+
         if self.args.font_name is not None:
             self.font.fontname = self.args.font_name
-        elif self.bdf.font_name is not None:
-            self.font.fontname = self.bdf.font_name
-
         if self.args.full_name is not None:
             self.font.fullname = self.args.full_name
-        elif self.bdf.properties.get("FULL_NAME") is not None:
-            self.font.fullname = self.bdf.properties["FULL_NAME"]
-
         if self.args.family_name is not None:
             self.font.familyname = self.args.family_name
-        elif self.bdf.properties.get("FAMILY_NAME") is not None:
-            self.font.familyname = self.bdf.properties["FAMILY_NAME"]
-
         if self.args.weight_name is not None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
@@ -119,28 +113,16 @@ class BitmapFont2TTF:
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
             self.font.weight = self.args.weight_name
-        elif self.bdf.properties.get("WEIGHT_NAME") is not None:
-            self.font.weight = self.bdf.properties["WEIGHT_NAME"]
-
         if self.args.os2_weight is not None:
             self.font.os2_weight = self.args.os2_weight
-
-        # if --italic-angle and --italicize-anything are specified,
-        # the nominal italic angle is set to the first one.
-        # apparently setting it to -12 fixes an issue where
-        # bold italic wasn't showing up
         if self.italic_angle is not None:
+            # if --italic-angle and --italicize-anything are specified,
+            # the nominal italic angle is set to the first one.
+            # apparently setting it to -12 fixes an issue where
+            # bold italic wasn't showing up
             self.font.italicangle = self.italic_angle
         elif self.italicize_angle is not None:
             self.font.italicangle = self.italicize_angle
-        elif self.bdf.properties.get("SLANT") is not None:
-            slant = self.bdf.properties["SLANT"].upper()
-            if slant == "R":
-                self.font.italicangle = 0
-            elif slant == "O":
-                self.font.italicangle = -12
-            elif slant == "I":
-                self.font.italicangle = -12
 
         if self.args.copyright is not None:
             self.font.copyright = self.args.copyright
@@ -384,6 +366,24 @@ class BitmapFont2TTF:
                     contour.closed = True
                     glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
+
+    def inherit_bdf_metas(self):
+        if self.bdf.font_name is not None:
+            self.font.fontname = self.bdf.font_name
+        if self.bdf.properties.get("FULL_NAME") is not None:
+            self.font.fullname = self.bdf.properties["FULL_NAME"]
+        if self.bdf.properties.get("FAMILY_NAME") is not None:
+            self.font.familyname = self.bdf.properties["FAMILY_NAME"]
+        if self.bdf.properties.get("WEIGHT_NAME") is not None:
+            self.font.weight = self.bdf.properties["WEIGHT_NAME"]
+        if self.bdf.properties.get("SLANT") is not None:
+            slant = self.bdf.properties["SLANT"].upper()
+            if slant == "R":
+                self.font.italicangle = 0
+            elif slant == "O":
+                self.font.italicangle = -12
+            elif slant == "I":
+                self.font.italicangle = -12
 
 def close(a, b):
     return (a <= (b * FUDGE_FACTOR)) and (b <= (a * FUDGE_FACTOR))
