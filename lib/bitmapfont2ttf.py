@@ -229,8 +229,6 @@ class BitmapFont2TTF:
 
         self.filename           = args.filename
         self.destfilenames      = args.destfilenames
-        self.aspect_ratio       = args.aspect_ratio
-        self.circular_dots      = args.circular_dots
         self.bottom             = args.bottom
         self.top                = args.top
         self.set_weight_name    = args.weight_name
@@ -299,7 +297,7 @@ class BitmapFont2TTF:
 
         y = ofs_y + height
         pixY = 1.0 * self.font.em / self.bdf.get_pixel_size()
-        pixX = 1.0 * self.font.em / self.bdf.get_pixel_size() * self.bdf.get_aspect_ratio() * self.aspect_ratio
+        pixX = 1.0 * self.font.em / self.bdf.get_pixel_size() * self.bdf.get_aspect_ratio() * self.args.aspect_ratio
         deltaX = pixX * (1.0 - self.args.dot_width) / 2
         deltaY = pixY * (1.0 - self.args.dot_height) / 2
 
@@ -318,7 +316,7 @@ class BitmapFont2TTF:
         for line in bdf_char.bitmap_data:
             line = hex_data_to_bin_data(line)
             y = y - 1
-            if self.circular_dots:
+            if self.args.circular_dots:
                 x = ofs_x
                 for pixel in line:
                     if pixel == '1':
