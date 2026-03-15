@@ -145,7 +145,7 @@ class BitmapFont2TTF:
         if self.args.copyright is not None:
             self.font.copyright = self.args.copyright
 
-        if not self.args.no_sfnt_names:
+        if not (self.args.no_sfnt_names or self.dumb):
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
@@ -192,7 +192,7 @@ class BitmapFont2TTF:
     def make_font_detect_as_monospace(self):
         glyphs = list([glyph for glyph in self.font.glyphs()
                        if glyph.glyphname not in [".notdef", ".null", "nonmarkingreturn"]])
-        #                              widths are nonzero,   zero,    nonzero
+        #                              widths are: nonzero,   zero,    nonzero
         if len(glyphs) == 0:
             return
         super_narrow_glyphs = [glyph for glyph in glyphs if glyph.width < MIN_GLYPH_WIDTH_EM * glyph.font.em]
