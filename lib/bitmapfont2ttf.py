@@ -28,10 +28,6 @@ class BitmapFont2TTF:
 
         self.filename           = args.filename
         self.destfilenames      = args.destfilenames
-        self.italicize_angle    = args.italicize_angle
-        self.italicize_center_y = args.italicize_center
-        self.italicize_slant    = args.italicize_slant
-        self.italic_angle       = args.italic_angle
 
     def bitmapfont2ttf(self, font=None):
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
@@ -115,14 +111,12 @@ class BitmapFont2TTF:
             self.font.weight = self.args.weight_name
         if self.args.os2_weight is not None:
             self.font.os2_weight = self.args.os2_weight
-        if self.italic_angle is not None:
+        if self.args.italic_angle is not None:
             # if --italic-angle and --italicize-anything are specified,
             # the nominal italic angle is set to the first one.
             # apparently setting it to -12 fixes an issue where
             # bold italic wasn't showing up
-            self.font.italicangle = self.italic_angle
-        elif self.italicize_angle is not None:
-            self.font.italicangle = self.italicize_angle
+            self.font.italicangle = self.args.italic_angle
 
         if self.args.copyright is not None:
             self.font.copyright = self.args.copyright
@@ -271,15 +265,16 @@ class BitmapFont2TTF:
 
         italicize_slant = 0.0
         italicize_angle = 0.0
-        if self.italicize_angle is not None:
-            italicize_angle = self.italicize_angle
-            italicize_slant = math.tan(self.italicize_angle * math.pi / 180) * pixY / pixX
-            self.italicize_slant = italicize_slant
-        elif self.italicize_slant is not None:
-            italicize_slant = self.italicize_slant
-            italicize_angle = math.atan(self.italicize_slant * pixX / pixY) * 180 / math.pi
-            self.italicize_angle = italicize_angle
-        italicize_center_y = self.italicize_center_y if self.italicize_center_y is not None else 0
+        if self.args.italicize_angle is not None:
+            italicize_angle = self.args.italicize_angle
+            italicize_slant = math.tan(self.args.italicize_angle * math.pi / 180) * pixY / pixX
+        elif self.args.italicize_slant is not None:
+            italicize_slant = self.args.italicize_slant
+            italicize_angle = math.atan(self.args.italicize_slant * pixX / pixY) * 180 / math.pi
+        italicize_center_y = self.args.italicize_center if self.args.italicize_center is not None else 0
+
+        if not self.dumb:
+            self.font.italicangle = italicize_angle
 
         for line in bdf_char.bitmap_data:
             line = hex_data_to_bin_data(line)
