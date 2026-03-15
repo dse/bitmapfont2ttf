@@ -100,7 +100,7 @@ class BitmapFont2TTF:
         elif self.bdf.properties.get("FAMILY_NAME") is not None:
             self.font.familyname = self.bdf.properties["FAMILY_NAME"]
 
-        if self.set_weight_name is not None:
+        if self.args.weight_name is not None:
             # BDF weight names are "Ultra Light", "Extra Light", "Light",
             # and "Semi Light".  Weight Names would be "Medium" for the
             # normal weight, or "Extra-Light" for all the others.
@@ -108,7 +108,7 @@ class BitmapFont2TTF:
             # Removing the spaces from the BDF weight names does not solve
             # this.  Setting self.font.weight doesn't fix it either.
             # --os2-weight fixes this.
-            self.font.weight = self.set_weight_name
+            self.font.weight = self.args.weight_name
         elif self.bdf.properties.get("WEIGHT_NAME") is not None:
             self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
@@ -231,7 +231,6 @@ class BitmapFont2TTF:
         self.destfilenames      = args.destfilenames
         self.bottom             = args.bottom
         self.top                = args.top
-        self.set_weight_name    = args.weight_name
         self.set_font_name      = args.font_name
         self.set_full_name      = args.full_name
         self.set_family_name    = args.family_name
