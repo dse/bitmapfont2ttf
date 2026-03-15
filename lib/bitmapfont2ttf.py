@@ -66,18 +66,23 @@ class BitmapFont2TTF:
                 panose[3] = 9
                 self.font.os2_panose = tuple(panose)
             self.make_font_detect_as_monospace()
-        if self.modify_panose:
+
+        if self.args.panose_0 is not None or self.args.panose_1 is not None or \
+           self.args.panose_2 is not None or self.args.panose_3 is not None or \
+           self.args.panose_4 is not None or self.args.panose_5 is not None or \
+           self.args.panose_6 is not None or self.args.panose_7 is not None or \
+           self.args.panose_8 is not None or self.args.panose_9 is not None:
             panose = list(self.font.os2_panose)
-            if self.set_panose_0 is not None: panose[0] = self.set_panose_0
-            if self.set_panose_1 is not None: panose[1] = self.set_panose_1
-            if self.set_panose_2 is not None: panose[2] = self.set_panose_2
-            if self.set_panose_3 is not None: panose[3] = self.set_panose_3
-            if self.set_panose_4 is not None: panose[4] = self.set_panose_4
-            if self.set_panose_5 is not None: panose[5] = self.set_panose_5
-            if self.set_panose_6 is not None: panose[6] = self.set_panose_6
-            if self.set_panose_7 is not None: panose[7] = self.set_panose_7
-            if self.set_panose_8 is not None: panose[8] = self.set_panose_8
-            if self.set_panose_9 is not None: panose[9] = self.set_panose_9
+            if self.args.panose_0 is not None: panose[0] = self.args.panose_0
+            if self.args.panose_1 is not None: panose[1] = self.args.panose_1
+            if self.args.panose_2 is not None: panose[2] = self.args.panose_2
+            if self.args.panose_3 is not None: panose[3] = self.args.panose_3
+            if self.args.panose_4 is not None: panose[4] = self.args.panose_4
+            if self.args.panose_5 is not None: panose[5] = self.args.panose_5
+            if self.args.panose_6 is not None: panose[6] = self.args.panose_6
+            if self.args.panose_7 is not None: panose[7] = self.args.panose_7
+            if self.args.panose_8 is not None: panose[8] = self.args.panose_8
+            if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
         if self.set_font_name is not None:
@@ -224,32 +229,10 @@ class BitmapFont2TTF:
 
         self.filename           = args.filename
         self.destfilenames      = args.destfilenames
-        self.dot_width          = args.dot_width
-        self.dot_height         = args.dot_height
         self.aspect_ratio       = args.aspect_ratio
         self.circular_dots      = args.circular_dots
         self.bottom             = args.bottom
         self.top                = args.top
-        self.set_panose_0       = args.panose_0
-        self.set_panose_1       = args.panose_1
-        self.set_panose_2       = args.panose_2
-        self.set_panose_3       = args.panose_3
-        self.set_panose_4       = args.panose_4
-        self.set_panose_5       = args.panose_5
-        self.set_panose_6       = args.panose_6
-        self.set_panose_7       = args.panose_7
-        self.set_panose_8       = args.panose_8
-        self.set_panose_9       = args.panose_9
-        self.modify_panose      = (args.panose_0 is not None or
-                                   args.panose_1 is not None or
-                                   args.panose_2 is not None or
-                                   args.panose_3 is not None or
-                                   args.panose_4 is not None or
-                                   args.panose_5 is not None or
-                                   args.panose_6 is not None or
-                                   args.panose_7 is not None or
-                                   args.panose_8 is not None or
-                                   args.panose_9 is not None)
         self.set_weight_name    = args.weight_name
         self.set_font_name      = args.font_name
         self.set_full_name      = args.full_name
@@ -317,8 +300,8 @@ class BitmapFont2TTF:
         y = ofs_y + height
         pixY = 1.0 * self.font.em / self.bdf.get_pixel_size()
         pixX = 1.0 * self.font.em / self.bdf.get_pixel_size() * self.bdf.get_aspect_ratio() * self.aspect_ratio
-        deltaX = pixX * (1.0 - self.dot_width) / 2
-        deltaY = pixY * (1.0 - self.dot_height) / 2
+        deltaX = pixX * (1.0 - self.args.dot_width) / 2
+        deltaY = pixY * (1.0 - self.args.dot_height) / 2
 
         italicize_slant = 0.0
         italicize_angle = 0.0
@@ -339,8 +322,8 @@ class BitmapFont2TTF:
                 x = ofs_x
                 for pixel in line:
                     if pixel == '1':
-                        xh = round(pixX * self.dot_width * 0.5)
-                        yh = round(pixY * self.dot_height * 0.5)
+                        xh = round(pixX * self.args.dot_width * 0.5)
+                        yh = round(pixY * self.args.dot_height * 0.5)
                         r = max(xh, yh)
                         xc = round(pixX * (x + 0.5 - italicize_slant * (y - italicize_center_y)))
                         yc = round(pixY * (y + 0.5))
@@ -348,8 +331,8 @@ class BitmapFont2TTF:
                         x2 = xc + r
                         y1 = yc - r
                         y2 = yc + r
-                        xcp = round(pixX * self.dot_width * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
-                        ycp = round(pixY * self.dot_height * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        xcp = round(pixX * self.args.dot_width * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        ycp = round(pixY * self.args.dot_height * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
                         contour = fontforge.contour();
                         contour.moveTo(xc, y1)
                         contour.cubicTo((xc + xcp, y1), (x2, yc - ycp), (x2, yc))
@@ -359,7 +342,7 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-            elif self.dot_width < 1:
+            elif self.args.dot_width < 1:
                 x = ofs_x
                 for pixel in line:
                     if pixel == '1':
