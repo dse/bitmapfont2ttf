@@ -57,12 +57,19 @@ class BDFParser():
             self.parse_line(line, filename, line_number)
 
     def parse_line(self, line, filename, line_number):
+        self.line = line
+        self.line_filename = filename
+        self.line_number = line_number
+        self.line_cmd = None
+        self.line_args = None
         if re.match(r'^[ \t]*#', line):
             return
         args = bdf_parse_line(line)
         if len(args) == 0:
             return
         (cmd, args) = (args[0].upper(), args[1:])
+        self.line_cmd = cmd
+        self.line_args = args
         if cmd == "INCLUDE":                                    # not strictly BDF
             dirname = os.path.dirname(filename)
             # path arguments are relative to directory containing parent file
@@ -70,19 +77,24 @@ class BDFParser():
                 include_filename = os.path.join(dirname, include_filename)
                 self.read(include_filename)
         elif self.parse_stage == PARSE_STAGE_MAIN:
-            self.parse_line_at_stage_main(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_main()
         elif self.parse_stage == PARSE_STAGE_PROPERTIES:
-            self.parse_line_at_stage_properties(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_properties()
         elif self.parse_stage == PARSE_STAGE_CHARS:
-            self.parse_line_at_stage_chars(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_chars()
         elif self.parse_stage == PARSE_STAGE_CHAR:
-            self.parse_line_at_stage_char(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_char()
         elif self.parse_stage == PARSE_STAGE_BITMAP:
-            self.parse_line_at_stage_bitmap(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_bitmap()
         elif self.parse_stage == PARSE_STAGE_ENDFONT:
-            self.parse_line_at_stage_end_font(line, filename, line_number, cmd, args)
+            self.parse_line_at_stage_end_font()
 
-    def parse_line_at_stage_main(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_main(self):
+        [filename, line_number, line, cmd, args] = [self.line_filename,
+                                                    self.line_number,
+                                                    self.line,
+                                                    self.cmd,
+                                                    self.args]
         dirname = os.path.dirname(filename)
         if cmd == "STARTPROPERTIES":
             self.parse_stage = PARSE_STAGE_PROPERTIES
@@ -138,7 +150,12 @@ class BDFParser():
         else:
             raise Exception("%s: not supported in main section" % cmd)
 
-    def parse_line_at_stage_properties(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_properties(self):
+        [filename, line_number, line, cmd, args] = [self.line_filename,
+                                                    self.line_number,
+                                                    self.line,
+                                                    self.cmd,
+                                                    self.args]
         if cmd == "ENDPROPERTIES":
             self.parse_stage = PARSE_STAGE_MAIN
         else:
@@ -149,7 +166,12 @@ class BDFParser():
                 prop_value = args[0]
                 self.font.set_property(prop_name, prop_value)
 
-    def parse_line_at_stage_chars(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_chars(self):
+        [filename, line_number, line, cmd, args] = [self.line_filename,
+                                                    self.line_number,
+                                                    self.line,
+                                                    self.cmd,
+                                                    self.args]
         if cmd == "STARTCHAR":
             self.font.start_char(args[0] if len(args) else None, filename, line_number)
             self.parse_stage = PARSE_STAGE_CHAR
@@ -159,7 +181,12 @@ class BDFParser():
         else:
             raise Exception("%s: not supported in chars section" % cmd)
 
-    def parse_line_at_stage_char(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_char(self):
+        [filename, line_number, line, cmd, args] = [self.line_filename,
+                                                    self.line_number,
+                                                    self.line,
+                                                    self.cmd,
+                                                    self.args]
         if cmd == "BITMAP":
             self.font.start_char_bitmap()
             self.parse_stage = PARSE_STAGE_BITMAP
@@ -203,7 +230,12 @@ class BDFParser():
         else:
             raise Exception("%s: not supported in char section" % cmd)
 
-    def parse_line_at_stage_bitmap(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_bitmap(self):
+        [filename, line_number, line, cmd, args] = [self.line_filename,
+                                                    self.line_number,
+                                                    self.line,
+                                                    self.cmd,
+                                                    self.args]
         if cmd == "ENDCHAR":
             self.font.end_char_bitmap()
             self.font.end_char()
@@ -223,7 +255,7 @@ class BDFParser():
         else:
             self.font.append_char_bitmap_data(line)
 
-    def parse_line_at_stage_end_font(self, line, filename, line_number, cmd, args):
+    def parse_line_at_stage_end_font(self):
         pass
 
 def bdf_parse_line(line):
