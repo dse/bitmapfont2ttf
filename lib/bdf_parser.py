@@ -72,9 +72,8 @@ class BDFParser():
         self.line_args = args
         if cmd == "INCLUDE":                                    # not strictly BDF
             dirname = os.path.dirname(filename)
-            # path arguments are relative to directory containing parent file
             for include_filename in args:
-                include_filename = os.path.join(dirname, include_filename)
+                include_filename = os.path.join(dirname, include_filename) # rel. to directory of file containing include stmt
                 self.read(include_filename)
         elif self.parse_stage == PARSE_STAGE_MAIN:
             self.parse_line_at_stage_main()
@@ -95,17 +94,14 @@ class BDFParser():
                                                     self.line,
                                                     self.cmd,
                                                     self.args]
-        dirname = os.path.dirname(filename)
         if cmd == "STARTPROPERTIES":
-            self.parse_stage = PARSE_STAGE_PROPERTIES
+            self.start_properties()
         elif cmd == "CHARS":
-            self.parse_stage = PARSE_STAGE_CHARS
+            self.start_chars()
         elif cmd == "STARTCHAR":                                # not strictly BDF
-            self.font.start_char(args[0] if len(args) else None, filename, line_number)
-            self.parse_stage = PARSE_STAGE_CHAR
+            self.start_char()
         elif cmd == "ENDFONT":                                  # not strictly BDF
-            self.font.end_font()
-            self.parse_stage = PARSE_STAGE_ENDFONT
+            self.end_font()
         elif cmd == "STARTFONT":
             if len(args) < 1:
                 raise Exception("%s: not enough arguments")
@@ -157,7 +153,7 @@ class BDFParser():
                                                     self.cmd,
                                                     self.args]
         if cmd == "ENDPROPERTIES":
-            self.parse_stage = PARSE_STAGE_MAIN
+            self.end_properties()
         else:
             prop_name = cmd
             if len(args) == 0:
@@ -173,11 +169,9 @@ class BDFParser():
                                                     self.cmd,
                                                     self.args]
         if cmd == "STARTCHAR":
-            self.font.start_char(args[0] if len(args) else None, filename, line_number)
-            self.parse_stage = PARSE_STAGE_CHAR
+            self.start_char()
         elif cmd == "ENDFONT":
-            self.font.end_font()
-            self.parse_stage = PARSE_STAGE_ENDFONT
+            self.end_font()
         else:
             raise Exception("%s: not supported in chars section" % cmd)
 
@@ -188,19 +182,13 @@ class BDFParser():
                                                     self.cmd,
                                                     self.args]
         if cmd == "BITMAP":
-            self.font.start_char_bitmap()
-            self.parse_stage = PARSE_STAGE_BITMAP
+            self.start_bitmap()
         elif cmd == "ENDCHAR":
-            self.font.end_char()
-            self.parse_stage = PARSE_STAGE_CHARS
+            self.end_char()
         elif cmd == "ENDFONT":                                  # not strictly BDF
-            self.font.end_char()
-            self.font.end_font()
-            self.parse_stage = PARSE_STAGE_ENDFONT
+            self.end_font()
         elif cmd == "STARTCHAR":                                # not strictly BDF
-            self.font.end_char()
-            self.font.start_char(args[0] if len(args) else None, filename, line_number)
-            self.parse_stage = PARSE_STAGE_CHAR
+            self.start_char()
         elif cmd == "BBX":
             if len(args) < 4:
                 raise Exception("%s: not enough arguments")
@@ -224,9 +212,8 @@ class BDFParser():
                 raise Exception("%s: not enough arguments")
             self.font.set_char_encoding(args[0], args[1] if len(args) >= 2 else None)
         elif match := re.fullmatch(RX_PIXEL_LINE, line):
-            self.font.start_char_bitmap()
+            self.start_bitmap()
             self.font.append_char_bitmap_pixel_data(match[1], match[2])
-            self.parse_stage = PARSE_STAGE_BITMAP
         else:
             raise Exception("%s: not supported in char section" % cmd)
 
@@ -237,19 +224,11 @@ class BDFParser():
                                                     self.cmd,
                                                     self.args]
         if cmd == "ENDCHAR":
-            self.font.end_char_bitmap()
-            self.font.end_char()
-            self.parse_stage = PARSE_STAGE_CHARS
+            self.end_char()
         elif cmd == "ENDFONT":                                  # not strictly BDF
-            self.font.end_char_bitmap()
-            self.font.end_char()
-            self.font.end_font()
-            self.parse_stage = PARSE_STAGE_ENDFONT
+            self.end_font()
         elif cmd == "STARTCHAR":
-            self.font.end_char_bitmap()
-            self.font.end_char()
-            self.font.start_char(args[0] if len(args) else None, filename, line_number)
-            self.parse_stage = PARSE_STAGE_CHAR
+            self.start_char()
         elif match := re.fullmatch(RX_PIXEL_LINE, line):
             self.font.append_char_bitmap_pixel_data(match[1], match[2])
         else:
@@ -257,6 +236,45 @@ class BDFParser():
 
     def parse_line_at_stage_end_font(self):
         pass
+
+    def end_font(self):
+        if self.parse_stage == PARSE_STAGE_BITMAP:
+            self.font.end_char_bitmap()
+            self.font.end_char()
+        elif self.parse_stage == PARSE_STAGE_CHAR:
+            self.font.end_char()
+        self.font.end_font()
+        self.parse_stage = PARSE_STAGE_ENDFONT
+
+    def end_char(self):
+        if self.parse_stage == PARSE_STAGE_BITMAP:
+            self.font.end_char_bitmap()
+            self.font.end_char()
+        elif self.parse_stage == PARSE_STAGE_CHAR:
+            self.font.end_char()
+        self.parse_stage = PARSE_STAGE_CHARS
+
+    def start_char(self):
+        if self.parse_stage == PARSE_STAGE_CHAR:
+            self.font.end_char()
+        elif self.parse_stage == PARSE_STAGE_BITMAP:
+            self.font.end_char_bitmap()
+            self.font.end_char()
+        self.font.start_char(self.args[0] if len(self.args) else None, self.line_filename, self.line_number)
+        self.parse_stage = PARSE_STAGE_CHAR
+
+    def start_properties(self):
+        self.parse_stage = PARSE_STAGE_PROPERTIES
+
+    def end_properties(self):
+        self.parse_stage = PARSE_STAGE_MAIN
+
+    def start_chars(self):
+        self.parse_stage = PARSE_STAGE_CHARS
+
+    def start_bitmap(self):
+        self.font.start_char_bitmap()
+        self.parse_stage = PARSE_STAGE_BITMAP
 
 def bdf_parse_line(line):
     orig_line = line
