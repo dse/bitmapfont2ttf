@@ -89,150 +89,125 @@ class BDFParser():
             self.parse_line_at_stage_end_font()
 
     def parse_line_at_stage_main(self):
-        [filename, line_number, line, cmd, args] = [self.line_filename,
-                                                    self.line_number,
-                                                    self.line,
-                                                    self.cmd,
-                                                    self.args]
-        if cmd == "STARTPROPERTIES":
+        if self.line_cmd == "STARTPROPERTIES":
             self.start_properties()
-        elif cmd == "CHARS":
+        elif self.line_cmd == "CHARS":
             self.start_chars()
-        elif cmd == "STARTCHAR":                                # not strictly BDF
+        elif self.line_cmd == "STARTCHAR":                                # not strictly BDF
             self.start_char()
-        elif cmd == "ENDFONT":                                  # not strictly BDF
+        elif self.line_cmd == "ENDFONT":                                  # not strictly BDF
             self.end_font()
-        elif cmd == "STARTFONT":
-            if len(args) < 1:
+        elif self.line_cmd == "STARTFONT":
+            if len(self.line_args) < 1:
                 raise Exception("%s: not enough arguments")
-            self.font.set_bdf_version(args[0])
-        elif cmd == "CONTENTVERSION":
-            if len(args) < 1:
+            self.font.set_bdf_version(self.line_args[0])
+        elif self.line_cmd == "CONTENTVERSION":
+            if len(self.line_args) < 1:
                 raise Exception("%s: not enough arguments")
-            self.font.set_content_version(args[0])
-        elif cmd == "FONT":
-            if len(args) < 1:
+            self.font.set_content_version(self.line_args[0])
+        elif self.line_cmd == "FONT":
+            if len(self.line_args) < 1:
                 raise Exception("%s: not enough arguments")
-            self.font.set_font_name(args[0])
-        elif cmd == "SIZE":
-            if len(args) < 3:
+            self.font.set_font_name(self.line_args[0])
+        elif self.line_cmd == "SIZE":
+            if len(self.line_args) < 3:
                 raise Exception("%s: not enough arguments")
-            self.font.set_size(*args[0:3])
-        elif cmd == "FONTBOUNDINGBOX":
-            if len(args) < 4:
+            self.font.set_size(*self.line_args[0:3])
+        elif self.line_cmd == "FONTBOUNDINGBOX":
+            if len(self.line_args) < 4:
                 raise Exception("%s: not enough arguments")
-            self.font.set_bbx(*args[0:4])
-        elif cmd == "SWIDTH":
-            if len(args) < 2:
+            self.font.set_bbx(*self.line_args[0:4])
+        elif self.line_cmd == "SWIDTH":
+            if len(self.line_args) < 2:
                 raise Exception("%s: not enough arguments")
-            self.font.set_swidth(*args[0:2])
-        elif cmd == "DWIDTH":
-            if len(args) < 2:
+            self.font.set_swidth(*self.line_args[0:2])
+        elif self.line_cmd == "DWIDTH":
+            if len(self.line_args) < 2:
                 raise Exception("%s: not enough arguments")
-            self.font.set_dwidth(*args[0:2])
-        elif cmd == "SWIDTH1":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "DWIDTH1":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "VVECTOR":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "METRICSSET":
-            if len(args) < 1:
+            self.font.set_dwidth(*self.line_args[0:2])
+        elif self.line_cmd == "SWIDTH1":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "DWIDTH1":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "VVECTOR":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "METRICSSET":
+            if len(self.line_args) < 1:
                 raise Exception("%s: not enough arguments")
-            self.font.set_metrics_set(args[0])
-        elif cmd == "COMMENT":
-            comment = re.sub(r'^\s*comment\s?', '', line, flags=re.IGNORECASE).rstrip()
+            self.font.set_metrics_set(self.line_args[0])
+        elif self.line_cmd == "COMMENT":
+            comment = re.sub(r'^\s*comment\s?', '', self.line, flags=re.IGNORECASE).rstrip()
             self.font.append_comment(comment)
         else:
-            raise Exception("%s: not supported in main section" % cmd)
+            raise Exception("%s: not supported in main section" % self.line_cmd)
 
     def parse_line_at_stage_properties(self):
-        [filename, line_number, line, cmd, args] = [self.line_filename,
-                                                    self.line_number,
-                                                    self.line,
-                                                    self.cmd,
-                                                    self.args]
-        if cmd == "ENDPROPERTIES":
+        if self.line_cmd == "ENDPROPERTIES":
             self.end_properties()
         else:
-            prop_name = cmd
-            if len(args) == 0:
+            prop_name = self.line_cmd
+            if len(self.line_args) == 0:
                 self.font.delete_property(prop_name)
             else:
-                prop_value = args[0]
+                prop_value = self.line_args[0]
                 self.font.set_property(prop_name, prop_value)
 
     def parse_line_at_stage_chars(self):
-        [filename, line_number, line, cmd, args] = [self.line_filename,
-                                                    self.line_number,
-                                                    self.line,
-                                                    self.cmd,
-                                                    self.args]
-        if cmd == "STARTCHAR":
+        if self.line_cmd == "STARTCHAR":
             self.start_char()
-        elif cmd == "ENDFONT":
+        elif self.line_cmd == "ENDFONT":
             self.end_font()
         else:
-            raise Exception("%s: not supported in chars section" % cmd)
+            raise Exception("%s: not supported in chars section" % self.line_cmd)
 
     def parse_line_at_stage_char(self):
-        [filename, line_number, line, cmd, args] = [self.line_filename,
-                                                    self.line_number,
-                                                    self.line,
-                                                    self.cmd,
-                                                    self.args]
-        if cmd == "BITMAP":
+        if self.line_cmd == "BITMAP":
             self.start_bitmap()
-        elif cmd == "ENDCHAR":
+        elif self.line_cmd == "ENDCHAR":
             self.end_char()
-        elif cmd == "ENDFONT":                                  # not strictly BDF
+        elif self.line_cmd == "ENDFONT":                                  # not strictly BDF
             self.end_font()
-        elif cmd == "STARTCHAR":                                # not strictly BDF
+        elif self.line_cmd == "STARTCHAR":                                # not strictly BDF
             self.start_char()
-        elif cmd == "BBX":
-            if len(args) < 4:
+        elif self.line_cmd == "BBX":
+            if len(self.line_args) < 4:
                 raise Exception("%s: not enough arguments")
-            self.font.set_char_bbx(*args[0:4])
-        elif cmd == "SWIDTH":
-            if len(args) < 2:
+            self.font.set_char_bbx(*self.line_args[0:4])
+        elif self.line_cmd == "SWIDTH":
+            if len(self.line_args) < 2:
                 raise Exception("%s: not enough arguments")
-            self.font.set_char_swidth(*args[0:2])
-        elif cmd == "DWIDTH":
-            if len(args) < 2:
+            self.font.set_char_swidth(*self.line_args[0:2])
+        elif self.line_cmd == "DWIDTH":
+            if len(self.line_args) < 2:
                 raise Exception("%s: not enough arguments")
-            self.font.set_char_dwidth(*args[0:2])
-        elif cmd == "SWIDTH1":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "DWIDTH1":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "VVECTOR":
-            raise Exception("%s: not supported" % cmd)
-        elif cmd == "ENCODING":
-            if len(args) < 1:
+            self.font.set_char_dwidth(*self.line_args[0:2])
+        elif self.line_cmd == "SWIDTH1":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "DWIDTH1":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "VVECTOR":
+            raise Exception("%s: not supported" % self.line_cmd)
+        elif self.line_cmd == "ENCODING":
+            if len(self.line_args) < 1:
                 raise Exception("%s: not enough arguments")
-            self.font.set_char_encoding(args[0], args[1] if len(args) >= 2 else None)
-        elif match := re.fullmatch(RX_PIXEL_LINE, line):
+            self.font.set_char_encoding(self.line_args[0], self.line_args[1] if len(self.line_args) >= 2 else None)
+        elif match := re.fullmatch(RX_PIXEL_LINE, self.line):
             self.start_bitmap()
             self.font.append_char_bitmap_pixel_data(match[1], match[2])
         else:
-            raise Exception("%s: not supported in char section" % cmd)
+            raise Exception("%s: not supported in char section" % self.line_cmd)
 
     def parse_line_at_stage_bitmap(self):
-        [filename, line_number, line, cmd, args] = [self.line_filename,
-                                                    self.line_number,
-                                                    self.line,
-                                                    self.cmd,
-                                                    self.args]
-        if cmd == "ENDCHAR":
+        if self.line_cmd == "ENDCHAR":
             self.end_char()
-        elif cmd == "ENDFONT":                                  # not strictly BDF
+        elif self.line_cmd == "ENDFONT":                                  # not strictly BDF
             self.end_font()
-        elif cmd == "STARTCHAR":
+        elif self.line_cmd == "STARTCHAR":
             self.start_char()
-        elif match := re.fullmatch(RX_PIXEL_LINE, line):
+        elif match := re.fullmatch(RX_PIXEL_LINE, self.line):
             self.font.append_char_bitmap_pixel_data(match[1], match[2])
         else:
-            self.font.append_char_bitmap_data(line)
+            self.font.append_char_bitmap_data(self.line)
 
     def parse_line_at_stage_end_font(self):
         pass
@@ -260,7 +235,7 @@ class BDFParser():
         elif self.parse_stage == PARSE_STAGE_BITMAP:
             self.font.end_char_bitmap()
             self.font.end_char()
-        self.font.start_char(self.args[0] if len(self.args) else None, self.line_filename, self.line_number)
+        self.font.start_char(self.line_args[0] if len(self.line_args) else None, self.line_filename, self.line_number)
         self.parse_stage = PARSE_STAGE_CHAR
 
     def start_properties(self):
