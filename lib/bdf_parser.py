@@ -247,15 +247,3 @@ def bdf_parse_line(line):
             continue
         raise Exception("BDF line parse error: %s" % repr(orig_line))
     return words
-
-def bdfParseLine2(line):
-    match = re.match(r'^\s*(\S+)(?:\s+)(\S.*?)\s*$', line)
-    if match:
-        key = match.group(1)
-        value = match.group(2)
-        return [key, value]
-    match = re.match(r'^\s*(\S+)', line)
-    if match:
-        key = match.group(1);
-        return [match.group(1), None]
-    return None
