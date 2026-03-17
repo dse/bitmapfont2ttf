@@ -1,11 +1,26 @@
 import re
 
 def is_xlfd(xlfd):
+    """Return True or False depending on whether the supplied xlfd is valid.
+
+Shorthand for parse_xlfd(xlfd, as_type=bool, throw=False)
+
+    """
     return parse_xlfd(xlfd, as_type=bool, throw=False)
 
 def parse_xlfd(xlfd, as_type=list, throw=False):
+    """Parse the supplied string as an X Logical Font Description.
+
+If the as_type parameter is bool, return True or False depending on whether it's a valid XLFD.
+
+If the throw parameter is truthy, raise an error if the supplied XLFD is invalid.
+
+The as_type parameter can also be list, tuple, or dict.
+
+    """
     def get_next_field(field_type=str):
         nonlocal xlfd
+        nonlocal as_type
         if len(xlfd) == 0:
             raise Exception("empty or insufficiently long xlfd")
         if xlfd[0] != "-":
@@ -13,8 +28,8 @@ def parse_xlfd(xlfd, as_type=list, throw=False):
         if match := re.match(r'-\[\s*([^\-\]]*?)\s*\]', xlfd):
             xlfd = xlfd[match.end():]
             if field_type == "int_or_matrix":
-                matrix_str = match[1]
-                matrix_strs = match[1].split()
+                matrix_str = match[1]                           # "1 1 1 1"
+                matrix_strs = match[1].split()                  # ["1", "1", "1", "1"]
                 if len(matrix_strs) != 4:
                     raise Exception("incorrect transformation matrix size: %s" % repr(matrix_str))
                 matrix = []
@@ -23,7 +38,9 @@ def parse_xlfd(xlfd, as_type=list, throw=False):
                         matrix.append(float(match[0].replace("~", "-")))
                     else:
                         raise Exception("invalid floating-point number: %s" % repr(num_str))
-                return matrix
+                if as_type == tuple:
+                    return tuple(matrix)                        # (1, 1, 1, 1)
+                return matrix                                   # [1, 1, 1, 1]
             else:
                 raise Exception("transformation matrix not valid here")
         elif match := re.match(r'-([^-]*)', xlfd):
@@ -38,8 +55,8 @@ def parse_xlfd(xlfd, as_type=list, throw=False):
                 return match[1]
             raise Exception("invalid field_type parameter: %s" % repr(field_type))
         raise Exception("invalid xlfd")
-    if as_type not in [list, dict, bool]:
-        raise Exception("as_type must be list, dict, or bool")
+    if as_type not in [tuple, list, dict, bool]:
+        raise Exception("as_type must be list, tuple, dict, or bool")
     try:
         foundry          = get_next_field()                     # 0
         family_name      = get_next_field()                     # 1
@@ -57,21 +74,24 @@ def parse_xlfd(xlfd, as_type=list, throw=False):
         charset_encoding = get_next_field()                     # 13
         if as_type == bool:
             return True
-        if as_type == list:
-            return [foundry,                                    # 0
-                    family_name,                                # 1
-                    weight_name,                                # 2
-                    slant,                                      # 3
-                    setwidth_name,                              # 4
-                    add_style_name,                             # 5
-                    pixel_size,                                 # 6
-                    point_size,                                 # 7
-                    resolution_x,                               # 8
-                    resolution_y,                               # 9
-                    spacing,                                    # 10
-                    average_width,                              # 11
-                    charset_registry,                           # 12
-                    charset_encoding]                           # 13
+        if as_type in [list, tuple]:
+            result = [foundry,                                    # 0
+                      family_name,                                # 1
+                      weight_name,                                # 2
+                      slant,                                      # 3
+                      setwidth_name,                              # 4
+                      add_style_name,                             # 5
+                      pixel_size,                                 # 6
+                      point_size,                                 # 7
+                      resolution_x,                               # 8
+                      resolution_y,                               # 9
+                      spacing,                                    # 10
+                      average_width,                              # 11
+                      charset_registry,                           # 12
+                      charset_encoding]                           # 13
+            if as_type == tuple:
+                return tuple(result)
+            return result
         if as_type == dict:
             return { "foundry":          foundry,               # 0
                      "family_name":      family_name,           # 1
@@ -102,4 +122,4 @@ if __name__ == "__main__":
     test("-misc-fixed-medium-r-normal--13-130-75-75-c-60-iso8859-1", as_type=dict)
     test("-misc-fixed-medium-r-normal--13-130-75-75-c-60-iso8859-1", as_type=bool)
     test("-misc-fixed-medium-r-normal--13-[1 1 1 1]-75-75-c-60-iso8859-1", as_type=bool)
-    test("-misc-fixed-medium-r-normal--[1 1 1 1]-[1 1 1 1]-75-75-c-60-iso8859-1", as_type=list)
+    test("-misc-fixed-medium-r-normal--[1 1 1 1]-[1 1 1 1]-75-75-c-60-iso8859-1", as_type=tuple)
