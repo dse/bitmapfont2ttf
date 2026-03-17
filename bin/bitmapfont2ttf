@@ -71,20 +71,20 @@ parser.add_argument("--use-properties", action="store_true")
 
 parser.add_argument("--macstyle", type=int)
 parser.add_argument("--stylemap", type=int)
-# parser.add_argument("--guess-stylemap", action="store_true")
 
 parser.add_argument("--os2-version", type=int)
 parser.add_argument("--fstype", type=int)
-parser.add_argument("--use-typo-metrics", action=argparse.BooleanOptionalAction, default=None)
+parser.add_argument("--use-typo-metrics", action="store_true")
 parser.add_argument("--pfm-family", type=int)
 parser.add_argument("--family-class", type=int)
 parser.add_argument("--vendor", type=str)
-parser.add_argument("--weight-width-slope-only", "--wwso", type=int)
-
+parser.add_argument("--weight-width-slope-only", "--wwso", action="store_true")
 parser.add_argument("--dumb", action="store_true")
 
 parser.add_argument("filename")
 parser.add_argument("destfilenames", nargs ="*")
+
+# argparse.BooleanOptionalAction, default=None
 
 args = parser.parse_args()
 
