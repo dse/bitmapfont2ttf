@@ -75,20 +75,20 @@ The as_type parameter can also be list, tuple, or dict.
         if as_type == bool:
             return True
         if as_type in [list, tuple]:
-            result = [foundry,                                    # 0
-                      family_name,                                # 1
-                      weight_name,                                # 2
-                      slant,                                      # 3
-                      setwidth_name,                              # 4
-                      add_style_name,                             # 5
-                      pixel_size,                                 # 6
-                      point_size,                                 # 7
-                      resolution_x,                               # 8
-                      resolution_y,                               # 9
-                      spacing,                                    # 10
-                      average_width,                              # 11
-                      charset_registry,                           # 12
-                      charset_encoding]                           # 13
+            result = [foundry,                                  # 0
+                      family_name,                              # 1
+                      weight_name,                              # 2
+                      slant,                                    # 3
+                      setwidth_name,                            # 4
+                      add_style_name,                           # 5
+                      pixel_size,                               # 6
+                      point_size,                               # 7
+                      resolution_x,                             # 8
+                      resolution_y,                             # 9
+                      spacing,                                  # 10
+                      average_width,                            # 11
+                      charset_registry,                         # 12
+                      charset_encoding]                         # 13
             if as_type == tuple:
                 return tuple(result)
             return result
