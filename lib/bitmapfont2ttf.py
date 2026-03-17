@@ -74,27 +74,27 @@ class BitmapFont2TTF:
         #     ascent or descent
 
         self.trace()
-        if self.args.bdf_ascent_descent:
+        if self.args.bdf_ascent_descent:                        # Do we ever NOT use this?
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
-        if self.args.remove_ascent_add:
+        if self.args.remove_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
             self.font.os2_typoascent_add  = 0
             self.font.os2_typodescent_add = 0
             self.font.os2_winascent_add   = 0
             self.font.os2_windescent_add  = 0
-        if self.args.all_ascent_descent:
+        if self.args.all_ascent_descent:                        # Do we ever NOT use this?
             self.font.hhea_ascent     = self.font.ascent
             self.font.hhea_descent    = -self.font.descent
             self.font.os2_typoascent  = self.font.ascent
             self.font.os2_typodescent = -self.font.descent
             self.font.os2_winascent   = self.font.ascent
             self.font.os2_windescent  = self.font.descent
-        if self.args.remove_line_gap:
+        if self.args.remove_line_gap:                           # Do we ever NOT use this?
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
