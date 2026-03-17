@@ -38,13 +38,45 @@ class BitmapFont2TTF:
         else:
             self.bdf = font
             self.bdf.use_properties = self.args.use_properties
+
         self.font = fontforge.font()
-        self.font.importBitmaps(self.filename, True) # imports everything EXCEPT the bitmaps
+        # self.font.importBitmaps(self.filename, True)
+
+        self.font.fontname    = self.bdf.get_font_name()
+        self.font.fullname    = self.bdf.get_full_name()
+        self.font.familyname  = self.bdf.get_family_name()
+        self.font.weight      = self.bdf.get_weight_name()
+        self.font.copyright   = self.bdf.get_copyright()
+        self.font.version     = self.bdf.get_font_version("")
+        self.font.encoding    = "UnicodeBMP"
+        self.font.italicangle = self.bdf.get_ttf_italic_angle(dumb=self.args.dumb)
+
+        # This imports sets the following, much of it from the BDF:
+        #     FontName: UntitledB159MMBoldItalic
+        #     FullName: UntitledB159MM-BoldItalic
+        #     FamilyName: Untitled B159 MM
+        #     Weight: Bold
+        #     Copyright: Copyright 2023 Darren Embry.  SIL-OFL 1.1.
+        #     Encoding: UnicodeBmp
+        #     DisplaySize: 8 (this is set to -48 later.)
+        # This does **not** set:
+        #     ItalicAngle
+        #     Version
+        #     sfntRevision
+        #     StyleMap
+        #     FSType
+        #     OS2Version
+        #     PfmFamily
+        #     TTFWeight
+        #     TTFWidth
+        #     Panose
+        #     LangName (the sfnt names)
+        #     ascent or descent
+
         self.trace()
         if self.args.bdf_ascent_descent:
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
-            pixelSize = self.bdf.get_pixel_size()
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
@@ -152,8 +184,9 @@ class BitmapFont2TTF:
     # make sure all glyphs are the same width.  otherwise font may not be detected as monospace.  TODO: handle dual-width fonts
     def make_font_detect_as_monospace(self):
         glyphs = list([glyph for glyph in self.font.glyphs()
-                       if glyph.glyphname not in [".notdef", ".null", "nonmarkingreturn"]])
-        #                              widths are: nonzero,   zero,    nonzero
+                       if glyph.glyphname not in [".notdef",            # non-zero width
+                                                  ".null",              # zero width
+                                                  "nonmarkingreturn"]]) # non-zero width
         if len(glyphs) == 0:
             return
         super_narrow_glyphs = [glyph for glyph in glyphs if glyph.width < MIN_GLYPH_WIDTH_EM * glyph.font.em]
@@ -169,10 +202,6 @@ class BitmapFont2TTF:
         widths = [glyph.width for glyph in clusters[0]]
         new_glyph_width = statistics.mean(statistics.multimode(widths))
         for glyph in substantive_glyphs:
-            print(type(glyph.width))                            # int
-            print(type(new_glyph_width))                        # int
-            print(type(glyph.left_side_bearing))                # float
-            print(type(glyph.right_side_bearing))               # float
             glyph.left_side_bearing = int(glyph.left_side_bearing + (new_glyph_width - glyph.width) / 2)
             glyph.width = new_glyph_width
 
@@ -206,15 +235,19 @@ class BitmapFont2TTF:
             self.destfilenames = [rootdestfilename + '.ttf']
 
     def trace(self):
-        count = len(self.bdf.chars)
-        index = 0
-        for char in self.bdf.chars:
-            index = index + 1
-            encoding = char.encoding if char.encoding is not None else -1
+        def key_fn(char):
+            if char.encoding is not None and char.encoding >= 0:
+                return (0, char.encoding)
+            if char.base_encoding is not None and char.base_encoding >= 0:
+                return (1, char.base_encoding)
+            return (2, char.name)
+        chars = list(self.bdf.chars)
+        chars.sort(key=key_fn)
+        for char in chars:
             try:
-                glyph = self.font.createChar(encoding, char.name)
+                glyph = self.font.createChar(char.encoding, char.name)
             except:
-                sys.stderr.write('\nERROR: encoding %s; name %s\n' % (encoding, char.name))
+                sys.stderr.write('\nERROR: cannot createChar(%s, %s)\n' % (repr(char.encoding), repr(char.name)))
                 raise
             self.trace_glyph(glyph, char)
             glyph.addExtrema()
@@ -369,7 +402,6 @@ def close(a, b):
     return (a <= (b * FUDGE_FACTOR)) and (b <= (a * FUDGE_FACTOR))
 
 def get_clusters(items, fn=lambda i:i):
-    print([fn(i) for i in items])
     A = []
     H = []
     D = []
