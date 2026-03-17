@@ -27,9 +27,9 @@ FORCE_QUOTE = {
 
 class BDFFont:
     def __init__(self, filename=None, order=None):
-        self.bdf_version = None
-        self.content_version = None
-        self.font_name = None                                  # FONT (font.fontname)
+        self.bdf_version = None                                 # STARTFONT <number>
+        self.content_version = None                             # CONTENTVERSION <integer>
+        self.font_name = None                                   # FONT <string>
         self.point_size = None
         self.res_x = None
         self.res_y = None
@@ -500,3 +500,56 @@ class BDFFont:
 
         self.chars = chars
         self.finalized = True
+
+    def get_font_name(self, default=None):
+        if self.font_name is not None:
+            return self.font_name
+        return default
+
+    def get_full_name(self, default=None):
+        if "FACE_NAME" in self.properties:
+            return self.properties["FACE_NAME"]
+        if "FULL_NAME" in self.properties:
+            return self.properties["FULL_NAME"]
+        return default
+
+    def get_family_name(self, default=None):
+        if "FAMILY_NAME" in self.properties:
+            return self.properties["FAMILY_NAME"]
+        return default
+
+    def get_weight_name(self, default="Medium"):
+        if "WEIGHT_NAME" in self.properties:
+            return self.properties["WEIGHT_NAME"]
+        return default
+
+    def get_font_version(self, default=None):
+        if "FONT_VERSION" in self.properties:
+            return self.properties["FONT_VERSION"]
+        return default
+
+    def get_slant(self, default="R"):
+        if "SLANT" in self.properties:
+            return self.properties["SLANT"].upper()
+        return default
+
+    def get_bdf_italic_angle(self, dumb=False):
+        if "ITALIC_ANGLE" in self.properties:
+            return self.properties["ITALIC_ANGLE"]
+        if not dumb:
+            slant = self.get_slant()
+            if slant in ["I", "O"]:                             # italic, oblique
+                return 78 * 64
+            if slant in ["R"]:                                  # roman (upright)
+                return 90 * 64
+            if slant in ["RI", "RO"]:                           # reverse italic, oblique
+                return 102 * 64
+        return 90 * 64
+
+    def get_ttf_italic_angle(self, dumb=False):                 # degrees ccw from 12 o'clock
+        return (self.get_bdf_italic_angle(dumb=dumb) - 90 * 64) / 64
+
+    def get_copyright(self, default=None):
+        if "COPYRIGHT" in self.properties:
+            return self.properties["COPYRIGHT"]
+        return default
