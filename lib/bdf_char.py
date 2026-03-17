@@ -234,7 +234,7 @@ class BDFChar:
     def end_char(self):
         self.finalize()
 
-    def finalize(self):
+    def finalize_old(self):
         if self.finalized:
             return
 
@@ -299,6 +299,57 @@ class BDFChar:
         self.name = name
         self.encoding = encoding
 
+        self.char_name_variant_encoding_finalized = True
+
+    def finalize(self):
+        if self.finalized:
+            return
+        self.base_name = self.name
+        self.variant = None
+        if self.name is not None and "." in self.name:
+            [self.base_name, self.variant] = self.name.split(".", 1)
+        if self.base_name is None:
+            if self.encoding is None or self.encoding < 0:
+                self.base_encoding = -1
+                self.base_name = gen_char_name()
+            else:
+                Self.base_encoding = self.encoding
+                self.base_name = fontforge.nameFromUnicode(self.base_encoding)
+        elif match := re.fullmatch(r'(?:u\+?|0?x|uni)([0-9a-f]+)', self.base_name, flags=re.IGNORECASE):
+            self.base_encoding = int(match[1], 16)
+            self.base_name = fontforge.nameFromUnicode(self.base_encoding)
+            if self.encoding is None or self.encoding < 0:
+                pass
+            elif self.encoding == self.base_encoding:
+                pass
+            else:
+                if PREFER_STARTCHAR_NAME:
+                    pass
+                else:                                           # use ENCODING line
+                    self.base_encoding = self.encoding
+                    self.base_name = fontforge.nameFromUnicode(self.encoding)
+        else:
+            self.base_encoding = fontforge.unicodeFromName(self.base_name)
+            if self.base_encoding is None or self.base_encoding < 0:
+                self.base_encoding = -1
+            else:
+                self.base_name = fontforge.nameFromUnicode(self.base_encoding) # normalize
+                if self.encoding is None or self.encoding < 0:
+                    pass
+                elif self.encoding == self.base_encoding:
+                    pass
+                else:
+                    if PREFER_STARTCHAR_NAME:
+                        pass
+                    else:                                           # use ENCODING line
+                        self.base_encoding = self.encoding
+                        self.base_name = fontforge.nameFromUnicode(self.encoding)
+        if self.variant is None:
+            self.name = self.base_name
+            self.encoding = self.base_encoding
+        else:
+            self.name = self.base_name + "." + self.variant
+            self.encoding = -1
         self.char_name_variant_encoding_finalized = True
 
 unknown_charname_counter = 0
