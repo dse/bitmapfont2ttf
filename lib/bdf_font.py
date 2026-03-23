@@ -553,3 +553,13 @@ class BDFFont:
         if "COPYRIGHT" in self.properties:
             return self.properties["COPYRIGHT"]
         return default
+
+    def get_underline_position_px(self, default=None):
+        if "UNDERLINE_POSITION" in self.properties:
+            return self.properties["UNDERLINE_POSITION"]
+        return default
+
+    def get_underline_thickness_px(self, default=None):
+        if "UNDERLINE_THICKNESS" in self.properties:
+            return self.properties["UNDERLINE_THICKNESS"]
+        return default

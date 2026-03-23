@@ -51,15 +51,15 @@ class BitmapFont2TTF:
         self.font.encoding    = "UnicodeBMP"
         self.font.italicangle = self.bdf.get_ttf_italic_angle(dumb=self.args.dumb)
 
-        # This imports sets the following, much of it from the BDF:
-        #     FontName: UntitledB159MMBoldItalic
-        #     FullName: UntitledB159MM-BoldItalic
-        #     FamilyName: Untitled B159 MM
+        # importBitmaps sets the following, much of it from the BDF:
+        #     FontName: Untitled-BoldItalic
+        #     FullName: Untitled Bold Italic
+        #     FamilyName: Untitled
         #     Weight: Bold
         #     Copyright: Copyright 2023 Darren Embry.  SIL-OFL 1.1.
         #     Encoding: UnicodeBmp
         #     DisplaySize: 8 (this is set to -48 later.)
-        # This does **not** set:
+        # importBitmaps does **not** set:
         #     ItalicAngle
         #     Version
         #     sfntRevision
@@ -80,6 +80,12 @@ class BitmapFont2TTF:
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
+            if not self.dumb:
+                upos   = self.bdf.get_underline_position_px()
+                uthick = self.bdf.get_underline_thickness_px()
+                if upos is not None and uthick is not None:
+                    self.upos   = int(round(upos * em_units_per_pixel))
+                    self.uthick = int(round(uthick * em_units_per_pixel))
         if self.args.remove_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
