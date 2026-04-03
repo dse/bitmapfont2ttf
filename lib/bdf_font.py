@@ -249,6 +249,9 @@ class BDFFont:
         self.char.append_bitmap_pixel_data(start, bin_data)
 
     def __str__(self):
+        return self.as_string()
+
+    def as_string(self, pixels=False):
         string = ""
         string += self.get_startfont_line()
         flags = {}
@@ -261,7 +264,7 @@ class BDFFont:
             if not (line_type in flags and flags[line_type]):
                 string += self.get_line(line_type)
                 flags[line_type] = True
-        string += self.get_chars_lines()
+        string += self.get_chars_lines(pixels=pixels)
         string += "ENDFONT\n"
         return string
 
@@ -349,10 +352,13 @@ class BDFFont:
         string += "ENDPROPERTIES\n"
         return string
 
-    def get_chars_lines(self):
+    def get_chars_lines(self, pixels=False):
         string = "CHARS %d\n" % len(self.chars)
         for char in self.chars:
-            string += str(char)
+            if pixels:
+                string += char.as_string(pixels=True)
+            else:
+                string += str(char)
         return string
 
     def append_comment(self, comment):

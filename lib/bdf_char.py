@@ -146,6 +146,9 @@ class BDFChar:
         self.bitmap_data.append(bin_data_to_hex_data(bin_data))
 
     def __str__(self):
+        return self.as_string()
+
+    def as_string(self, pixels=False):
         string = ""
         string += self.get_startchar_line()
         flags = {}
@@ -159,8 +162,11 @@ class BDFChar:
                 string += self.get_line(line_type)
                 flags[line_type] = True
         if len(self.bitmap_data):
-            string += "BITMAP\n"
-            string += self.get_bitmap_data_lines()
+            if pixels:
+                string += self.get_pixel_lines()
+            else:
+                string += "BITMAP\n"
+                string += self.get_bitmap_data_lines()
         string += "ENDCHAR\n"
         return string
 
@@ -229,6 +235,34 @@ class BDFChar:
         string = ""
         for data in self.bitmap_data:
             string += data.strip() + "\n"
+        return string
+
+    def get_pixel_lines(self):
+        string = ""
+
+        char_top_line_idx = self.bbx_ofs_y + self.bbx_y - 1              # 5     11
+        char_bot_line_idx = self.bbx_ofs_y                               # -1    -3
+        font_ascent_line_idx = self.font.ascent_px() - 1                 # 8     8
+        font_descent_line_idx = -self.font.descent_px()                  # -2    -2
+        top_line_idx = max(char_top_line_idx, font_ascent_line_idx)      # 8     11
+        bot_line_idx = min(char_bot_line_idx, font_descent_line_idx)     # -2    -3
+
+        char_left_col_idx  = self.bbx_ofs_x
+        char_right_col_idx = self.bbx_ofs_x + self.bbx_x - 1
+        font_left_col_idx  = self.font.bbx_ofs_x
+        font_right_col_idx = self.font.bbx_ofs_x + self.font.bbx_x - 1
+        left_col_idx       = min(char_left_col_idx, font_left_col_idx)
+        right_col_idx      = min(char_right_col_idx, font_right_col_idx)
+        cols = right_col_idx - left_col_idx + 1
+
+        for line_idx in range(top_line_idx, bot_line_idx - 1, -1):
+            char = "+" if line_idx == 0 else "|"
+            data_idx = top_line_idx - line_idx
+            if data_idx not in range(0, len(self.bitmap_data)):
+                string += char + " " * cols + char + "\n"
+                continue
+            string += char + hex_data_to_bin_data(self.bitmap_data[data_idx])[0:cols].replace("0"," ").replace("1","#") + char + "\n"
+
         return string
 
     def end_char(self):
