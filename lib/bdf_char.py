@@ -256,12 +256,12 @@ class BDFChar:
         cols = right_col_idx - left_col_idx + 1
 
         for line_idx in range(top_line_idx, bot_line_idx - 1, -1):
-            char = "+" if line_idx == 0 else "|"
+            border = "+" if line_idx == 0 else "|"
             data_idx = top_line_idx - line_idx
             if data_idx not in range(0, len(self.bitmap_data)):
-                string += char + " " * cols + char + "\n"
+                string += border + " " * cols + border + "\n"
                 continue
-            string += char + hex_data_to_bin_data(self.bitmap_data[data_idx])[0:cols].replace("0"," ").replace("1","#") + char + "\n"
+            string += border + hex_data_to_bin_data(self.bitmap_data[data_idx], pixels=True)[0:cols] + border + "\n"
 
         return string
 

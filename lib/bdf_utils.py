@@ -11,7 +11,7 @@ def bin_data_to_hex_data(bin_data):
     hex_data = "%0*X" % (hex_len, dec_data)
     return hex_data
 
-def hex_data_to_bin_data(hex_data):
+def hex_data_to_bin_data(hex_data, pixels=False):
     if hex_data == "":
         return "00000000"
     hex_data += "0" * ((2 - len(hex_data) % 2) % 2)
@@ -19,6 +19,8 @@ def hex_data_to_bin_data(hex_data):
     bin_len = len(hex_data) * 4
     bin_data = bin(dec_data)[2:]
     bin_data = "0" * ((8 - len(bin_data) % 8) % 8) + bin_data
+    if pixels:
+        bin_data = bin_data.replace("0"," ").replace("1","#")
     return bin_data
 
 def bdf_escape(value, forcequote=False):
