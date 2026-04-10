@@ -1,4 +1,4 @@
-import re, fontforge, sys
+import re, fontforge, sys, unicodedata
 
 from bdf_utils import bin_data_to_hex_data, hex_data_to_bin_data, bdf_escape
 
@@ -168,6 +168,19 @@ class BDFChar:
                 string += "BITMAP\n"
                 string += self.get_bitmap_data_lines()
         string += "ENDCHAR\n"
+        return string
+
+    def as_string_internal_format_1(self):
+        if self.encoding < 0:
+            string += "STARTCHAR %s" % self.name
+        else:
+            try:
+                string += "STARTCHAR U+%04X %s" % (self.encoding,
+                                                   unicodedata.name(chr(self.encoding)))
+            except ValueError:
+                string += "STARTCHAR U+%04X %s" % (self.encoding,
+                                                   fontforge.nameFromUnicode(self.encoding))
+        string += self.get_pixel_lines()
         return string
 
     def get_line(self, attr_type):

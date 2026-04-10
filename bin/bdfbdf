@@ -21,6 +21,7 @@ def main():
     parser.add_argument('-F', '--full-name')
     parser.add_argument('-S', '--slant')
     parser.add_argument('-p', '--as-pixels', action="store_true")
+    parser.add_argument('-1', '--internal-format-1', action="store_true")
 
     args = parser.parse_args()
     bdf_parser = BDFParser(filename=args.filename, args=args)
@@ -45,7 +46,9 @@ def main():
     if args.slant is not None:
         bdf_font.set_property("SLANT", args.slant)
 
-    if args.as_pixels:
+    if args.internal_format_1:
+        print(bdf_font.as_string_internal_format_1())
+    elif args.as_pixels:
         print(bdf_font.as_string(pixels=True))
     else:
         print(str(bdf_font))

@@ -268,6 +268,12 @@ class BDFFont:
         string += "ENDFONT\n"
         return string
 
+    def as_string_internal_format_1(self):
+        string = ""
+        for char in self.chars:
+            string += as_string_internal_format_1()
+        return string
+
     def get_line(self, line_type):
         if line_type == "COMMENT":
             return self.get_comment_lines()
