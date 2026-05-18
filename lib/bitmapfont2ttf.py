@@ -381,13 +381,20 @@ class BitmapFont2TTF:
                         yc  = (y1 + y2) / 2
                         yc1 = yc + (y1 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
                         yc2 = yc + (y2 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
-                        x1 = x1 - pixX / 3
-                        x2 = x2 + pixX / 3
-                        xp1 = x1 + pixX * 1.5
-                        xp2 = x2 - pixX * 1.5
+
+                        xp1 = x1 + pixX * 0.5
+                        xp2 = x2 - pixX * 0.5
+
+                        x1 = xp1 - pixX * 2 / math.pi
+                        x2 = xp2 + pixX * 2 / math.pi
+
                         if xp1 > xp2:
+                            delta = (xp2 - xp1) / 2
                             xp1 = (x1 + x2) / 2
                             xp2 = (x1 + x2) / 2
+                            x1 = x1 - delta
+                            x2 = x2 + delta
+
                         xc1 = xp1 + (x1 - xp1) * THAT_CIRCLE_BEZIER_CONSTANT
                         xc2 = xp2 + (x2 - xp2) * THAT_CIRCLE_BEZIER_CONSTANT
                         x1 = round(x1)
