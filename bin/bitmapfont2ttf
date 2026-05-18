@@ -26,6 +26,7 @@ parser.add_argument("--aspect-ratio",  type=float, default=1.0, help="ratio of p
 parser.add_argument("--circular-dots", action="store_true")
 parser.add_argument("--bottom", type=float, default=0.0, help="proportion of pixel height above baseline; default = 0.0")
 parser.add_argument("--top", type=float, default=1.0, help="proportion of pixel height above baseline; default = 1.0")
+parser.add_argument("--draw-crt", action="store_true")
 
 parser.add_argument("--monospace", action="store_true")
 parser.add_argument("--bdf-ascent-descent", action="store_true")

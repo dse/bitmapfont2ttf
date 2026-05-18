@@ -80,7 +80,7 @@ class BitmapFont2TTF:
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
-            if not self.dumb:
+            if not self.args.dumb:
                 upos   = self.bdf.get_underline_position_px()
                 uthick = self.bdf.get_underline_thickness_px()
                 if upos is not None and uthick is not None:
@@ -327,7 +327,7 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-            elif self.args.dot_width < 1:
+            elif self.args.dot_width < 1:                       # rectangular dots
                 x = ofs_x
                 for pixel in line:
                     if pixel == '1':
@@ -344,7 +344,7 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
                     x = x + 1
-            else:
+            else:                                               # solid horizontal lines
                 [y1unit, y2unit] = [0, 1]
                 if self.args.bottom is not None:
                     y1unit = self.args.bottom
@@ -377,13 +377,49 @@ class BitmapFont2TTF:
                     if y1unit != 0.0 or y2unit != 1.0:
                         [y1, y2] = [y1 + (y2 - y1) * y1unit,
                                     y1 + (y2 - y1) * y2unit]
-                    contour = fontforge.contour()
-                    contour.moveTo(round(x1), round(y1))
-                    contour.lineTo(round(x1), round(y2))
-                    contour.lineTo(round(x2), round(y2))
-                    contour.lineTo(round(x2), round(y1))
-                    contour.closed = True
-                    glyph.layers['Fore'] += contour
+                    if self.args.draw_crt:
+                        yc  = (y1 + y2) / 2
+                        yc1 = yc + (y1 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
+                        yc2 = yc + (y2 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
+                        x1 = x1 - pixX / 3
+                        x2 = x2 + pixX / 3
+                        xp1 = x1 + pixX * 1.5
+                        xp2 = x2 - pixX * 1.5
+                        if xp1 > xp2:
+                            xp1 = (x1 + x2) / 2
+                            xp2 = (x1 + x2) / 2
+                        xc1 = xp1 + (x1 - xp1) * THAT_CIRCLE_BEZIER_CONSTANT
+                        xc2 = xp2 + (x2 - xp2) * THAT_CIRCLE_BEZIER_CONSTANT
+                        x1 = round(x1)
+                        x2 = round(x2)
+                        xc1 = round(xc1)
+                        xc2 = round(xc2)
+                        xp1 = round(xp1)
+                        xp2 = round(xp2)
+                        y1 = round(y1)
+                        y2 = round(y2)
+                        yc1 = round(yc1)
+                        yc2 = round(yc2)
+                        contour = fontforge.contour()
+                        contour.moveTo(x1, yc)
+                        contour.cubicTo((x1, yc1), (xc1, y1), (xp1, y1))
+                        if xp1 != xp2:
+                            contour.lineTo(xp2, y1)
+                        contour.cubicTo((xc2, y1), (x2, yc1), (x2, yc))
+                        contour.cubicTo((x2, yc2), (xc2, y2), (xp2, y2))
+                        if xp1 != xp2:
+                            contour.lineTo(xp1, y2)
+                        contour.cubicTo((xc1, y2), (x1, yc2), (x1, yc))
+                        contour.closed = True
+                        glyph.layers['Fore'] += contour
+                    else:
+                        contour = fontforge.contour()
+                        contour.moveTo(round(x1), round(y1))
+                        contour.lineTo(round(x1), round(y2))
+                        contour.lineTo(round(x2), round(y2))
+                        contour.lineTo(round(x2), round(y1))
+                        contour.closed = True
+                        glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
 
     def inherit_bdf_metas(self):
