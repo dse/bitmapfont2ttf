@@ -80,6 +80,19 @@ class BitmapFont2TTF:
         self.font.encoding    = "UnicodeBMP"
         self.font.italicangle = self.bdf.get_ttf_italic_angle()
 
+        if self.args.font_name is not None:
+            self.font.fontname = self.args.font_name
+        if self.args.full_name is not None:
+            self.font.fullname = self.args.full_name
+        if self.args.family_name is not None:
+            self.font.familyname = self.args.family_name
+        if self.args.weight_name is not None:
+            self.font.weight = self.args.weight_name
+        if self.args.copyright is not None:
+            self.font.copyright = self.args.copyright
+        if self.args.italic_angle is not None:
+            self.font.italicangle = self.args.italic_angle
+
         self.trace()
 
         if self.args.monospace:
@@ -121,20 +134,8 @@ class BitmapFont2TTF:
             self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
             self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
 
-        if self.args.font_name is not None:
-            self.font.fontname = self.args.font_name
-        if self.args.full_name is not None:
-            self.font.fullname = self.args.full_name
-        if self.args.family_name is not None:
-            self.font.familyname = self.args.family_name
-        if self.args.weight_name is not None:
-            self.font.weight = self.args.weight_name
         if self.args.os2_weight is not None:
             self.font.os2_weight = self.args.os2_weight
-        if self.args.italic_angle is not None:
-            self.font.italicangle = self.args.italic_angle
-        if self.args.copyright is not None:
-            self.font.copyright = self.args.copyright
         if self.args.macstyle is not None:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
