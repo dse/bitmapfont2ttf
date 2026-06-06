@@ -48,7 +48,7 @@ class BitmapFont2TTF:
         self.font.copyright   = self.bdf.get_copyright()
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
-        self.font.italicangle = self.bdf.get_ttf_italic_angle(dumb=self.args.dumb)
+        self.font.italicangle = self.bdf.get_ttf_italic_angle()
 
         self.trace()
         if self.args.bdf_ascent_descent:                        # Do we ever NOT use this?
@@ -57,12 +57,11 @@ class BitmapFont2TTF:
             em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
-            if not self.args.dumb:
-                upos   = self.bdf.get_underline_position_px()
-                uthick = self.bdf.get_underline_thickness_px()
-                if upos is not None and uthick is not None:
-                    self.upos   = int(round(upos * em_units_per_pixel))
-                    self.uthick = int(round(uthick * em_units_per_pixel))
+            upos   = self.bdf.get_underline_position_px()
+            uthick = self.bdf.get_underline_thickness_px()
+            if upos is not None and uthick is not None:
+                self.upos   = int(round(upos * em_units_per_pixel))
+                self.uthick = int(round(uthick * em_units_per_pixel))
         if self.args.remove_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
@@ -82,10 +81,9 @@ class BitmapFont2TTF:
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
         if self.args.monospace:
-            if not self.args.dumb:
-                panose = list(self.font.os2_panose)
-                panose[3] = 9
-                self.font.os2_panose = tuple(panose)
+            panose = list(self.font.os2_panose)
+            panose[3] = 9
+            self.font.os2_panose = tuple(panose)
             self.make_font_detect_as_monospace()
 
         if self.args.panose_0 is not None or self.args.panose_1 is not None or \
@@ -106,10 +104,9 @@ class BitmapFont2TTF:
             if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
-        if not self.args.dumb:
-            self.inherit_bdf_metas()
+        self.inherit_bdf_metas()
 
-        if not (self.args.no_sfnt_names or self.args.dumb):
+        if not self.args.no_sfnt_names:
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
             self.font.appendSFNTName("English (US)", "Copyright", self.font.copyright) # [0]
@@ -274,8 +271,7 @@ class BitmapFont2TTF:
             italicize_angle = math.atan(self.args.italicize_slant * pixX / pixY) * 180 / math.pi
         italicize_center_y = self.args.italicize_center if self.args.italicize_center is not None else 0
 
-        if not self.args.dumb:
-            self.font.italicangle = italicize_angle
+        self.font.italicangle = italicize_angle
 
         for line in bdf_char.bitmap_data:
             line = hex_data_to_bin_data(line)
