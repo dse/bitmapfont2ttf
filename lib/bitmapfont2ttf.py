@@ -171,17 +171,22 @@ class BitmapFont2TTF:
         if len(glyphs) == 0:
             return
         super_narrow_glyphs = [glyph for glyph in glyphs if glyph.width < MIN_GLYPH_WIDTH_EM * glyph.font.em]
+        substantive_glyphs = [glyph for glyph in glyphs if glyph.width >= MIN_GLYPH_WIDTH_EM * glyph.font.em]
         for glyph in super_narrow_glyphs:
             glyph.width = 0
-        substantive_glyphs = [glyph for glyph in glyphs if glyph.width >= MIN_GLYPH_WIDTH_EM * glyph.font.em]
         if len(substantive_glyphs) == 0:
             raise Exception("while detecting monospacedness, did not find any worthy glyphs")
-        clusters = get_clusters(substantive_glyphs, fn=lambda g:g.width)
-        if len(clusters) > 1:
-            raise Exception("font is dualspace; dualspace fonts not supported yet")
 
-        widths = [glyph.width for glyph in clusters[0]]
-        new_glyph_width = statistics.mean(statistics.multimode(widths))
+        if self.args.force_monospace:
+            # basically don't try to cluster
+            new_glyph_width = statistics.mean(statistics.multimode([glyph.width for glyph in substantive_glyphs]))
+        else:
+            clusters = get_clusters(substantive_glyphs, fn=lambda g:g.width)
+            if len(clusters) > 1:
+                raise Exception("font is dualspace; dualspace fonts not supported yet")
+            widths = [glyph.width for glyph in clusters[0]]
+            new_glyph_width = statistics.mean(statistics.multimode(widths))
+
         for glyph in substantive_glyphs:
             glyph.left_side_bearing = int(glyph.left_side_bearing + (new_glyph_width - glyph.width) / 2)
             glyph.width = new_glyph_width
