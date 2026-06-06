@@ -29,13 +29,14 @@ parser.add_argument("--top", type=float, default=1.0, help="proportion of pixel 
 parser.add_argument("--draw-crt", action="store_true")
 
 parser.add_argument("--monospace", action="store_true")
-parser.add_argument("--bdf-ascent-descent", action="store_true")
-parser.add_argument("--bdf-ascent-descent-2", action="store_true")
-parser.add_argument("--remove-line-gap", action="store_true", help="remove line gap from font metrics")
-parser.add_argument("--remove-ascent-add", action="store_true")
-parser.add_argument("--all-ascent-descent", action="store_true")
+parser.add_argument("--force-monospace", action="store_true")
+parser.add_argument("--use-bdf-ascent-descent", "--bdf-ascent-descent", action="store_true")
+parser.add_argument("--bdf-ascent-descent-2", action="store_true") # something to do with incrementing the pixel size if it % 4 == 2
+parser.add_argument("--remove-ttf-line-gap", "--remove-line-gap", action="store_true", help="remove line gap from font metrics")
+parser.add_argument("--remove-ttf-ascent-add", "--remove-ascent-add", action="store_true")
+parser.add_argument("--set-ttf-all-ascent-descent", "--all-ascent-descent", action="store_true")
 
-parser.add_argument("--os2-weight", type=int, help="100 .. 900") # TTFWeight in SFD files.
+parser.add_argument("--set-ttf-os2-weight", "--os2-weight", type=int, help="100 .. 900") # TTFWeight in SFD files.
 
 parser.add_argument("--panose-0", type=int, help="family kind, for latin text")
 parser.add_argument("--panose-1", type=int, help="serif style")
