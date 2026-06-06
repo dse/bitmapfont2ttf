@@ -40,7 +40,6 @@ class BitmapFont2TTF:
             self.bdf.use_properties = self.args.use_properties
 
         self.font = fontforge.font()
-        # self.font.importBitmaps(self.filename, True)
 
         self.font.fontname    = self.bdf.get_font_name()
         self.font.fullname    = self.bdf.get_full_name()
@@ -50,28 +49,6 @@ class BitmapFont2TTF:
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
         self.font.italicangle = self.bdf.get_ttf_italic_angle(dumb=self.args.dumb)
-
-        # importBitmaps sets the following, much of it from the BDF:
-        #     FontName: Untitled-BoldItalic
-        #     FullName: Untitled Bold Italic
-        #     FamilyName: Untitled
-        #     Weight: Bold
-        #     Copyright: Copyright 2023 Darren Embry.  SIL-OFL 1.1.
-        #     Encoding: UnicodeBmp
-        #     DisplaySize: 8 (this is set to -48 later.)
-        # importBitmaps does **not** set:
-        #     ItalicAngle
-        #     Version
-        #     sfntRevision
-        #     StyleMap
-        #     FSType
-        #     OS2Version
-        #     PfmFamily
-        #     TTFWeight
-        #     TTFWidth
-        #     Panose
-        #     LangName (the sfnt names)
-        #     ascent or descent
 
         self.trace()
         if self.args.bdf_ascent_descent:                        # Do we ever NOT use this?
