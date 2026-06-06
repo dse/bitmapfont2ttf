@@ -99,9 +99,6 @@ class BitmapFont2TTF:
         self.trace()
 
         if self.args.monospace:
-            panose = list(self.font.os2_panose)
-            panose[3] = 9
-            self.font.os2_panose = tuple(panose)
             self.make_font_detect_as_monospace()
 
         if self.args.panose_0 is not None or self.args.panose_1 is not None or \
@@ -167,6 +164,10 @@ class BitmapFont2TTF:
 
     # make sure all glyphs are the same width.  otherwise font may not be detected as monospace.  TODO: handle dual-width fonts
     def make_font_detect_as_monospace(self):
+        panose = list(self.font.os2_panose)
+        panose[3] = 9
+        self.font.os2_panose = tuple(panose)
+
         glyphs = list([glyph for glyph in self.font.glyphs()
                        if glyph.glyphname not in [".null",              # zero width
                                                   "nonmarkingreturn"]]) # non-zero width?
