@@ -106,8 +106,6 @@ class BitmapFont2TTF:
             if self.args.panose_9 is not None: panose[9] = self.args.panose_9
             self.font.os2_panose = tuple(panose)
 
-        self.inherit_bdf_metas()
-
         if not self.args.no_sfnt_names:
             if self.font.sfntRevision is None:
                 self.font.sfntRevision = 0x00010000
@@ -403,24 +401,6 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
-
-    def inherit_bdf_metas(self):
-        if self.bdf.font_name is not None:
-            self.font.fontname = self.bdf.font_name
-        if self.bdf.properties.get("FULL_NAME") is not None:
-            self.font.fullname = self.bdf.properties["FULL_NAME"]
-        if self.bdf.properties.get("FAMILY_NAME") is not None:
-            self.font.familyname = self.bdf.properties["FAMILY_NAME"]
-        if self.bdf.properties.get("WEIGHT_NAME") is not None:
-            self.font.weight = self.bdf.properties["WEIGHT_NAME"]
-        if self.bdf.properties.get("SLANT") is not None:
-            slant = self.bdf.properties["SLANT"].upper()
-            if slant == "R":
-                self.font.italicangle = 0
-            elif slant == "O":
-                self.font.italicangle = -12
-            elif slant == "I":
-                self.font.italicangle = -12
 
 def close(a, b):
     return (a <= (b * FUDGE_FACTOR)) and (b <= (a * FUDGE_FACTOR))
