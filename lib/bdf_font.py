@@ -145,17 +145,28 @@ class BDFFont:
             return r
         raise Exception('cannot determine resolutionY')
 
+    def get_ascent_px(self):
+        return self.ascent_px()
     def ascent_px(self):
         ascent = self.properties.get("FONT_ASCENT")
         if ascent is not None:
             return ascent
         raise Exception('cannot determine ascent_px')
 
+    def get_descent_px(self):
+        return self.descent_px()
     def descent_px(self):
         descent = self.properties.get("FONT_DESCENT")
         if descent is not None:
             return descent
         raise Exception('cannot determine descent_px')
+
+    def set_ascent_px(self, px):
+        self.properties["FONT_ASCENT"] = px
+    def set_descent_px(self, px):
+        self.properties["FONT_DESCENT"] = px
+    def set_pixel_size(self, px):
+        self.properties["PIXEL_SIZE"] = px
 
     def scalableToPixels(self, scalable):
         return 1.0 * scalable * self.properties["PIXEL_SIZE"] / 1000.0
