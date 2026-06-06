@@ -41,16 +41,6 @@ class BitmapFont2TTF:
 
         self.font = fontforge.font()
 
-        self.font.fontname    = self.bdf.get_font_name()
-        self.font.fullname    = self.bdf.get_full_name()
-        self.font.familyname  = self.bdf.get_family_name()
-        self.font.weight      = self.bdf.get_weight_name()
-        self.font.copyright   = self.bdf.get_copyright()
-        self.font.version     = self.bdf.get_font_version("")
-        self.font.encoding    = "UnicodeBMP"
-        self.font.italicangle = self.bdf.get_ttf_italic_angle()
-
-        self.trace()
         if self.args.bdf_ascent_descent:                        # Do we ever NOT use this?
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
@@ -80,6 +70,18 @@ class BitmapFont2TTF:
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
+
+        self.font.fontname    = self.bdf.get_font_name()
+        self.font.fullname    = self.bdf.get_full_name()
+        self.font.familyname  = self.bdf.get_family_name()
+        self.font.weight      = self.bdf.get_weight_name()
+        self.font.copyright   = self.bdf.get_copyright()
+        self.font.version     = self.bdf.get_font_version("")
+        self.font.encoding    = "UnicodeBMP"
+        self.font.italicangle = self.bdf.get_ttf_italic_angle()
+
+        self.trace()
+
         if self.args.monospace:
             panose = list(self.font.os2_panose)
             panose[3] = 9
