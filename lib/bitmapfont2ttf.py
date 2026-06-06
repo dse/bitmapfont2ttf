@@ -165,9 +165,8 @@ class BitmapFont2TTF:
     # make sure all glyphs are the same width.  otherwise font may not be detected as monospace.  TODO: handle dual-width fonts
     def make_font_detect_as_monospace(self):
         glyphs = list([glyph for glyph in self.font.glyphs()
-                       if glyph.glyphname not in [".notdef",            # non-zero width
-                                                  ".null",              # zero width
-                                                  "nonmarkingreturn"]]) # non-zero width
+                       if glyph.glyphname not in [".null",              # zero width
+                                                  "nonmarkingreturn"]]) # non-zero width?
         if len(glyphs) == 0:
             return
         super_narrow_glyphs = [glyph for glyph in glyphs if glyph.width < MIN_GLYPH_WIDTH_EM * glyph.font.em]
