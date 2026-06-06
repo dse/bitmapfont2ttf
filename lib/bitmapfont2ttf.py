@@ -52,6 +52,9 @@ class BitmapFont2TTF:
             if upos is not None and uthick is not None:
                 self.font.upos   = int(round(upos * em_units_per_pixel))
                 self.font.uthick = int(round(uthick * em_units_per_pixel))
+        else:
+            raise Exception("you're not using --bdf-ascent-descent, please remedy")
+
         if self.args.remove_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
