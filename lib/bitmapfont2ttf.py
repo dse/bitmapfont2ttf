@@ -74,21 +74,24 @@ class BitmapFont2TTF:
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
 
-        self.font.fontname    = self.bdf.get_font_name()
-        self.font.fullname    = self.bdf.get_full_name()
-        self.font.familyname  = self.bdf.get_family_name()
-        self.font.weight      = self.bdf.get_weight_name()
-
         if self.args.font_name is not None:
             self.font.fontname = self.args.font_name
+        else:
+            self.font.fontname = self.bdf.get_font_name()
         if self.args.full_name is not None:
             self.font.fullname = self.args.full_name
+        else:
+            self.font.fullname = self.bdf.get_full_name()
         if self.args.family_name is not None:
             self.font.familyname = self.args.family_name
+        else:
+            self.font.familyname  = self.bdf.get_family_name()
         if self.args.weight_name is not None:
             self.font.weight = self.args.weight_name
+        else:
+            self.font.weight = self.bdf.get_weight_name()
 
-        self.font.copyright   = self.bdf.get_copyright()
+        self.font.copyright = self.bdf.get_copyright()
         if self.args.copyright is not None:
             self.font.copyright = self.args.copyright
 
