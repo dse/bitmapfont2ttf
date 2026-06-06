@@ -50,8 +50,8 @@ class BitmapFont2TTF:
             upos   = self.bdf.get_underline_position_px()
             uthick = self.bdf.get_underline_thickness_px()
             if upos is not None and uthick is not None:
-                self.upos   = int(round(upos * em_units_per_pixel))
-                self.uthick = int(round(uthick * em_units_per_pixel))
+                self.font.upos   = int(round(upos * em_units_per_pixel))
+                self.font.uthick = int(round(uthick * em_units_per_pixel))
         if self.args.remove_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
