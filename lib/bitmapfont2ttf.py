@@ -239,26 +239,10 @@ class BitmapFont2TTF:
             glyph.simplify()
 
     def trace_glyph(self, glyph, bdf_char):
-        ofs_y = bdf_char.bbx_ofs_y
-        if ofs_y is None:
-            ofs_y = self.bdf.bbx_ofs_y
-        if ofs_y is None:
-            raise Exception("cannot find bounding box y offset: %s" % glyph)
-        ofs_x = bdf_char.bbx_ofs_x
-        if ofs_x is None:
-            ofs_x = self.bdf.bbx_ofs_x
-        if ofs_x is None:
-            raise Exception("cannot find bounding box x offset: %s" % glyph)
-        height = bdf_char.bbx_y
-        if height is None:
-            height = self.bdf.bbx_y
-        if height is None:
-            raise Exception("cannot find bounding box height: %s" % glyph)
-        width = bdf_char.bbx_x
-        if width is None:
-            width = self.bdf.bbx_x
-        if width is None:
-            raise Exception("cannot find bounding box width: %s" % glyph)
+        ofs_y = bdf_char.get_bbx_ofs_y()
+        ofs_x = bdf_char.get_bbx_ofs_x()
+        height = bdf_char.get_bbx_y()
+        width = bdf_char.get_bbx_x()
 
         y = ofs_y + height
         pixY = 1.0 * self.font.em / self.bdf.get_pixel_size()
