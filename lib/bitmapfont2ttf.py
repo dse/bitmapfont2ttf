@@ -75,21 +75,26 @@ class BitmapFont2TTF:
         self.font.encoding    = "UnicodeBMP"
 
         if self.args.font_name is not None:
-            self.font.fontname = self.args.font_name
+            fontname = self.args.font_name
         else:
-            self.font.fontname = self.bdf.get_font_name()
+            fontname = self.bdf.get_font_name()
         if self.args.full_name is not None:
-            self.font.fullname = self.args.full_name
+            fullname = self.args.full_name
         else:
-            self.font.fullname = self.bdf.get_full_name()
+            fullname = self.bdf.get_full_name()
         if self.args.family_name is not None:
-            self.font.familyname = self.args.family_name
+            familyname = self.args.family_name
         else:
-            self.font.familyname  = self.bdf.get_family_name()
+            familyname  = self.bdf.get_family_name()
         if self.args.weight_name is not None:
-            self.font.weight = self.args.weight_name
+            weight = self.args.weight_name
         else:
-            self.font.weight = self.bdf.get_weight_name()
+            weight = self.bdf.get_weight_name()
+
+        self.font.fontname = self.format(fontname)
+        self.font.fullname = self.format(fullname)
+        self.font.familyname = self.format(familyname)
+        self.font.weight = self.format(weight)
 
         self.font.copyright = self.bdf.get_copyright()
         if self.args.copyright is not None:
@@ -397,6 +402,34 @@ class BitmapFont2TTF:
                         contour.closed = True
                         glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
+
+    def format(self, str):
+        """
+        replace %{...} sequences in the string with appropriate values
+        and return the result.
+
+        if a %{...} is immediately preceded by a space, that space is
+        removed from the string if there is no value to replace the
+        %{...} sequence with.
+        """
+        def replacer(match):
+            space = match[1]
+            varname = match[2]
+            replacement = ""
+            if varname in ["family", "familyname"]:
+                replacement = self.font.familyname
+            elif varname in ["font", "fontname"]:
+                replacement = self.font.fontname
+            elif varname in ["weight", "weightname"]:
+                replacement = self.font.weight
+            elif varname in ["full", "fullname"]:
+                replacement = self.font.fullname
+            elif varname in ["px", "pixelsize"]:
+                replacement = str(self.bdf.get_pixel_size())
+            if replacement == "":
+                return ""
+            return space + replacement
+        return re.sub(r'(\s?)%\{([^%{}]+)\}', replacer, str)
 
 def close(a, b):
     return (a <= (b * FUDGE_FACTOR)) and (b <= (a * FUDGE_FACTOR))
