@@ -71,14 +71,13 @@ class BitmapFont2TTF:
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
 
+        self.font.version     = self.bdf.get_font_version("")
+        self.font.encoding    = "UnicodeBMP"
+
         self.font.fontname    = self.bdf.get_font_name()
         self.font.fullname    = self.bdf.get_full_name()
         self.font.familyname  = self.bdf.get_family_name()
         self.font.weight      = self.bdf.get_weight_name()
-        self.font.copyright   = self.bdf.get_copyright()
-        self.font.version     = self.bdf.get_font_version("")
-        self.font.encoding    = "UnicodeBMP"
-        self.font.italicangle = self.bdf.get_ttf_italic_angle()
 
         if self.args.font_name is not None:
             self.font.fontname = self.args.font_name
@@ -88,8 +87,12 @@ class BitmapFont2TTF:
             self.font.familyname = self.args.family_name
         if self.args.weight_name is not None:
             self.font.weight = self.args.weight_name
+
+        self.font.copyright   = self.bdf.get_copyright()
         if self.args.copyright is not None:
             self.font.copyright = self.args.copyright
+
+        self.font.italicangle = self.bdf.get_ttf_italic_angle()
         if self.args.italic_angle is not None:
             self.font.italicangle = self.args.italic_angle
 
