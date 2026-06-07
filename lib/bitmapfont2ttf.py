@@ -41,10 +41,12 @@ class BitmapFont2TTF:
 
         self.font = fontforge.font()
 
-        if self.args.bdf_ascent_descent:                        # Do we ever NOT use this?
+        if self.args.use_bdf_ascent_descent:                        # Do we ever NOT use this?
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
-            em_units_per_pixel = 1.0 * self.font.em / (ascent_px + descent_px)
+            pixel_size = ascent_px + descent_px
+            self.bdf.set_pixel_size(pixel_size)
+            em_units_per_pixel = 1.0 * self.font.em / pixel_size
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
             self.font.descent = int(round(descent_px * em_units_per_pixel))
             upos   = self.bdf.get_underline_position_px()
@@ -52,24 +54,46 @@ class BitmapFont2TTF:
             if upos is not None and uthick is not None:
                 self.font.upos   = int(round(upos * em_units_per_pixel))
                 self.font.uthick = int(round(uthick * em_units_per_pixel))
+
+            favor_descent = True
+            if self.args.add_pixel_size:
+                pixel_size += self.args.add_pixel_size
+                ascent_px += int(self.args.add_pixel_size / 2)
+                descent_px = pixel_size - ascent_px
+                self.bdf.set_ascent_px(ascent_px)
+                self.bdf.set_descent_px(descent_px)
+                self.bdf.set_pixel_size(pixel_size)
+                if self.args.add_pixel_size % 2 == 1:
+                    favor_descent = False
+            if self.args.windows:
+                if pixel_size % 4 == 2:
+                    pixel_size += 1
+                    self.bdf.set_pixel_size(pixel_size)
+                    if favor_descent:
+                        descent_px += 1
+                        self.bdf.set_descent_px(descent_px)
+                    else:
+                        ascent_px += 1
+                        self.bdf.set_ascent_px(ascent_px)
+
         else:
             raise Exception("you're not using --bdf-ascent-descent, please remedy")
 
-        if self.args.remove_ascent_add:                         # Do we ever NOT use this?
+        if self.args.remove_ttf_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
             self.font.hhea_descent_add    = 0
             self.font.os2_typoascent_add  = 0
             self.font.os2_typodescent_add = 0
             self.font.os2_winascent_add   = 0
             self.font.os2_windescent_add  = 0
-        if self.args.all_ascent_descent:                        # Do we ever NOT use this?
+        if self.args.set_ttf_all_ascent_descent:                        # Do we ever NOT use this?
             self.font.hhea_ascent     = self.font.ascent
             self.font.hhea_descent    = -self.font.descent
             self.font.os2_typoascent  = self.font.ascent
             self.font.os2_typodescent = -self.font.descent
             self.font.os2_winascent   = self.font.ascent
             self.font.os2_windescent  = self.font.descent
-        if self.args.remove_line_gap:                           # Do we ever NOT use this?
+        if self.args.remove_ttf_line_gap:                           # Do we ever NOT use this?
             self.font.hhea_linegap    = 0
             self.font.os2_typolinegap = 0
             self.font.vhea_linegap    = 0
@@ -147,8 +171,8 @@ class BitmapFont2TTF:
             self.font.appendSFNTName("English (US)", "Version", "0.0") # FIXME [5]
             self.font.appendSFNTName("English (US)", "PostScriptName", self.font.fontname) # [6]
 
-        if self.args.os2_weight is not None:
-            self.font.os2_weight = self.args.os2_weight
+        if self.args.set_ttf_os2_weight is not None:
+            self.font.os2_weight = self.args.set_ttf_os2_weight
         if self.args.macstyle is not None:
             self.font.macstyle = self.args.macstyle
         if self.args.stylemap is not None:
@@ -277,8 +301,8 @@ class BitmapFont2TTF:
 
         self.font.italicangle = italicize_angle
 
-        for line in bdf_char.bitmap_data:
-            line = hex_data_to_bin_data(line)
+        for hex_data in bdf_char.bitmap_data:
+            line = hex_data_to_bin_data(hex_data)
             y = y - 1
             if self.args.circular_dots:
                 x = ofs_x
