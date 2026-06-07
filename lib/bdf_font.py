@@ -3,6 +3,7 @@ import sys
 from bdf_char import BDFChar
 from bdf_property_types import BDF_PROPERTY_TYPES
 from bdf_utils import bdf_escape
+from parse_xlfd import is_xlfd
 
 DEFAULT_ORDER = [
     "FONT",
@@ -390,25 +391,29 @@ class BDFFont:
     # TODO: allow XLFD FONT in main section and normal FONT property?
     def issue_font_name_warning(self):
         if self.font_name is not None and self.properties.get("FONT") is not None:
-            if self.font_name != self.properties.get("FONT"):
-                sys.stderr.write("WARNING: FONT in main section and properties do not match\n")
+            if self.font_name != self.properties.get("FONT") and not is_xlfd(self.font_name):
+                sys.stderr.write("WARNING: %s: FONT name in main section (%s, not an XLFD) and properties (%s) do not match\n" %
+                                 (self.filename, self.font_name, self.properties.get("FONT")))
 
     def issue_point_size_warning(self):
         if self.point_size is not None and self.properties.get("POINT_SIZE") is not None:
             if self.point_size != int(round(self.properties["POINT_SIZE"] / 10)):
-                sys.stderr.write("WARNING: inconsistent point sizes\n")
+                sys.stderr.write("WARNING: %s: inconsistent point sizes (SIZE %d and POINT_SIZE %d)\n" %
+                                 (self.filename, self.point_size, self.properties["POINT_SIZE"]))
 
     def issue_resolution_x_warning(self):
         rx1 = self.res_x
         rx2 = self.properties.get("RESOLUTION_X")
         if rx1 is not None and rx2 is not None and rx1 != rx2:
-            sys.stderr.write("WARNING: x-resolution specified in properties and SIZE line are different\n")
+            sys.stderr.write("WARNING: %s: x-resolution (%d) specified in properties and SIZE line (%d) are different\n" %
+                             (self.filename, rx1, rx2))
 
     def issue_resolution_y_warning(self):
         ry1 = self.res_y
         ry2 = self.properties.get("RESOLUTION_Y")
         if ry1 is not None and ry2 is not None and ry1 != ry2:
-            sys.stderr.write("WARNING: y-resolution specified in properties and SIZE line are different\n")
+            sys.stderr.write("WARNING: %s: y-resolution (%d) specified in properties and SIZE line (%d) are different\n" %
+                             (self.filename, ry1, ry2))
 
     def end_font(self):
         if self.use_properties:
@@ -511,12 +516,12 @@ class BDFFont:
                     duped_encodings[char.encoding] = True
 
         for encoding in duped_encodings.keys():
-            print("WARNING: duplicate characters with encoding %d" % encoding, file=sys.stderr)
+            print("WARNING: %s: duplicate characters with encoding %d" % (self.filename, encoding), file=sys.stderr)
             for char in all_chars_by_encoding[encoding]:
                 print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
                                                     char.name, char.encoding), file=sys.stderr)
         for name in duped_names.keys():
-            print("WARNING: duplicate characters with name %s" % name, file=sys.stderr)
+            print("WARNING: %s: duplicate characters with name %s" % (self.filename, name), file=sys.stderr)
             for char in all_chars_by_name[name]:
                 print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
                                                     char.name, char.encoding), file=sys.stderr)
