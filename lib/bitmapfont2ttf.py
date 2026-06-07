@@ -45,28 +45,28 @@ class BitmapFont2TTF:
             ascent_px = self.bdf.ascent_px()
             descent_px = self.bdf.descent_px()
             pixel_size = ascent_px + descent_px
-            self.bdf.set_pixel_size(pixel_size)
 
+            # if self.args.add_pixel_size section adds one pixel to descent, let self.args.windows section add one pixel to ascent.
             favor_descent = True
+
             if self.args.add_pixel_size:
                 pixel_size += self.args.add_pixel_size
                 ascent_px += int(self.args.add_pixel_size / 2)
                 descent_px = pixel_size - ascent_px
-                self.bdf.set_ascent_px(ascent_px)
-                self.bdf.set_descent_px(descent_px)
-                self.bdf.set_pixel_size(pixel_size)
+                # may add one more pixel to descent than to ascent
                 if self.args.add_pixel_size % 2 == 1:
                     favor_descent = False
             if self.args.windows:
                 if pixel_size % 4 == 2:
                     pixel_size += 1
-                    self.bdf.set_pixel_size(pixel_size)
                     if favor_descent:
                         descent_px += 1
-                        self.bdf.set_descent_px(descent_px)
                     else:
                         ascent_px += 1
-                        self.bdf.set_ascent_px(ascent_px)
+
+            self.bdf.set_ascent_px(ascent_px)
+            self.bdf.set_descent_px(descent_px)
+            self.bdf.set_pixel_size(pixel_size)
 
             em_units_per_pixel = 1.0 * self.font.em / pixel_size
             self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
