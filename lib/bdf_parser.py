@@ -38,17 +38,18 @@ class BDFParser():
     def __init__(self, filename=None, args=None):
         self.filename = filename
         self.font = BDFFont()
+        self.font.filename = self.filename
         self.parse_stage = PARSE_STAGE_MAIN
         self.args = args
         if self.args is not None:
             self.font.use_properties = self.args.use_properties
         if filename is not None:
-            sys.stderr.write("Reading %s\n" % filename)
+            print("Reading %s" % filename)
             self.read(filename)
             self.font.issue_warnings()
             self.font.end_char()
             self.font.end_font()
-            sys.stderr.write("Finished reading %s\n" % filename)
+            print("Finished reading %s" % filename)
 
     def read(self, filename):
         line_number = 0
