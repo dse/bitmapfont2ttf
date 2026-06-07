@@ -555,6 +555,8 @@ class BDFFont:
         if "SLANT" in self.properties:
             return self.properties["SLANT"].upper()
         return default
+    def set_slant(self, value):
+        self.properties["SLANT"] = value.upper()
 
     def get_bdf_italic_angle(self, dumb=False):
         if "ITALIC_ANGLE" in self.properties:
