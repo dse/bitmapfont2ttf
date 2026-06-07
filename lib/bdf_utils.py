@@ -15,10 +15,12 @@ def hex_data_to_bin_data(hex_data, pixels=False):
     if hex_data == "":
         return "00000000"
     hex_data += "0" * ((2 - len(hex_data) % 2) % 2)
-    dec_data = int(hex_data, 16)
-    bin_len = len(hex_data) * 4
-    bin_data = bin(dec_data)[2:]
-    bin_data = "0" * ((8 - len(bin_data) % 8) % 8) + bin_data
+    bin_data = ""
+    for hex_nybble in hex_data:
+        dec_nybble = int(hex_nybble, 16)
+        bin_nybble = bin(dec_nybble)[2:]
+        bin_nybble = ("0000" + bin_nybble)[-4:]
+        bin_data += bin_nybble
     if pixels:
         bin_data = bin_data.replace("0"," ").replace("1","#")
     return bin_data
