@@ -100,25 +100,6 @@ class BitmapFont2TTF:
         else:
             raise Exception("you're not using --bdf-ascent-descent, please remedy")
 
-        if self.args.remove_ttf_ascent_add:                         # Do we ever NOT use this?
-            self.font.hhea_ascent_add     = 0
-            self.font.hhea_descent_add    = 0
-            self.font.os2_typoascent_add  = 0
-            self.font.os2_typodescent_add = 0
-            self.font.os2_winascent_add   = 0
-            self.font.os2_windescent_add  = 0
-        if self.args.set_ttf_all_ascent_descent:                        # Do we ever NOT use this?
-            self.font.hhea_ascent     = self.font.ascent
-            self.font.hhea_descent    = -self.font.descent
-            self.font.os2_typoascent  = self.font.ascent
-            self.font.os2_typodescent = -self.font.descent
-            self.font.os2_winascent   = self.font.ascent
-            self.font.os2_windescent  = self.font.descent
-        if self.args.remove_ttf_line_gap:                           # Do we ever NOT use this?
-            self.font.hhea_linegap    = 0
-            self.font.os2_typolinegap = 0
-            self.font.vhea_linegap    = 0
-
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
 
@@ -245,6 +226,28 @@ class BitmapFont2TTF:
         comment += "    TTF weight:    %d\n" % self.font.os2_weight
 
         print(comment)
+
+        # if you don't set font weight before this point it doesn't work
+        if self.args.remove_ttf_ascent_add:                         # Do we ever NOT use this?
+            self.font.hhea_ascent_add     = 0
+            self.font.hhea_descent_add    = 0
+            self.font.os2_typoascent_add  = 0
+            self.font.os2_typodescent_add = 0
+            self.font.os2_winascent_add   = 0
+            self.font.os2_windescent_add  = 0
+
+        if self.args.set_ttf_all_ascent_descent:                        # Do we ever NOT use this?
+            self.font.hhea_ascent     = self.font.ascent
+            self.font.hhea_descent    = -self.font.descent
+            self.font.os2_typoascent  = self.font.ascent
+            self.font.os2_typodescent = -self.font.descent
+            self.font.os2_winascent   = self.font.ascent
+            self.font.os2_windescent  = self.font.descent
+
+        if self.args.remove_ttf_line_gap:                           # Do we ever NOT use this?
+            self.font.hhea_linegap    = 0
+            self.font.os2_typolinegap = 0
+            self.font.vhea_linegap    = 0
 
         return self.font
 
