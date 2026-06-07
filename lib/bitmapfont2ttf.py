@@ -33,7 +33,7 @@ class BitmapFont2TTF:
         if (os.path.splitext(self.filename))[1].lower() != '.bdf':
             raise Exception("only bdf bitmap fonts are supported")
         if font is None:
-            self.bdf = BDFFont(self.filename)
+            self.bdf = BDFFont()
             self.bdf.use_properties = self.args.use_properties
         else:
             self.bdf = font
@@ -46,14 +46,6 @@ class BitmapFont2TTF:
             descent_px = self.bdf.descent_px()
             pixel_size = ascent_px + descent_px
             self.bdf.set_pixel_size(pixel_size)
-            em_units_per_pixel = 1.0 * self.font.em / pixel_size
-            self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
-            self.font.descent = int(round(descent_px * em_units_per_pixel))
-            upos   = self.bdf.get_underline_position_px()
-            uthick = self.bdf.get_underline_thickness_px()
-            if upos is not None and uthick is not None:
-                self.font.upos   = int(round(upos * em_units_per_pixel))
-                self.font.uthick = int(round(uthick * em_units_per_pixel))
 
             favor_descent = True
             if self.args.add_pixel_size:
@@ -75,6 +67,35 @@ class BitmapFont2TTF:
                     else:
                         ascent_px += 1
                         self.bdf.set_ascent_px(ascent_px)
+
+            em_units_per_pixel = 1.0 * self.font.em / pixel_size
+            self.font.ascent  = int(round(ascent_px * em_units_per_pixel))
+            self.font.descent = int(round(descent_px * em_units_per_pixel))
+            upos   = self.bdf.get_underline_position_px()
+            uthick = self.bdf.get_underline_thickness_px()
+            if upos is not None and uthick is not None:
+                self.font.upos   = int(round(upos * em_units_per_pixel))
+                self.font.uthick = int(round(uthick * em_units_per_pixel))
+
+            pixel_size_y = round(self.font.em / pixel_size)
+            pixel_size_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / pixel_size)
+            # self.font.em = pixel_size_y * pixel_size
+            # self.font.ascent = pixel_size_y * ascent_px
+            # self.font.descent = pixel_size_y * descent_px
+            # upos   = self.bdf.get_underline_position_px()
+            # uthick = self.bdf.get_underline_thickness_px()
+            # if upos is not None and uthick is not None:
+            #     self.font.upos   = int(round(upos * em_units_per_pixel))
+            #     self.font.uthick = int(round(uthick * em_units_per_pixel))
+            # self.pixel_size_y = pixel_size_y
+            # self.pixel_size_x = pixel_size_x
+
+            print("%s: after metric adjustments:" % self.filename)
+            print("    ascent px: %d" % self.bdf.get_ascent_px())
+            print("    descent px: %d" % self.bdf.get_descent_px())
+            print("    pixel size: %d" % self.bdf.get_pixel_size())
+            print("    pixel size y: %d" % pixel_size_y)
+            print("    pixel size x: %d" % pixel_size_x)
 
         else:
             raise Exception("you're not using --bdf-ascent-descent, please remedy")
@@ -118,10 +139,25 @@ class BitmapFont2TTF:
         else:
             weight = self.bdf.get_weight_name()
 
-        self.font.fontname = self.format(fontname)
-        self.font.fullname = self.format(fullname)
-        self.font.familyname = self.format(familyname)
-        self.font.weight = self.format(weight)
+        format_args = {
+            "familyname": familyname,
+            "fontname": fontname,
+            "fullname": fullname,
+            "weight": weight,
+            "pixel_size": self.bdf.get_pixel_size(),
+        }
+
+        self.font.fontname   = self.format(fontname, format_args)
+        self.font.fullname   = self.format(fullname, format_args)
+        self.font.familyname = self.format(familyname, format_args)
+        self.font.weight     = self.format(weight, format_args)
+        self.font.weight     = self.format(weight, format_args)
+
+        print("%s" % self.args.filename)
+        print("    fontname    %s" % self.font.fontname)
+        print("    familyname  %s" % self.font.familyname)
+        print("    weight      %s" % self.font.weight)
+        print("    fullname    %s" % self.font.fullname)
 
         self.font.copyright = self.bdf.get_copyright()
         if self.args.copyright is not None:
@@ -130,6 +166,9 @@ class BitmapFont2TTF:
         self.font.italicangle = self.bdf.get_ttf_italic_angle()
         if self.args.italic_angle is not None:
             self.font.italicangle = self.args.italic_angle
+
+        if self.bdf.properties.get("WEIGHT_NAME") is not None:
+            self.font.weight = self.bdf.properties["WEIGHT_NAME"]
 
         self.trace()
 
@@ -194,6 +233,18 @@ class BitmapFont2TTF:
         # https://glyphsapp.com/learn/naming
         if len(self.font.fontname) > 29:
             print("WARNING: PS font name longer than 29 characters: %s" % repr(self.font.fontname))
+
+        comment = "%s:\n" % self.filename
+        comment += "    pixel size:    %d\n" % self.bdf.get_pixel_size()
+        comment += "    pixel ascent:  %d\n" % self.bdf.get_ascent_px()
+        comment += "    pixel descent: %d\n" % self.bdf.get_descent_px()
+        comment += "    em:            %d\n" % self.font.em
+        comment += "    em ascent:     %d\n" % self.font.ascent
+        comment += "    em descent:    %d\n" % self.font.descent
+        comment += "    weight:        %s\n" % self.font.weight
+        comment += "    TTF weight:    %d\n" % self.font.os2_weight
+
+        print(comment)
 
         return self.font
 
@@ -430,7 +481,7 @@ class BitmapFont2TTF:
                         glyph.layers['Fore'] += contour
         glyph.width = int(round(bdf_char.get_dwidth_x() * pixX))
 
-    def format(self, str):
+    def format(self, str, format_args):
         """
         replace %{...} sequences in the string with appropriate values
         and return the result.
@@ -443,16 +494,16 @@ class BitmapFont2TTF:
             space = match[1]
             varname = match[2]
             replacement = ""
-            if varname in ["family", "familyname"]:
-                replacement = self.font.familyname
-            elif varname in ["font", "fontname"]:
-                replacement = self.font.fontname
-            elif varname in ["weight", "weightname"]:
-                replacement = self.font.weight
-            elif varname in ["full", "fullname"]:
-                replacement = self.font.fullname
-            elif varname in ["px", "pixelsize"]:
-                replacement = str(self.bdf.get_pixel_size())
+            if varname in ["family", "familyname"] and "familyname" in format_args:
+                replacement = format_args["familyname"]
+            elif varname in ["font", "fontname"] and "fontname" in format_args:
+                replacement = format_args["fontname"]
+            elif varname in ["weight", "weightname"] and "weight" in format_args:
+                replacement = format_args["weight"]
+            elif varname in ["full", "fullname"] and "fullname" in format_args:
+                replacement = format_args["fullname"]
+            elif varname in ["px", "pixelsize"] and "pixel_size" in format_args:
+                replacement = str(format_args["pixel_size"])
             if replacement == "":
                 return ""
             return space + replacement
