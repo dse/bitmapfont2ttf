@@ -68,25 +68,25 @@ class BitmapFont2TTF:
             self.bdf.set_descent_px(descent_px)
             self.bdf.set_pixel_size(pixel_size)
 
-            self.pixel_size_y = round(self.font.em / pixel_size)
-            self.pixel_size_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / pixel_size)
-            self.delta_x = self.pixel_size_x * (1.0 - self.args.dot_width) / 2
-            self.delta_y = self.pixel_size_y * (1.0 - self.args.dot_height) / 2
+            self.em_per_pixel_y = round(self.font.em / pixel_size)
+            self.em_per_pixel_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / pixel_size)
+            self.delta_x = self.em_per_pixel_x * (1.0 - self.args.dot_width) / 2
+            self.delta_y = self.em_per_pixel_y * (1.0 - self.args.dot_height) / 2
 
-            self.font.ascent  = ascent_px * self.pixel_size_y
-            self.font.descent = descent_px * self.pixel_size_y
+            self.font.ascent  = ascent_px * self.em_per_pixel_y
+            self.font.descent = descent_px * self.em_per_pixel_y
             upos   = self.bdf.get_underline_position_px()
             uthick = self.bdf.get_underline_thickness_px()
             if upos is not None and uthick is not None:
-                self.font.upos   = upos * self.pixel_size_y
-                self.font.uthick = uthick * self.pixel_size_y
+                self.font.upos   = upos * self.em_per_pixel_y
+                self.font.uthick = uthick * self.em_per_pixel_y
 
             print("%s: after metric adjustments:" % self.filename)
             print("    ascent px: %d" % self.bdf.get_ascent_px())
             print("    descent px: %d" % self.bdf.get_descent_px())
             print("    pixel size: %d" % self.bdf.get_pixel_size())
-            print("    pixel size y: %d" % self.pixel_size_y)
-            print("    pixel size x: %d" % self.pixel_size_x)
+            print("    pixel size y: %d" % self.em_per_pixel_y)
+            print("    pixel size x: %d" % self.em_per_pixel_x)
 
         else:
             raise Exception("you're not using --bdf-ascent-descent, please remedy")
@@ -141,10 +141,10 @@ class BitmapFont2TTF:
         if self.args.italicize_angle is not None or self.args.italicize_slant is not None:
             if self.args.italicize_angle is not None:
                 self.italicize_angle = self.args.italicize_angle
-                self.italicize_slant = math.tan(self.args.italicize_angle * math.pi / 180) * self.pixel_size_y / self.pixel_size_x
+                self.italicize_slant = math.tan(self.args.italicize_angle * math.pi / 180) * self.em_per_pixel_y / self.em_per_pixel_x
             elif self.args.italicize_slant is not None:
                 self.italicize_slant = self.args.italicize_slant
-                self.italicize_angle = math.atan(self.args.italicize_slant * self.pixel_size_x / self.pixel_size_y) * 180 / math.pi
+                self.italicize_angle = math.atan(self.args.italicize_slant * self.em_per_pixel_x / self.em_per_pixel_y) * 180 / math.pi
             self.italicize_center_y = self.args.italicize_center if self.args.italicize_center is not None else 0
             self.font.italicangle = self.italicize_angle
         elif self.args.italic_angle is not None:
@@ -350,17 +350,17 @@ class BitmapFont2TTF:
                 x = ofs_x
                 for pixel in line:
                     if pixel == '1':
-                        xh = round(self.pixel_size_x * self.args.dot_width * 0.5)
-                        yh = round(self.pixel_size_y * self.args.dot_height * 0.5)
+                        xh = round(self.em_per_pixel_x * self.args.dot_width * 0.5)
+                        yh = round(self.em_per_pixel_y * self.args.dot_height * 0.5)
                         r = max(xh, yh)
-                        xc = round(self.pixel_size_x * (x + 0.5 - self.italicize_slant * (y - self.italicize_center_y)))
-                        yc = round(self.pixel_size_y * (y + 0.5))
+                        xc = round(self.em_per_pixel_x * (x + 0.5 - self.italicize_slant * (y - self.italicize_center_y)))
+                        yc = round(self.em_per_pixel_y * (y + 0.5))
                         x1 = xc - r
                         x2 = xc + r
                         y1 = yc - r
                         y2 = yc + r
-                        xcp = round(self.pixel_size_x * self.args.dot_width * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
-                        ycp = round(self.pixel_size_y * self.args.dot_height * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        xcp = round(self.em_per_pixel_x * self.args.dot_width * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
+                        ycp = round(self.em_per_pixel_y * self.args.dot_height * 0.5 * THAT_CIRCLE_BEZIER_CONSTANT)
                         contour = fontforge.contour();
                         contour.moveTo(xc, y1)
                         contour.cubicTo((xc + xcp, y1), (x2, yc - ycp), (x2, yc))
@@ -375,10 +375,10 @@ class BitmapFont2TTF:
                 for pixel in line:
                     if pixel == '1':
                         xx = x - self.italicize_slant * (y - self.italicize_center_y)
-                        x1 = self.pixel_size_x * xx       + self.delta_x
-                        x2 = self.pixel_size_x * (xx + 1) - self.delta_x
-                        y1 = self.pixel_size_y * y       + self.delta_y
-                        y2 = self.pixel_size_y * (y + 1) - self.delta_y
+                        x1 = self.em_per_pixel_x * xx       + self.delta_x
+                        x2 = self.em_per_pixel_x * (xx + 1) - self.delta_x
+                        y1 = self.em_per_pixel_y * y       + self.delta_y
+                        y2 = self.em_per_pixel_y * (y + 1) - self.delta_y
                         contour = fontforge.contour()
                         contour.moveTo(round(x1), round(y1))
                         contour.lineTo(round(x1), round(y2))
@@ -413,10 +413,10 @@ class BitmapFont2TTF:
                 for pixel_block in pixel_blocks:
                     xa = pixel_block[0] - self.italicize_slant * (y - self.italicize_center_y)
                     xb = pixel_block[1] - self.italicize_slant * (y - self.italicize_center_y)
-                    x1 = self.pixel_size_x * xa       + self.delta_x
-                    x2 = self.pixel_size_x * (xb + 1) - self.delta_x
-                    y1 = self.pixel_size_y * y        + self.delta_y
-                    y2 = self.pixel_size_y * (y + 1)  - self.delta_y
+                    x1 = self.em_per_pixel_x * xa       + self.delta_x
+                    x2 = self.em_per_pixel_x * (xb + 1) - self.delta_x
+                    y1 = self.em_per_pixel_y * y        + self.delta_y
+                    y2 = self.em_per_pixel_y * (y + 1)  - self.delta_y
                     if y1unit != 0.0 or y2unit != 1.0:
                         [y1, y2] = [y1 + (y2 - y1) * y1unit,
                                     y1 + (y2 - y1) * y2unit]
@@ -425,11 +425,11 @@ class BitmapFont2TTF:
                         yc1 = yc + (y1 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
                         yc2 = yc + (y2 - yc) * THAT_CIRCLE_BEZIER_CONSTANT
 
-                        xp1 = x1 + self.pixel_size_x * 0.5
-                        xp2 = x2 - self.pixel_size_x * 0.5
+                        xp1 = x1 + self.em_per_pixel_x * 0.5
+                        xp2 = x2 - self.em_per_pixel_x * 0.5
 
-                        x1 = xp1 - self.pixel_size_x * 2 / math.pi
-                        x2 = xp2 + self.pixel_size_x * 2 / math.pi
+                        x1 = xp1 - self.em_per_pixel_x * 2 / math.pi
+                        x2 = xp2 + self.em_per_pixel_x * 2 / math.pi
 
                         if xp1 > xp2:
                             delta = (xp2 - xp1) / 2
@@ -470,7 +470,7 @@ class BitmapFont2TTF:
                         contour.lineTo(round(x2), round(y1))
                         contour.closed = True
                         glyph.layers['Fore'] += contour
-        glyph.width = int(round(bdf_char.get_dwidth_x() * self.pixel_size_x))
+        glyph.width = int(round(bdf_char.get_dwidth_x() * self.em_per_pixel_x))
 
     def format(self, str, format_args):
         """
