@@ -202,18 +202,6 @@ class BitmapFont2TTF:
         if len(self.font.fontname) > 29:
             print("WARNING: PS font name longer than 29 characters: %s" % repr(self.font.fontname))
 
-        comment = "%s:\n" % self.filename
-        comment += "    pixel size:    %d\n" % self.bdf.get_pixel_size()
-        comment += "    pixel ascent:  %d\n" % self.bdf.get_ascent_px()
-        comment += "    pixel descent: %d\n" % self.bdf.get_descent_px()
-        comment += "    em:            %d\n" % self.font.em
-        comment += "    em ascent:     %d\n" % self.font.ascent
-        comment += "    em descent:    %d\n" % self.font.descent
-        comment += "    weight:        %s\n" % self.font.weight
-        comment += "    TTF weight:    %d\n" % self.font.os2_weight
-
-        print(comment)
-
         # if you don't set font weight before this point it doesn't work
         if self.args.remove_ttf_ascent_add:                         # Do we ever NOT use this?
             self.font.hhea_ascent_add     = 0
