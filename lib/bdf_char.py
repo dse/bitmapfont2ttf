@@ -87,7 +87,7 @@ class BDFChar:
     def get_dwidth_x(self):
         dwidth_x = self.get_dwidth_x_no_parent()
         if dwidth_x is not None:
-            return self.dwidth_x
+            return dwidth_x
         return self.font.get_dwidth_x()
 
     def get_dwidth_y(self):
