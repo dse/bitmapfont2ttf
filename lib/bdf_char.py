@@ -419,34 +419,51 @@ class BDFChar:
     #==========================================================================
 
     def sanity_check(self):
-        self.sanity_check_swidth_dwidth_x()
-        self.sanity_check_encoding()
-        self.sanity_check_bitmap_data()
+        is_sane = True
+        if not self.sanity_check_swidth_dwidth_x():
+            is_sane = False
+        if not self.sanity_check_encoding():
+            is_sane = False
+        if not self.sanity_check_bitmap_data():
+            is_sane = False
+        return is_sane
 
     def sanity_check_swidth_dwidth_x(self):
+        is_sane = True
         if self.swidth_x is not None and self.dwidth_x is not None:
             swidth_x_from_dwidth_x = round(self.dwidth_x / self.get_resolution_x() * 72.27 / self.get_point_size() * 1000)
             dwidth_x_from_swidth_x = round(self.swidth_x / 1000 * self.get_point_size() / 72.27 * self.get_resolution_x())
             if dwidth_x_from_swidth_x != self.dwidth_x:
                 print("WARNING: %s: char %s: DWIDTH is %d; computed from SWIDTH is %d" % (self.font.filename, self.name, self.dwidth_x, dwidth_x_from_swidth_x))
+                is_sane = False
             if get_ratio(swidth_x_from_dwidth_x, self.swidth_x) > 1.01:
                 print("WARNING: %s: char %s: SWIDTH is %d; computed from DWIDTH is %d" % (self.font.filename, self.name, self.swidth_x, swidth_x_from_dwidth_x))
+                is_sane = False
+        return is_sane
 
     def sanity_check_encoding(self):
+        is_sane = True
         encoding_from_name = fontforge.unicodeFromName(self.name)
         if encoding_from_name >= 0:
             if self.encoding != encoding_from_name:
                 print("WARNING: %s: char %s: encoding for that charname should be %d but ENCODING is %d" % (self.font.filename, self.name, encoding_from_name, self.encoding))
+                is_sane = False
             else:
                 canonical_name = fontforge.nameFromUnicode(self.encoding)
                 if self.name != canonical_name:
                     print("NOTICE: %s: char %s: canonical glyph name for ENCODING %d is %s" % (self.font.filename, self.name, self.encoding, canonical_name))
+                    is_sane = False
+        return is_sane
 
     def sanity_check_bitmap_data(self):
+        is_sane = True
         if len(self.bitmap_data) == 0:
             print("WARNING: %s: char %s: no bitmap data" % (self.font.filename, self.name))
+            is_sane = False
         elif len(self.bitmap_data) != self.get_bbx_y():
             print("WARNING: %s: char %s: bounding box is %d pixels tall but bitmap has %d lines of data" % (self.font.filename, self.name, self.get_bbx_y(), len(self.bitmap_data)))
+            is_sane = False
+        return is_sane
 
 unknown_charname_counter = 0
 unknown_variant_counter = 0
