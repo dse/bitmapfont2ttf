@@ -1,0 +1,70 @@
+STARTFONT <number>
+        <number> is the version number of the file format, e.g., 2.1.
+COMMENT <string>
+        ignored when reading the file.
+CONTENTVERSION <integer>
+        the version of the included data.  See BDF specification.
+FONT <string>
+        the PostScript language FontName.
+SIZE <point-size> <x-res> <y-res>
+        <point-size> is the point size of the glyphs.
+        <x-res> and <y-res> are the resolution of the font's intended device.
+FONTBOUNDINGBOX <width> <height> <x-offset> <y-offset>
+METRICSSET <integer>
+        if 0, writing direction 0 (horizontal) only
+        if 1, writing direction 1 (vertical) only
+        if 2, both writing directions
+        defaults to 0
+SWIDTH <x> <y>
+DWIDTH <x> <y>
+SWIDTH1 <x> <y>
+DWIDTH1 <x> <y>
+VVECTOR <x> <y>
+        The default metrics at the global level; these directives in each character override.
+STARTPROPERTIES <n>
+        Followed by <n> NAME VALUE lines then an ENDPROPERTIES line.
+        Each value is an integer or a string surrounded by double quotes.
+ENDPROPERTIES
+        Delimits the end of the property list.
+
+Individual Glyphs
+
+CHARS <n>
+        start of <n> characters
+STARTCHAR <string>
+        specifies the character's PostScript name
+ENCODING <integer>
+        specifies the Adobe Standard Encoding value
+ENCODING -1 <integer>
+        for characters not in the Adobe Standard Encoding.
+        The integer is an optional glyph index.
+SWIDTH <x> <y>
+SWIDTH1 <x> <y>
+        specifies the advance width/height in scalable units of 1/1000th
+        of the font size of the glyph.
+
+        To get the glyph's width in printer's points:
+                <width-in-pt> = <swidth> / 1000 * <font-size-in-pt>
+        To get the glyph's width in pixels, or dwidth:
+                <dwidth> = <font-size-in-pt> / 72 * <x-res-in-dpi>
+                         = <swidth> / 1000 * <font-size-in-pt> / 72 * <x-res-in-dpi>
+DWIDTH <x> <y>
+DWIDTH1 <x> <y>
+        specifies the advance width/height in device pixels.
+
+        To get the glyph's width in points:
+                <width-in-pt> = <dwidth> / <x-res-in-dpi> * 72
+        To get the glyph's scalable width:
+                <swidth> = <width-in-pt> / <font-size-in-pt> * 1000
+                         = <dwidth> / <x-res-in-dpi> * 72 / <font-size-in-pt> * 1000
+VVECTOR <x> <y>
+        see BDF specification.
+BBX <width> <height> <x-offset> <y-offset>
+        required for each character.  Overrides the FONTBOUNDINGBOX if that is specified.
+BITMAP
+        followed by <h> hexadecimal lines where <h> is the BBX height.
+        each line is padded by zeroes to the right up to the next multiple of 8.
+ENDCHAR
+        end of character data
+ENDFONT
+        end of font

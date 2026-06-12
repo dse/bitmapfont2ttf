@@ -1,0 +1,212 @@
+X Logical Font Description Conventions
+
+XLFD is divided into two basic components:
+- the FontName, to uniquely identify a font in X protocol requests
+  also listed as the value of the FONT item in a BDF 2.1 file.
+- a list of optional FontProperties
+  listed in the STARTPROPERTIES...ENDPROPERTIES section in a BDF file.
+
+The FontName is composed of:
+- a FontNameRegistry prefix
+        "-"
+        "+" <version> "-"
+  <version> is an XLFD version that defines an extension to the XLFD syntax,
+  e.g., "1.4".
+- a FontNameSuffix
+        <FOUNDRY>                               // 1
+        "-" <FAMILY_NAME>                       // 2
+        "-" <WEIGHT_NAME>                       // 3
+        "-" <SLANT>                             // 4
+        "-" <SETWIDTH_NAME>                     // 5
+        "-" <ADD_STYLE_NAME>                    // 6
+        "-" <PIXEL_SIZE>                        // 7
+        "-" <POINT_SIZE>                        // 8
+        "-" <RESOLUTION_X>                      // 9
+        "-" <RESOLUTION_Y>                      // 10
+        "-" <SPACING>                           // 11
+        "-" <AVERAGE_WIDTH>                     // 12
+        "-" <CHARSET_REGISTRY>                  // 13
+        "-" <CHARSET_ENCODING>                  // 14
+Field values exclude:
+- "-", the XLFD delimiter.
+- "?" and "*", the X protocol font name wildcards.
+- ",", which separates a list of font names in an Xlib call
+- "\"", used by some commercial products to quote a font name
+XLFDs are case insensitive.
+XLFDs cannot be more than 255 characters.
+XLFD fields can have space characters.
+"ITC Avant Garde Gothic" can be a <family name>.
+
+The <FOUNDRY> field is an X.org registered name for a supplier of font data.
+
+The <WEIGHT_NAME> field is an arbitrary string that SHOULD not be used for
+font matching or substitution.
+
+The <SLANT> field:
+        "R"                     roman (upright)
+        "I"                     italic
+        "O"                     oblique
+        "RI"                    reverse italic
+        "RO"                    reverse oblique
+        "OT"                    other
+        <numeric>               for polymorphic fonts
+
+The <SETWIDTH_NAME> field is arbitrary, usually something like:
+        "Normal"
+        "Condensed"
+        "Narrow"
+        "Double Wide"
+        "semicondensed"
+
+The <ADD_STYLE_NAME> field is a string identifying additional style
+information not supplied by other means (slant, weight, width, font name)
+
+The <PIXEL_SIZE> field specifies the size of the font at the
+POINT_SIZE and RESOLUTION_Y.  It usually includes additional vertial
+spacing that is part of the design of the typeface.  It is not
+necessarily the height of the font's bounding box.
+
+The SN <POINT_SIZE> field specifies the body size IN DECIPOINTS that
+the font was designed for.  It usually includes additional vertical
+spacing that is part of the design of the typeface.  It is also not
+necessarily the height of the font's bounding box.
+
+The <RESOLUTION_X> and <RESOLUTION_Y> fields specify the pixel
+resolution the font was designed for.  0 indicates a scalable font.
+
+The <SPACING> field indicates the font's ESCAPEMENT class.
+
+        "P"     proportional
+        "M"     monospace
+        "C"     charcell - a monospace font where no glyphs
+                have any "ink" outside of the character cell.
+
+The <AVERAGE_WIDTH> field is the unweighted arithmetic mean of the
+absolute value of the width of each glyph, multiplied by -1 for
+right-to-left fonts.
+
+In integer fields, a leading tilde (~) indicates a negative value.
+
+CHARSET_REGISTRY and CHARSET_ENCODING --- The CHARSET_REGISTRY is the
+X.org registered name of the registration authority that owns the
+CHARSET_ENCODING.
+
+        ISO8859-1
+        -iso8859-1[65 70 80_90]
+
+Font Properties
+
+If not supplied:
+        FOUNDRY cannot be computed or defaulted.
+        FAMILY_NAME cannot be computed or defaulted.
+        WEIGHT_NAME defaults to "Medium".
+        SLANT defaults to "R".
+        SETWIDTH_NAME defaults to "Normal".
+        ADD_STYLE_NAME defaults to "".
+        PIXEL_SIZE defaults to round((resolution-y * point-size-in-decipoints) / 722.7)
+        POINT_SIZE cannot be calculated or approximated.
+        RESOLUTION_X cannot be calculated or approximated.
+        RESOLUTION_Y cannot be calculated or approximated.
+        SPACING can be calculated if not specified as a font property,
+        according to the definitions given for the FontName.
+        AVERAGE_WIDTH can be calculated as ROUND(MEAN(ABS(width of each glyph)) * 10) * (if LTR then 1 else -1)
+        CHARSET_REGISTRY cannot be defaulted.
+        CHARSET_ENCODING cannot be defaulted.
+
+MIN_SPACE supplies the recommended minimum word-space.
+
+        Default: 0.75 * NORM_SPACE
+
+NORM_SPACE is the recommended normal word-space value.
+
+        Default:        if SPACE glyph exists:
+                                width of SPACE
+                        else:
+                                ROUND((0.33 * RESOLUTION_X * POINT_SIZE) / 722.7)
+
+MAX_SPACE is the maximum word spacing.
+
+        Default: 1.5 * NORM_SPACE
+
+END_SPACE supplies the spacing at the end of sentences.
+
+        Default: NORM_SPACE
+
+AVG_CAPITAL_WIDTH
+AVG_LOWERCASE_WIDTH
+
+        Default: calculated in the same way as AVERAGE_WIDTH but only for
+        capital or lowercase glyphs.
+
+QUAD width gives the width of an em space.  You are not encouraged to use this.
+
+        See XLFD document.
+
+FIGURE_WIDTH
+
+        Default: if numerals and "$" are defined and widths are equal:
+                use width of "$" sign
+        else:
+                undefined
+
+UNDERLINE_POSITION in pixels from baseline to top of underline
+
+UNDERLINE_THICKNESS in pixels
+
+RELATIVE_SETWIDTH
+
+        0       undefined
+        10      ultracondensed
+        20      extracondensed
+        30      condensed, narrow, compressed, ...
+        40      semicondensed
+        50      medium, normal, regular, ...
+        60      semiexpanded, demiexpanded, ...
+        70      expanded
+        80      extraexpanded, wide, ...
+        90      ultraexpanded
+
+RELATIVE_WEIGHT
+
+        0       undefined
+        10      ultralight
+        20      extralight
+        30      light
+        40      semilight, book, ...
+        50      medium, normal, regular, ...
+        60      semibold, demibold, ...
+        70      bold
+        80      extrabold, heavy, ...
+        90      ultrabold, black, ...
+
+WEIGHT
+
+        capital stem width / height * 1000
+
+FONT
+
+        is the XLFD name of the font
+
+FACE_NAME (or obsolete FULL_NAME)
+
+        a human readable device independent typeface name
+        owner, weight, slant, set, ...
+
+BDF Conformance
+
+FONT_DESCENT
+FONT_ASCENT
+DEFAULT_CHAR
+
+        are provided in the BDF specification
+
+DEFAULT_CHAR
+
+        for when X attempts to display an undefined or nonexistent character
+
+Conflicting point size properties?
+
+Conflicting resolution properties?
+
+        when fontforge exports, it uses the resolutions from the SIZE line
+
