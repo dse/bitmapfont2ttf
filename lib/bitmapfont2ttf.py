@@ -80,13 +80,6 @@ class BitmapFont2TTF:
             self.font.upos   = self.upos_px * self.em_per_pixel_y
             self.font.uthick = self.uthick_px * self.em_per_pixel_y
 
-        print("%s: after metric adjustments:" % self.filename)
-        print("    ascent px: %d" % self.bdf.get_ascent_px())
-        print("    descent px: %d" % self.bdf.get_descent_px())
-        print("    pixel size: %d" % self.bdf.get_pixel_size())
-        print("    pixel size y: %d" % self.em_per_pixel_y)
-        print("    pixel size x: %d" % self.em_per_pixel_x)
-
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
 
@@ -120,12 +113,6 @@ class BitmapFont2TTF:
         self.font.familyname = self.format(familyname, format_args)
         self.font.weight     = self.format(weight, format_args)
         self.font.weight     = self.format(weight, format_args)
-
-        print("%s" % self.args.filename)
-        print("    fontname    %s" % self.font.fontname)
-        print("    familyname  %s" % self.font.familyname)
-        print("    weight      %s" % self.font.weight)
-        print("    fullname    %s" % self.font.fullname)
 
         self.font.copyright = self.bdf.get_copyright()
         if self.args.copyright is not None:
