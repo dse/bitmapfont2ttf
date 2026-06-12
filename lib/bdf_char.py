@@ -45,33 +45,49 @@ class BDFChar:
             self.order = self.order.replace(',', ' ').strip().split()
             self.order = [upper(x) for x in self.order]
 
-    def get_swidth_x(self):
+    def get_swidth_x_no_compute(self):
         if self.swidth_x is not None:
             return self.swidth_x
+        if self.font.swidth_x is not None:
+            return self.font.swidth_x
+        return None
+
+    def get_swidth_x_no_parent(self):
+        swidth_x = self.get_swidth_x_no_compute()
+        if swidth_x is not None:
+            return swidth_x
         if self.dwidth_x is not None:
-            return (
-                self.dwidth_x                                   # pixels
-                / self.get_resolution_x()                       # inches
-                * 72.27                                         # points
-                / self.get_point_size()                         # em units
-                * 1000                                          # milliem units
-            )
+            return round(self.dwidth_x / self.get_resolution_x() * 72.27 / self.get_point_size() * 1000)
+        return None
+
+    def get_swidth_x(self):
+        swidth_x = self.get_swidth_x_no_parent()
+        if swidth_x is not None:
+            return swidth_x
         return self.font.get_swidth_x()
 
     def get_swidth_y(self):
         return 0
 
-    def get_dwidth_x(self):
+    def get_dwidth_x_no_compute(self):
         if self.dwidth_x is not None:
             return self.dwidth_x
+        if self.font.dwidth_x is not None:
+            return self.font.dwidth_x
+        return None
+
+    def get_dwidth_x_no_parent(self):
+        dwidth_x = self.get_dwidth_x_no_compute()
+        if dwidth_x is not None:
+            return dwidth_x
         if self.swidth_x is not None:
-            return (
-                self.swidth_x                                   # milliem units
-                / 1000                                          # em units
-                * self.get_point_size()                         # points
-                / 72.27                                         # inches
-                * self.get_resolution_x()                       # pixels
-            )
+            return round(self.swidth_x / 1000 * self.get_point_size() / 72.27 * self.get_resolution_x())
+        return None
+
+    def get_dwidth_x(self):
+        dwidth_x = self.get_dwidth_x_no_parent()
+        if dwidth_x is not None:
+            return self.dwidth_x
         return self.font.get_dwidth_x()
 
     def get_dwidth_y(self):
