@@ -41,44 +41,44 @@ class BitmapFont2TTF:
 
         self.font = fontforge.font()
 
-        ascent_px = self.bdf.ascent_px()
-        descent_px = self.bdf.descent_px()
-        pixel_size = ascent_px + descent_px
+        self.ascent_px = self.bdf.ascent_px()
+        self.descent_px = self.bdf.descent_px()
+        self.pixel_size = self.ascent_px + self.descent_px
 
         # if self.args.add_pixel_size section adds one pixel to descent, let self.args.windows section add one pixel to ascent.
         favor_descent = True
 
         if self.args.add_pixel_size:
-            pixel_size += self.args.add_pixel_size
-            ascent_px += int(self.args.add_pixel_size / 2)
-            descent_px = pixel_size - ascent_px
+            self.pixel_size += self.args.add_pixel_size
+            self.ascent_px += int(self.args.add_pixel_size / 2)
+            self.descent_px = self.pixel_size - self.ascent_px
             # may add one more pixel to descent than to ascent
             if self.args.add_pixel_size % 2 == 1:
                 favor_descent = False
         if self.args.windows:
-            if pixel_size % 4 == 2:
-                pixel_size += 1
+            if self.pixel_size % 4 == 2:
+                self.pixel_size += 1
                 if favor_descent:
-                    descent_px += 1
+                    self.descent_px += 1
                 else:
-                    ascent_px += 1
+                    self.ascent_px += 1
 
-        self.bdf.set_ascent_px(ascent_px)
-        self.bdf.set_descent_px(descent_px)
-        self.bdf.set_pixel_size(pixel_size)
+        self.bdf.set_ascent_px(self.ascent_px)
+        self.bdf.set_descent_px(self.descent_px)
+        self.bdf.set_pixel_size(self.pixel_size)
 
-        self.em_per_pixel_y = round(self.font.em / pixel_size)
-        self.em_per_pixel_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / pixel_size)
+        self.em_per_pixel_y = round(self.font.em / self.pixel_size)
+        self.em_per_pixel_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / self.pixel_size)
         self.delta_x = self.em_per_pixel_x * (1.0 - self.args.dot_width) / 2
         self.delta_y = self.em_per_pixel_y * (1.0 - self.args.dot_height) / 2
 
-        self.font.ascent  = ascent_px * self.em_per_pixel_y
-        self.font.descent = descent_px * self.em_per_pixel_y
-        upos   = self.bdf.get_underline_position_px()
-        uthick = self.bdf.get_underline_thickness_px()
-        if upos is not None and uthick is not None:
-            self.font.upos   = upos * self.em_per_pixel_y
-            self.font.uthick = uthick * self.em_per_pixel_y
+        self.font.ascent  = self.ascent_px * self.em_per_pixel_y
+        self.font.descent = self.descent_px * self.em_per_pixel_y
+        self.upos_px   = self.bdf.get_underline_position_px()
+        self.uthick_px = self.bdf.get_underline_thickness_px()
+        if self.upos_px is not None and self.uthick_px is not None:
+            self.font.upos   = self.upos_px * self.em_per_pixel_y
+            self.font.uthick = self.uthick_px * self.em_per_pixel_y
 
         print("%s: after metric adjustments:" % self.filename)
         print("    ascent px: %d" % self.bdf.get_ascent_px())
@@ -86,12 +86,6 @@ class BitmapFont2TTF:
         print("    pixel size: %d" % self.bdf.get_pixel_size())
         print("    pixel size y: %d" % self.em_per_pixel_y)
         print("    pixel size x: %d" % self.em_per_pixel_x)
-
-        self.pixel_size = pixel_size
-        self.ascent_px = ascent_px
-        self.descent_px = descent_px
-        self.upos = upos
-        self.uthick = uthick
 
         self.font.version     = self.bdf.get_font_version("")
         self.font.encoding    = "UnicodeBMP"
