@@ -512,51 +512,6 @@ class BDFFont:
         if "RESOLUTION_Y" in self.properties:
             self.properties["RESOLUTION_Y"] = int(value)
 
-    def finalize(self):
-        if self.finalized:
-            return
-
-        chars = []
-        chars_by_encoding = {}
-        chars_by_name = {}
-        all_chars_by_encoding = {}
-        all_chars_by_name = {}
-        duped_encodings = {}
-        duped_names = {}
-
-        for char in self.chars:
-            if char.encoding not in all_chars_by_encoding:
-                all_chars_by_encoding[char.encoding] = []
-            if char.name not in all_chars_by_name:
-                all_chars_by_name[char.name] = []
-            all_chars_by_name[char.name].append(char)
-            all_chars_by_encoding[char.encoding].append(char)
-
-            if char.name not in chars_by_name and char.encoding not in chars_by_encoding:
-                if char.encoding >= 0:
-                    chars_by_encoding[char.encoding] = char
-                chars_by_name[char.name] = char
-                chars.append(char)
-            else:
-                if char.name in chars_by_name:
-                    duped_names[char.name] = True
-                if char.encoding in chars_by_encoding:
-                    duped_encodings[char.encoding] = True
-
-        for encoding in duped_encodings.keys():
-            print("WARNING: %s: duplicate characters with encoding %d" % (self.filename, encoding), file=sys.stderr)
-            for char in all_chars_by_encoding[encoding]:
-                print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
-                                                    char.name, char.encoding), file=sys.stderr)
-        for name in duped_names.keys():
-            print("WARNING: %s: duplicate characters with name %s" % (self.filename, name), file=sys.stderr)
-            for char in all_chars_by_name[name]:
-                print("    - %s line %d (%s %d)" % (char.filename, char.line_number,
-                                                    char.name, char.encoding), file=sys.stderr)
-
-        self.chars = chars
-        self.finalized = True
-
     def get_font_name(self, default=None):
         if self.font_name is not None:
             return self.font_name
@@ -624,37 +579,60 @@ class BDFFont:
 
     #==========================================================================
 
+    def finalize(self):
+        pass
+
+    #==========================================================================
+
     def sanity_check(self):
-        self.sanity_check_font_name()
-        self.sanity_check_point_size()
-        self.sanity_check_pixel_size()
-        self.sanity_check_resolution_x()
-        self.sanity_check_resolution_y()
-        self.sanity_check_duplicates()
+        is_sane is True
+        if not self.sanity_check_font_name():
+            is_sane = False
+        if not self.sanity_check_point_size():
+            is_sane = False
+        if not self.sanity_check_pixel_size():
+            is_sane = False
+        if not self.sanity_check_resolution_x():
+            is_sane = False
+        if not self.sanity_check_resolution_y():
+            is_sane = False
+        if not self.sanity_check_duplicates():
+            is_sane = False
         for char in self.chars:
-            char.sanity_check()
+            if not char.sanity_check():
+                is_sane = False
+        return is_sane
 
     def sanity_check_font_name(self):
+        is_sane = True
         if self.font_name is not None and self.properties.get("FONT") is not None:
             if self.font_name != self.properties.get("FONT") and not is_xlfd(self.font_name):
                 print("WARNING: %s: FONT name in main section (%s, not an XLFD) and properties (%s) do not match\n" %
                       (self.filename, self.font_name, self.properties.get("FONT")))
+                is_sane = False
+        return is_sane
 
     def sanity_check_point_size(self):
+        is_sane = True
         pt1 = self.point_size * 10 if self.point_size is not None else None
         pt2 = self.properties.get("POINT_SIZE") if self.properties.get("POINT_SIZE") is not None else None
         pt3 = round(self.get_pixel_size() / self.get_resolution_y() * 722.7)
         if pt1 is not None and pt2 is not None:
             if pt1 != pt2:
                 print("WARNING: %s: point size inconsistency between SIZE %d (points) and POINT_SIZE %d (decipoints)" % (self.filename, pt1/10, pt2))
+                is_sane = False
         if pt1 is not None and pt3 is not None:
             if pt1 != pt3:
                 print("WARNING: %s: point size inconsistency between SIZE %d (points) and calculation result from px size and resolution (%d decipoints)" % (self.filename, pt1/10, pt3))
+                is_sane = False
         if pt2 is not None and pt3 is not None:
             if pt2 != pt3:
                 print("WARNING: %s: point size inconsistency between POINT_SIZE %d (decipoints) and calculation result from px size and resolution (%d decipoints)" % (self.filename, pt2, pt3))
+                is_sane = False
+        return is_sane
 
     def sanity_check_pixel_size(self):
+        is_sane = True
         px1 = self.properties.get("PIXEL_SIZE")
         ascent = self.properties.get("FONT_ASCENT")
         descent = self.properties.get("FONT_DESCENT")
@@ -663,26 +641,37 @@ class BDFFont:
         if px1 is not None and px2 is not None:
             if px1 != px2:
                 print("WARNING: %s: pixel size inconsistency between PIXEL_SIZE (%d) and FONT_ASCENT+FONT_DESCENT (%d)" % (self.filename, px1, px2))
+                is_sane = False
         if px1 is not None and px3 is not None:
             if px1 != px3:
                 print("WARNING: %s: point size inconsistency between PIXEL_SIZE (%d) and calculation result from pt size and resolution (%d)" % (self.filename, px1, px3))
+                is_sane = False
         if px2 is not None and px3 is not None:
             if px2 != px3:
                 print("WARNING: %s: point size inconsistency between FONT_ASCENT+FONT_DESCENT (%d) and calculation result from px size and resolution (%d)" % (self.filename, px2, px3))
+                is_sane = False
+        return is_sane
 
     def sanity_check_resolution_x(self):
+        is_sane = True
         rx1 = self.res_x
         rx2 = self.properties.get("RESOLUTION_X")
         if rx1 is not None and rx2 is not None and rx1 != rx2:
             print("WARNING: %s: resolution X inconsistency (%d in SIZE vs RESOLUTION_X property of %d)" % (self.filename, rx1, rx2))
+            is_sane = False
+        return is_sane
 
     def sanity_check_resolution_y(self):
+        is_sane = True
         ry1 = self.res_y
         ry2 = self.properties.get("RESOLUTION_Y")
         if ry1 is not None and ry2 is not None and ry1 != ry2:
             print("WARNING: %s: resolution Y inconsistency (%d in SIZE vs RESOLUTION_Y property of %d)" % (self.filename, ry1, ry2))
+            is_sane = False
+        return is_sane
 
     def sanity_check_duplicates(self):
+        is_sane = True
         encoding_counts = []
         alt_encoding_counts = []
         charname_counts = []
@@ -693,12 +682,14 @@ class BDFFont:
                 charname_counts[char.name] += 1
                 if charname_counts[char.name] == 2:
                     print("WARNING: %s: duplicate characters with name %s" % (self.filename, char.name))
+                    is_sane = False
             if char.encoding not in encoding_counts:
                 encoding_counts[char.encoding] = 1
             else:
                 encoding_counts[char.encoding] += 1
                 if encoding_counts[char.encoding] == 2:
                     print("WARNING: %s: duplicate characters with encoding %d" % (self.filename, char.encoding))
+                    is_sane = False
             if char.alt_encoding is not None:
                 if char.alt_encoding not in alt_encoding_counts:
                     alt_encoding_counts[char.alt_encoding] = 1
@@ -706,3 +697,5 @@ class BDFFont:
                     alt_encoding_counts[char.alt_encoding] += 1
                     if alt_encoding_counts[char.alt_encoding] == 2:
                         print("WARNING: %s: duplicate characters with alt-encoding %d" % (self.filename, char.alt_encoding))
+                        is_sane = False
+        return is_sane
