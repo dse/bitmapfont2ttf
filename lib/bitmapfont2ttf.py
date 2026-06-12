@@ -45,20 +45,21 @@ class BitmapFont2TTF:
         self.descent_px = self.bdf.descent_px()
         self.pixel_size = self.ascent_px + self.descent_px
 
-        # if self.args.add_pixel_size section adds one pixel to descent, let self.args.windows section add one pixel to ascent.
-        favor_descent = True
-
+        add_more_px_to_descent = True
         if self.args.add_pixel_size:
             self.pixel_size += self.args.add_pixel_size
-            self.ascent_px += int(self.args.add_pixel_size / 2)
-            self.descent_px = self.pixel_size - self.ascent_px
-            # may add one more pixel to descent than to ascent
+            if add_more_px_to_descent:
+                self.ascent_px  += floor(self.args.add_pixel_size / 2)
+                self.descent_px += ceil(self.args.add_pixel_size / 2)
+            else:
+                self.ascent_px  += ceil(self.args.add_pixel_size / 2)
+                self.descent_px += floor(self.args.add_pixel_size / 2)
             if self.args.add_pixel_size % 2 == 1:
-                favor_descent = False
+                add_more_px_to_descent = not add_more_px_to_descent
         if self.args.windows:
             if self.pixel_size % 4 == 2:
                 self.pixel_size += 1
-                if favor_descent:
+                if add_more_px_to_descent:
                     self.descent_px += 1
                 else:
                     self.ascent_px += 1
