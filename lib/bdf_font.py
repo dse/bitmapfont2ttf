@@ -151,20 +151,35 @@ class BDFFont:
         if px is not None:
             return px
 
-    def get_pixel_size(self, default=Exception):
-        px = self.get_pixel_size_no_compute()
+    def get_pixel_size_A(self):
+        px = self.properties.get("PIXEL_SIZE")
         if px is not None:
             return px
+
+    def get_pixel_size_B(self):
         ascent = self.properties.get("FONT_ASCENT")
         descent = self.properties.get("FONT_DESCENT")
         if ascent is not None and descent is not None:
             return ascent + descent
+        return None
+
+    def get_pixel_size_C(self):
         pt = self.get_point_size(default=None)
         if pt is not None:
             return round(pt * self.get_resolution_y() / 72.27)
-        if default is Exception:
-            raise Exception('cannot determine pixel size')
-        return default
+        return None
+
+    def get_pixel_size(self, default=Exception):
+        px = self.get_pixel_size_A()
+        if px is None:
+            px = self.get_pixel_size_B()
+        if px is None:
+            px = self.get_pixel_size_C()
+        if px is None:
+            if default is Exception:
+                raise Exception('cannot determine pixel size')
+            return default
+        return px
 
     def get_resolution_x(self):
         if self.res_x is not None:
@@ -580,7 +595,10 @@ class BDFFont:
     #==========================================================================
 
     def finalize(self):
-        pass
+        self.orig_pixel_size_A = self.get_pixel_size_A()
+        self.orig_pixel_size_B = self.get_pixel_size_B()
+        self.orig_pixel_size_C = self.get_pixel_size_C()
+        self.orig_pixel_size   = self.get_pixel_size()
 
     #==========================================================================
 

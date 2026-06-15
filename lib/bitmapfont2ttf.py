@@ -41,8 +41,15 @@ class BitmapFont2TTF:
 
         self.font = fontforge.font()
 
-        self.ascent_px = self.bdf.ascent_px()
-        self.descent_px = self.bdf.descent_px()
+        self.orig_ascent_px  = self.bdf.get_ascent_px()
+        self.orig_descent_px = self.bdf.get_descent_px()
+        self.orig_pixel_size_A = self.bdf.get_pixel_size_A()
+        self.orig_pixel_size_B = self.bdf.get_pixel_size_B()
+        self.orig_pixel_size_C = self.bdf.get_pixel_size_C()
+        self.orig_pixel_size   = self.bdf.get_pixel_size()
+
+        self.ascent_px  = self.bdf.get_ascent_px()
+        self.descent_px = self.bdf.get_descent_px()
         self.pixel_size = self.ascent_px + self.descent_px
 
         add_more_px_to_descent = True
@@ -67,6 +74,10 @@ class BitmapFont2TTF:
         self.bdf.set_ascent_px(self.ascent_px)
         self.bdf.set_descent_px(self.descent_px)
         self.bdf.set_pixel_size(self.pixel_size)
+
+        self.pixel_size_A  = self.bdf.get_pixel_size_A()
+        self.pixel_size_B  = self.bdf.get_pixel_size_B()
+        self.pixel_size_C  = self.bdf.get_pixel_size_C()
 
         self.em_per_pixel_y = round(self.font.em / self.pixel_size)
         self.em_per_pixel_x = round(self.font.em * self.bdf.get_aspect_ratio() * self.args.aspect_ratio / self.pixel_size)
