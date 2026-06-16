@@ -4,6 +4,7 @@
 import os
 import sys
 import argparse
+import csv
 
 libdir = os.path.dirname(os.path.realpath(__file__)) + "/../lib"
 sys.path.append(libdir)
@@ -94,11 +95,79 @@ bdf_parser = BDFParser(filename=args.filename, args=args)
 bdf2ttf = BitmapFont2TTF(args=args)
 font = bdf2ttf.bitmapfont2ttf(font=bdf_parser.font)
 
+log_fh_is_fd_3 = False
+try:
+    log_fh = os.fdopen(3, mode="w")
+    log_fh_is_fd_3 = True
+except OSError:
+    log_fh = sys.stdout
+
+csv_fh_is_fd_4 = False
+try:
+    csv_fh = os.fdopen(4, mode="w")
+    csv_fh_is_fd_4 = True
+except OSError:
+    csv_fh = None
+
 for filename in args.destfilenames:
+    glyph_count = len(list(font.glyphs()))
     if filename.endswith(".sfd"):
-        print("saving %s (%d glyphs) ..." % (filename, len(list(font.glyphs()))))
+        print("saving %s (%d glyphs) ..." % (filename, glyph_count))
         font.save(filename)
     else:
-        print("generating %s (%d glyphs) ..." % (filename, len(list(font.glyphs()))))
+        print("generating %s (%d glyphs) ..." % (filename, glyph_count))
         font.generate(filename)
+
+    if csv_fh:
+        E  = round(bdf2ttf.pixel_size * 3/4)
+        D2 = bdf2ttf.pixel_size
+        D1 = bdf2ttf.orig_pixel_size
+        C2 = bdf2ttf.pixel_size_C
+        C1 = bdf2ttf.orig_pixel_size_C
+        B2 = bdf2ttf.pixel_size_B
+        B1 = bdf2ttf.orig_pixel_size_B
+        A2 = bdf2ttf.pixel_size_A
+        A1 = bdf2ttf.orig_pixel_size_A
+        ASC1  = bdf2ttf.orig_ascent_px
+        ASC2  = bdf2ttf.ascent_px
+        DESC1 = bdf2ttf.orig_descent_px
+        DESC2 = bdf2ttf.descent_px
+        highlight_D    = "**" if D1 != D2 and D1 is not None and D2 is not None else "  "
+        highlight_C    = "**" if C1 != C2 and C1 is not None and C2 is not None else "  "
+        highlight_B    = "**" if B1 != B2 and B1 is not None and B2 is not None else "  "
+        highlight_A    = "**" if A1 != A2 and A1 is not None and A2 is not None else "  "
+        highlight_ASC  = "**" if ASC1 != ASC2 and ASC1 is not None and ASC2 is not None else "  "
+        highlight_DESC = "**" if DESC1 != DESC2 and DESC1 is not None and DESC2 is not None else "  "
+        writer = csv.writer(csv_fh)
+        writer.writerow([
+            filename,
+            font.fontname,
+            ASC1,
+            ASC2,
+            highlight_ASC,
+            DESC1,
+            DESC2,
+            highlight_DESC,
+            A1,
+            A2,
+            highlight_A,
+            B1,
+            B2,
+            highlight_B,
+            C1,
+            C2,
+            highlight_C,
+            D1,
+            D2,
+            highlight_D,
+            D2,
+            E
+        ])
+
+    print("| %6d | %6d | %-29s | %-64s |" % (
+        round(bdf2ttf.pixel_size * 3/4),
+        bdf2ttf.pixel_size,
+        font.fontname,
+        filename,
+    ), file=log_fh)
     print("Done.")
