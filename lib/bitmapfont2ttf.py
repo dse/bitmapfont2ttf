@@ -47,6 +47,8 @@ class BitmapFont2TTF:
         self.orig_pixel_size_B = self.bdf.get_pixel_size_B()
         self.orig_pixel_size_C = self.bdf.get_pixel_size_C()
         self.orig_pixel_size   = self.bdf.get_pixel_size()
+        self.orig_ascent       = self.bdf.properties.get("FONT_ASCENT")
+        self.orig_descent      = self.bdf.properties.get("FONT_DESCENT")
 
         self.ascent_px  = self.bdf.get_ascent_px()
         self.descent_px = self.bdf.get_descent_px()
