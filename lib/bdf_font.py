@@ -131,7 +131,7 @@ class BDFFont:
         pt10 = self.properties.get("POINT_SIZE")
         if pt10 is not None:
             return pt10 / 10.0
-        return default
+        return None
 
     def get_point_size(self, default=Exception):
         pt = self.get_point_size_no_compute()
